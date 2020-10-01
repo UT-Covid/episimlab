@@ -1,0 +1,8 @@
+numpy
+scipy
+xarray
+dask
+dask[dataframe]
+dask[distributed]
+toolz
+xsimlab
