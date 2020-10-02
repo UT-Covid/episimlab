@@ -3,9 +3,11 @@ import xsimlab as xs
 @xs.process
 class Network:
 
-    amx = xs.variable()
+    amx = xs.variable(dims='vertex0', intent="inout")
+    cur_cts = xs.variable(intent="in")
 
-    def initialize(self):
+    def run_step(self):
         """
         """
         pass
+
