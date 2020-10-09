@@ -73,7 +73,7 @@ PYTEST_OPTS ?=
 
 pytest: pytest-native
 
-pytest-native: | python
+pytest-native: clean-tests | python
 	PYTHONPATH=./src $(PYTHON) -m pytest $(PYTEST_OPTS)
 
 pytest-tox: clean-tests | tox $(CC)
