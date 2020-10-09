@@ -68,7 +68,7 @@ image: docker/Dockerfile dist/$(PKG)-$(VERSION).tar.gz requirements.txt | docker
 ####################################
 # Pytest
 ####################################
-PYTEST_OPTS ?=
+PYTEST_OPTS ?= -svvv
 .PHONY: pytest-native pytest-tox
 
 pytest: pytest-native
