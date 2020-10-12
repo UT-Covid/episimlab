@@ -64,3 +64,73 @@ def phi_t():
     }
     return xr.DataArray(data=data, dims=dims, coords=coords)
 
+@pytest.fixture()
+def epis(rho, gamma, sigma, pi, eta, nu, mu, tau):
+    return dict(
+        rho=rho, gamma=gamma, sigma=sigma, pi=pi,
+        eta=eta, nu=nu, mu=mu, tau=tau
+    )
+
+@pytest.fixture()
+def rho(counts_coords):
+    data = 0.43478261
+    dims = ('age_group', 'compartment')
+    coords = {
+        'age_group': counts_coords['age_group'],
+        'compartment': ['Ia', 'Iy']
+    }
+    return xr.DataArray(data=data, dims=dims, coords=coords)
+
+
+@pytest.fixture()
+def gamma():
+    data = np.array([0.25, 0.25, 0.09118541])
+    dims = ('compartment')
+    coords = {'compartment': ['Ia', 'Iy', 'Ih']}
+    return xr.DataArray(data=data, dims=dims, coords=coords)
+
+
+@pytest.fixture()
+def sigma():
+    return 0.34482759
+
+
+@pytest.fixture()
+def pi(counts_coords):
+    # pi = np.array(
+        # [[5.92915812e-04, 4.55900959e-04, 2.78247788e-02, 5.95202276e-02, 7.03344654e-02],
+         # [5.91898663e-03, 4.55299354e-03, 2.57483139e-01, 5.07631836e-01, 5.84245731e-01]])
+    data = np.array([
+        [5.92915812e-04, 4.55900959e-04, 2.78247788e-02, 5.95202276e-02, 7.03344654e-02],
+        [5.91898663e-03, 4.55299354e-03, 2.57483139e-01, 5.07631836e-01, 5.84245731e-01]
+    ])
+    dims = ('risk_group', 'age_group')
+    coords = {
+        'age_group': counts_coords['age_group'],
+        'risk_group': counts_coords['risk_group'],
+    }
+    return xr.DataArray(data=data, dims=dims, coords=coords)
+
+
+@pytest.fixture()
+def eta():
+    return 0.169492
+
+
+@pytest.fixture()
+def nu(counts_coords):
+    return xr.DataArray(
+        [0.02878229, 0.09120554, 0.02241002, 0.07886779, 0.17651128],
+        dims=('age_group'),
+        coords=dict(age_group=counts_coords['age_group'])
+    )
+
+
+@pytest.fixture()
+def mu():
+    return 0.12820513
+
+
+@pytest.fixture()
+def tau():
+    return 0.57

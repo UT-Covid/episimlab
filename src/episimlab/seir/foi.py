@@ -7,6 +7,8 @@ from numbers import Number
 
 @xs.process
 class BruteForceFOI:
+    """A readable, brute force algorithm for calculating force of infection (FOI).
+    """
 
     age_group = xs.variable()
     risk_group = xs.variable()
@@ -95,12 +97,6 @@ class BruteForceFOI:
 
     def run_step(self):
         self.foi = self.calculate_foi()
-
-
-
-
-
-
 
 
 def get_foi_numpy(compt_ia, compt_iy, compt_pa, compt_py, compt_s, phi_, beta, kappa,
