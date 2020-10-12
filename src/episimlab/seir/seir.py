@@ -9,6 +9,8 @@ from numbers import Number
 class BruteForceSEIR:
     """Calculate change in `counts` due to SEIR transmission. Brute force
     algorithm for testing purposes.
+
+    TODO: discrete time approximation
     """
 
     COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
@@ -176,5 +178,4 @@ class BruteForceSEIR:
                 self.counts_delta_seir.loc[idx('Ih')] = d_Ih
                 self.counts_delta_seir.loc[idx('R')] = d_R
                 self.counts_delta_seir.loc[idx('D')] = d_D
-
 

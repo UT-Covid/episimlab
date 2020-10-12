@@ -7,7 +7,7 @@ from numbers import Number
 
 class TestFOIBruteForce:
 
-    def test_can_import(self, counts_basic, phi_midx_mapping, phi_t):
+    def test_can_run_step(self, counts_basic, phi_midx_mapping, phi_t):
         """
         """
         inputs = {
@@ -28,12 +28,8 @@ class TestFOIBruteForce:
         foi_getter.run_step()
         result = foi_getter.foi
 
-        # TODO: add accompanying MultiIndex mapping with every 2D array
-        # phi and adjacency matrix
-
-        logging.debug(f"phi_midx_mapping: {phi_midx_mapping}")
-        #
-        logging.debug(f"result: {result}")
+        # logging.debug(f"phi_midx_mapping: {phi_midx_mapping}")
+        # logging.debug(f"result: {result}")
         assert isinstance(result, Number)
 
 

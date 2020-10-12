@@ -6,7 +6,7 @@ from episimlab.seir import BruteForceSEIR
 
 class TestCountsDeltaSEIR:
 
-    def test_can_init(self, counts_basic, epis):
+    def test_can_run_step(self, counts_basic, epis):
         inputs = {
             'age_group': counts_basic.coords['age_group'],
             'risk_group': counts_basic.coords['risk_group'],

@@ -7,7 +7,7 @@ from episimlab.setup import InitPhi, InitMidxMapping
 
 class TestInitPhi:
 
-    def test_can_init(self, counts_coords, phi_midx_mapping):
+    def test_can_run_step(self, counts_coords, phi_midx_mapping):
         inputs = {
             'midx1': np.arange(10),
             'midx2': np.arange(10),
