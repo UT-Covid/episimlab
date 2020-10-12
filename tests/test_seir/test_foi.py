@@ -1,11 +1,13 @@
 import pytest
+import logging
 import xarray as xr
 from episimlab.seir import BruteForceFOI
+from numbers import Number
 
 
 class TestFOIBruteForce:
 
-    def test_can_import(self, counts_basic):
+    def test_can_import(self, counts_basic, phi_midx_mapping, phi_t):
         """
         """
         inputs = {
@@ -19,13 +21,19 @@ class TestFOIBruteForce:
                 coords=dict(compartment=['Ia', 'Iy', 'Pa', 'Py'])
             ),
             'counts': counts_basic,
-            'phi_t': [
-                [0.51540028, 0.94551748, 1.96052056, 0.12479711, 0.0205698 ],
-                [0.20813759, 1.72090425, 1.9304265 , 0.16597259, 0.0238168 ],
-                [0.24085226, 0.90756038, 1.68238057, 0.23138952, 0.0278581 ],
-                [0.20985118, 0.70358752, 1.24247158, 0.97500204, 0.10835478],
-                [0.14845117, 0.69386045, 0.98826341, 0.34871121, 0.61024946]]
-
+            'phi_t': phi_t,
+            'phi_grp_mapping': phi_midx_mapping
         }
         foi_getter = BruteForceFOI(**inputs)
         foi_getter.run_step()
+        result = foi_getter.foi
+
+        # TODO: add accompanying MultiIndex mapping with every 2D array
+        # phi and adjacency matrix
+
+        logging.debug(f"phi_midx_mapping: {phi_midx_mapping}")
+        #
+        logging.debug(f"result: {result}")
+        assert isinstance(result, Number)
+
+

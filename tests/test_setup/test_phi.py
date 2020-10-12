@@ -22,6 +22,7 @@ class TestInitPhi:
         proc.finalize_step()
         result = proc.phi
         assert isinstance(result, xr.DataArray)
+        # logging.debug(f"result: {result}")
 
 
 class TestInitMidxMapping:
@@ -34,3 +35,4 @@ class TestInitMidxMapping:
         proc.initialize()
         result = proc.midx_mapping
         assert isinstance(result, xr.DataArray)
+        # logging.debug(f"result: {result}")

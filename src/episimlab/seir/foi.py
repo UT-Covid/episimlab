@@ -1,6 +1,8 @@
 import xsimlab as xs
+import xarray as xr
 import logging
 from itertools import product
+from numbers import Number
 
 
 @xs.process
@@ -8,8 +10,10 @@ class BruteForceFOI:
 
     age_group = xs.variable()
     risk_group = xs.variable()
-    phi_t = xs.variable(dims=('phi_grp1', 'phi_grp2'))
     beta = xs.variable()
+    phi_t = xs.variable(dims=('phi_grp1', 'phi_grp2'))
+    phi_grp_mapping = xs.variable(dims=('age_group', 'risk_group'),
+                                  static=True, intent='in')
     omega = xs.variable(dims=('compartment'))
     counts = xs.variable(
         dims=('vertex', 'age_group', 'risk_group', 'compartment'),
@@ -17,14 +21,76 @@ class BruteForceFOI:
     )
     foi = xs.variable(intent='out')
 
-    def calculate_foi(self):
+    def calculate_foi(self) -> float:
         """
         """
-        # Iterate over every pair of age-risk categories
-        for a1, r1, a2, r2 in product(*[self.age_group.values, self.risk_group.values] * 2):
-            if a1 == a2 and r1 == r2:
-                continue
-            # logging.debug([a1, r1, a2, r2])
+        foi = 0.
+
+        # Iterate over each vertex
+        for v in range(self.counts.coords['vertex'].size):
+            # Iterate over every pair of age-risk categories
+            for a1, r1, a2, r2 in product(*[self.age_group.values, self.risk_group.values] * 2):
+                if a1 == a2 and r1 == r2:
+                    continue
+                # logging.debug([a1, r1, a2, r2])
+
+                age_pop = self.counts.loc[dict(
+                    vertex=v, age_group=a2, # risk_group=r2
+                )].sum(dim=['compartment', 'risk_group'])
+
+                # Get the phi_grp indices
+                phi_grp1 = self.phi_grp_mapping.loc[dict(
+                    age_group=a1, risk_group=r1
+                )]
+                phi_grp2 = self.phi_grp_mapping.loc[dict(
+                    age_group=a2, risk_group=r2
+                )]
+
+                # Get the value of phi
+                phi = self.phi_t.loc[dict(
+                    phi_grp1=phi_grp1, phi_grp2=phi_grp2
+                )].values
+                # logging.debug(f"phi: {phi}")
+
+                # Get S compt
+                counts_S = self.counts.loc[{
+                    'vertex': v,
+                    'age_group': a2,
+                    'risk_group': r2,
+                    'compartment': 'S'
+                }].values
+                # logging.debug(f"counts_S: {counts_S}")
+
+                # Get value of beta
+                # beta = self.beta.loc[{
+                    # 'vertex': v,
+                    # 'age_group': a2,
+                    # 'risk_group': r2,
+                    # 'compartment': 'S'
+                # }]
+                beta = self.beta
+                assert isinstance(beta, Number)
+                # logging.debug(f"beta: {beta}")
+
+                # Get infectious compartments
+                compt_I = ['Ia', 'Iy', 'Pa', 'Py']
+                counts_I = self.counts.loc[{
+                    'vertex': v,
+                    'age_group': a2,
+                    'risk_group': r2,
+                    'compartment': compt_I
+                }]
+                # logging.debug(f"counts_I: {counts_I}")
+
+                # Get value of omega for these infectious compartments
+                omega_I = self.omega.loc[{'compartment': compt_I}]
+
+                # Calculate force of infection
+                common_term = beta * phi * counts_S / age_pop
+                # logging.debug(f"common_term: {common_term}")
+                _sum = (common_term * omega_I * counts_I).sum(dim='compartment').values
+                foi += _sum
+        return foi
 
 
     def run_step(self):
