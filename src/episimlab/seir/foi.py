@@ -4,34 +4,38 @@ import logging
 from itertools import product
 from numbers import Number
 
+from ..apply_counts_delta import ApplyCountsDelta
+from .seir import BruteForceSEIR
+from ..setup.coords import InitDefaultCoords
+from ..setup.phi import InitPhi, InitPhiGrpMapping
+
 
 @xs.process
 class BruteForceFOI:
     """A readable, brute force algorithm for calculating force of infection (FOI).
     """
 
-    age_group = xs.variable()
-    risk_group = xs.variable()
-    beta = xs.variable()
-    phi_t = xs.variable(dims=('phi_grp1', 'phi_grp2'))
-    phi_grp_mapping = xs.variable(dims=('age_group', 'risk_group'),
-                                  static=True, intent='in')
-    omega = xs.variable(dims=('compartment'))
-    counts = xs.variable(
-        dims=('vertex', 'age_group', 'risk_group', 'compartment'),
-        static=False
-    )
-    foi = xs.variable(intent='out')
+    age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
+    risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
+    phi_t = xs.foreign(InitPhi, 'phi_t', intent='in')
+    phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
+    counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
+    foi = xs.foreign(BruteForceSEIR, 'foi', intent='out')
+
+    beta = xs.variable(intent='in')
+    omega = xs.variable(dims=('age_group', 'compartment'), intent='in')
 
     def calculate_foi(self) -> float:
         """
         """
+        # assert isinstance(self.counts, xr.DataArray), type(self.counts)
+        # assert isinstance(self.omega, xr.DataArray), type(self.omega)
         foi = 0.
 
         # Iterate over each vertex
         for v in range(self.counts.coords['vertex'].size):
             # Iterate over every pair of age-risk categories
-            for a1, r1, a2, r2 in product(*[self.age_group.values, self.risk_group.values] * 2):
+            for a1, r1, a2, r2 in product(*[self.age_group, self.risk_group] * 2):
                 if a1 == a2 and r1 == r2:
                     continue
                 # logging.debug([a1, r1, a2, r2])
@@ -85,7 +89,8 @@ class BruteForceFOI:
                 # logging.debug(f"counts_I: {counts_I}")
 
                 # Get value of omega for these infectious compartments
-                omega_I = self.omega.loc[{'compartment': compt_I}]
+                # omega_I = self.omega.loc[{'age_group': a2, 'compartment': compt_I}]
+                omega_I = 0.66
 
                 # Calculate force of infection
                 common_term = beta * phi * counts_S / age_pop

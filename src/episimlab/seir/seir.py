@@ -4,6 +4,8 @@ import logging
 from itertools import product
 from numbers import Number
 
+from ..apply_counts_delta import ApplyCountsDelta
+from ..setup.coords import InitDefaultCoords
 
 @xs.process
 class BruteForceSEIR:
@@ -16,28 +18,24 @@ class BruteForceSEIR:
     COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
 
     foi = xs.variable()
-    counts = xs.variable(
-        dims=COUNTS_DIMS,
-        static=False,
-        intent='in'
-    )
+    counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
     counts_delta_seir = xs.variable(
         groups=['counts_delta'],
         dims=COUNTS_DIMS,
         static=False,
         intent='out'
     )
+    age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
+    risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
 
-    rho = xs.variable(dims=('compartment'))
+    rho = xs.variable(dims=('age_group', 'compartment'), converter=None, validator=None)
     gamma = xs.variable(dims=('compartment'))
     sigma = xs.variable()
-    pi = xs.variable()
+    pi = xs.variable(dims=('risk_group', 'age_group'))
     eta = xs.variable()
-    nu = xs.variable()
+    nu = xs.variable(dims=('age_group'))
     mu = xs.variable()
     tau = xs.variable()
-    age_group = xs.variable()
-    risk_group = xs.variable()
 
     def run_step(self):
         """
@@ -62,7 +60,7 @@ class BruteForceSEIR:
         # Iterate over each vertex
         for v in range(self.counts.coords['vertex'].size):
             # Iterate over every pair of age-risk categories
-            for a, r in product(self.age_group.values, self.risk_group.values):
+            for a, r in product(self.age_group, self.risk_group):
                 # logging.debug([a, r])
                 # logging.debug(f"cc: {cc()}")
 

@@ -5,37 +5,39 @@ import pandas as pd
 import itertools
 from collections.abc import Iterable
 
+from ..setup.coords import InitDefaultCoords
+
 
 @xs.process
-class InitMidxMapping:
+class InitPhiGrpMapping:
     """TODO: handle the coords dynamically as a `group`
     """
 
-    age_group = xs.index(dims='age_group')
-    risk_group = xs.index(dims='risk_group')
-    midx1 = xs.index(dims=('midx1'))
-    midx2 = xs.index(dims=('midx2'))
-    midx_mapping = xs.variable(dims=('age_group', 'risk_group'), static=True, intent='out')
+    age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
+    risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
+    phi_grp1 = xs.index(dims=('phi_grp1'))
+    phi_grp2 = xs.index(dims=('phi_grp2'))
+    phi_grp_mapping = xs.variable(dims=('age_group', 'risk_group'), static=True, intent='out')
     day_of_week = xs.index(dims=('day_of_week'))
 
     def initialize(self):
-        self.age_group = ['0-4', '5-17', '18-49', '50-64', '65+']
-        self.risk_group = ['low', 'high']
+        # self.age_group = ['0-4', '5-17', '18-49', '50-64', '65+']
+        # self.risk_group = ['low', 'high']
         encoded_midx = get_encoded_midx(coords=dict(age_group=self.age_group, risk_group=self.risk_group))
-        self.midx1 = encoded_midx
-        self.midx2 = encoded_midx
+        self.phi_grp1 = encoded_midx
+        self.phi_grp2 = encoded_midx
         self.day_of_week = np.arange(7)
 
-        self.midx_mapping = self._get_midx_mapping()
+        self.phi_grp_mapping = self._get_phi_grp_mapping()
 
-    def _get_midx_mapping(self):
+    def _get_phi_grp_mapping(self):
         shape = [len(self.age_group), len(self.risk_group)]
         coords = dict(
             age_group=self.age_group,
             risk_group=self.risk_group
         )
         da = xr.DataArray(
-            data=self.midx1.reshape(shape),
+            data=self.phi_grp1.reshape(shape),
             dims=('age_group', 'risk_group'),
             coords=dict(
                 age_group=self.age_group,
@@ -50,23 +52,24 @@ class InitPhi:
     """
     """
 
-    midx1 = xs.foreign(InitMidxMapping, 'midx1', intent='in')
-    midx2 = xs.foreign(InitMidxMapping, 'midx2', intent='in')
-    midx_mapping = xs.foreign(InitMidxMapping, 'midx_mapping', intent='in')
-    age_group = xs.foreign(InitMidxMapping, 'age_group', intent='in')
-    risk_group = xs.foreign(InitMidxMapping, 'risk_group', intent='in')
-    day_of_week = xs.foreign(InitMidxMapping, 'day_of_week', intent='in')
+    phi_grp1 = xs.foreign(InitPhiGrpMapping, 'phi_grp1', intent='in')
+    phi_grp2 = xs.foreign(InitPhiGrpMapping, 'phi_grp2', intent='in')
+    phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
+    age_group = xs.foreign(InitPhiGrpMapping, 'age_group', intent='in')
+    risk_group = xs.foreign(InitPhiGrpMapping, 'risk_group', intent='in')
+    day_of_week = xs.foreign(InitPhiGrpMapping, 'day_of_week', intent='in')
     phi = xs.variable(
-        dims=('day_of_week', 'midx1', 'midx2'),
-        # dims='midx1',
+        dims=('day_of_week', 'phi_grp1', 'phi_grp2'),
+        # dims='phi_grp1',
         static=True,
         intent='out')
+    phi_t = xs.variable(dims=('phi_grp1', 'phi_grp2'), intent='out')
 
     def initialize(self):
-        # self.phi = np.zeros(shape=[self.day_of_week.size, self.midx1.size, self.midx2.size], dtype='int32')
-        # dims = [self.day_of_week, self.midx1, self.midx2]
-        dims = ('day_of_week', 'midx1', 'midx2')
-        coords = (('day_of_week', self.day_of_week), ('midx1', self.midx1), ('midx2', self.midx2))
+        # self.phi = np.zeros(shape=[self.day_of_week.size, self.phi_grp1.size, self.phi_grp2.size], dtype='int32')
+        # dims = [self.day_of_week, self.phi_grp1, self.phi_grp2]
+        dims = ('day_of_week', 'phi_grp1', 'phi_grp2')
+        coords = (('day_of_week', self.day_of_week), ('phi_grp1', self.phi_grp1), ('phi_grp2', self.phi_grp2))
         self.phi = xr.DataArray(data=0, dims=dims, coords=coords)
 
     @xs.runtime(args='step')
@@ -87,9 +90,9 @@ class InitPhi:
         for a1, r1, a2, r2 in itertools.product(*[self.age_group, self.risk_group] * 2):
             # print(combo)
 
-            # Get the indices in midx1/midx2
-            i = self.midx_mapping.loc[(a1, r1)].values
-            j = self.midx_mapping.loc[(a2, r2)].values
+            # Get the indices in phi_grp1/phi_grp2
+            i = self.phi_grp_mapping.loc[(a1, r1)].values
+            j = self.phi_grp_mapping.loc[(a2, r2)].values
             # print(i, j)
 
             # ...then index the symmetrical array using
@@ -100,9 +103,9 @@ class InitPhi:
         # print(self._validate_midx())
 
     def _validate_midx(self):
-        # Validate that this is actually the correct index in midx1
+        # Validate that this is actually the correct index in phi_grp1
         return ravel_encoded_midx(
-            midx=self.midx1,
+            midx=self.phi_grp1,
             coords=dict(
                 age_group=self.age_group,
                 risk_group=self.risk_group

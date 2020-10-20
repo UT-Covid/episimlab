@@ -1,7 +1,7 @@
 import pytest
 import logging
 import xarray as xr
-from episimlab.seir import BruteForceSEIR
+from episimlab.seir.seir import BruteForceSEIR
 
 
 class TestCountsDeltaSEIR:

@@ -3,19 +3,24 @@ import xarray as xr
 import attr
 from .. import seir, setup, apply_counts_delta
 
+
 @attr.s
 class SingleCitySEIR(object):
     model = xs.Model(dict(
+        # tester=setup.Tester,
+        init_epi=setup.InitDefaultEpis,
+        init_counts=setup.InitDefaultCounts,
+        init_coords=setup.InitDefaultCoords,
         init_phi=setup.InitPhi,
-        init_midx_mapping=setup.InitMidxMapping,
-        foi=seir.BruteForceFOI,
-        seir=seir.BruteForceSEIR,
+        init_phi_grp_mapping=setup.InitPhiGrpMapping,
+        foi=seir.foi.BruteForceFOI,
+        seir=seir.seir.BruteForceSEIR,
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta
     ))
 
     input_ds = attr.ib(default=xs.create_setup(
         model=model,
-        clocks=dict(stap=range(100)),
+        clocks=dict(step=range(100)),
         # master_clock=None,
         input_vars={
 

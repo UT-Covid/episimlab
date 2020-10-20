@@ -2,16 +2,16 @@ import pytest
 import logging
 import xarray as xr
 import numpy as np
-from episimlab.setup import InitPhi, InitMidxMapping
+from episimlab.setup import InitPhi, InitPhiGrpMapping
 
 
 class TestInitPhi:
 
-    def test_can_run_step(self, counts_coords, phi_midx_mapping):
+    def test_can_run_step(self, counts_coords, phi_grp_mapping):
         inputs = {
-            'midx1': np.arange(10),
-            'midx2': np.arange(10),
-            'midx_mapping': phi_midx_mapping,
+            'phi_grp1': np.arange(10),
+            'phi_grp2': np.arange(10),
+            'phi_grp_mapping': phi_grp_mapping,
             'age_group': counts_coords['age_group'],
             'risk_group': counts_coords['risk_group'],
             'day_of_week': np.arange(7)
@@ -25,14 +25,15 @@ class TestInitPhi:
         # logging.debug(f"result: {result}")
 
 
-class TestInitMidxMapping:
+class TestInitPhiGrpMapping:
 
-    def test_can_init(self):
+    def test_can_init(self, counts_coords):
         inputs = {
-            # foo
+            'age_group': counts_coords['age_group'],
+            'risk_group': counts_coords['risk_group'],
         }
-        proc = InitMidxMapping(**inputs)
+        proc = InitPhiGrpMapping(**inputs)
         proc.initialize()
-        result = proc.midx_mapping
+        result = proc.phi_grp_mapping
         assert isinstance(result, xr.DataArray)
         # logging.debug(f"result: {result}")
