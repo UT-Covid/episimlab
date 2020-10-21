@@ -27,6 +27,7 @@ class TestInitAdj:
         result = proc.adj
         assert isinstance(result, xr.DataArray)
         # logging.debug(f"result: {result}")
+        # logging.debug(f"proc.adj_t: {proc.adj_t}")
 
 
 class TestInitAdjGrpMapping:
