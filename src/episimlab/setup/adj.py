@@ -12,17 +12,24 @@ from ..setup.coords import InitDefaultCoords
 class InitAdjGrpMapping:
     """TODO: handle the coords dynamically as a `group`
     """
+    MAP_DIMS = ('age_group', 'risk_group', 'vertex', 'compartment')
 
     age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
     risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
+    vertex = xs.foreign(InitDefaultCoords, 'vertex', intent='in')
+    compartment = xs.foreign(InitDefaultCoords, 'compartment', intent='in')
+
     adj_grp1 = xs.index(dims=('adj_grp1'))
     adj_grp2 = xs.index(dims=('adj_grp2'))
-    adj_grp_mapping = xs.variable(dims=('age_group', 'risk_group'), static=True, intent='out')
+    adj_grp_mapping = xs.variable(dims=MAP_DIMS, static=True, intent='out')
     day_of_week = xs.index(dims=('day_of_week'))
 
     def initialize(self):
-        encoded_midx = get_encoded_midx(
-            coords=dict(age_group=self.age_group, risk_group=self.risk_group))
+        self.MAP_COORDS = {
+            k: getattr(self, k) for k in self.MAP_DIMS
+        }
+
+        encoded_midx = get_encoded_midx(coords=self.MAP_COORDS)
         self.adj_grp1 = encoded_midx
         self.adj_grp2 = encoded_midx
         self.day_of_week = np.arange(7)
@@ -30,18 +37,11 @@ class InitAdjGrpMapping:
         self.adj_grp_mapping = self._get_adj_grp_mapping()
 
     def _get_adj_grp_mapping(self):
-        shape = [len(self.age_group), len(self.risk_group)]
-        coords = dict(
-            age_group=self.age_group,
-            risk_group=self.risk_group
-        )
+        shape = [len(coord) for coord in self.MAP_COORDS.values()]
         da = xr.DataArray(
             data=self.adj_grp1.reshape(shape),
-            dims=('age_group', 'risk_group'),
-            coords=dict(
-                age_group=self.age_group,
-                risk_group=self.risk_group
-            )
+            dims=self.MAP_DIMS,
+            coords=self.MAP_COORDS
         )
         return da
 
@@ -50,13 +50,20 @@ class InitAdjGrpMapping:
 class InitToyAdj:
     """
     """
+    ADJ_DIMS = ('day_of_week', 'adj_grp1', 'adj_grp2')
+    MAP_DIMS = ('age_group', 'risk_group', 'vertex', 'compartment')
+
+
+    age_group = xs.foreign(InitAdjGrpMapping, 'age_group', intent='in')
+    risk_group = xs.foreign(InitAdjGrpMapping, 'risk_group', intent='in')
+    vertex = xs.foreign(InitAdjGrpMapping, 'vertex', intent='in')
+    compartment = xs.foreign(InitAdjGrpMapping, 'compartment', intent='in')
 
     adj_grp1 = xs.foreign(InitAdjGrpMapping, 'adj_grp1', intent='in')
     adj_grp2 = xs.foreign(InitAdjGrpMapping, 'adj_grp2', intent='in')
     adj_grp_mapping = xs.foreign(InitAdjGrpMapping, 'adj_grp_mapping', intent='in')
-    age_group = xs.foreign(InitAdjGrpMapping, 'age_group', intent='in')
-    risk_group = xs.foreign(InitAdjGrpMapping, 'risk_group', intent='in')
     day_of_week = xs.foreign(InitAdjGrpMapping, 'day_of_week', intent='in')
+
     adj = xs.variable(
         dims=('day_of_week', 'adj_grp1', 'adj_grp2'),
         # dims='adj_grp1',
@@ -67,13 +74,16 @@ class InitToyAdj:
     def initialize(self):
         # self.adj = np.zeros(shape=[self.day_of_week.size, self.adj_grp1.size, self.adj_grp2.size], dtype='int32')
         # dims = [self.day_of_week, self.adj_grp1, self.adj_grp2]
-        dims = ('day_of_week', 'adj_grp1', 'adj_grp2')
-        coords = (('day_of_week', self.day_of_week), ('adj_grp1', self.adj_grp1), ('adj_grp2', self.adj_grp2))
-        self.adj = xr.DataArray(data=0, dims=dims, coords=coords)
+        self.ADJ_COORDS = {k: getattr(self, k) for k in self.ADJ_DIMS}
+        self.MAP_COORDS = {k: getattr(self, k) for k in self.MAP_DIMS}
+        self.adj = xr.DataArray(
+            data=0,
+            dims=self.ADJ_DIMS,
+            coords=self.ADJ_COORDS
+        )
 
     @xs.runtime(args='step')
     def run_step(self, step):
-
         # Get the index on `day_of_week`
         day_idx = step % self.day_of_week.size
         self.adj_t = self.adj[day_idx]
@@ -86,8 +96,8 @@ class InitToyAdj:
         """
 
         # Iterate over every pair of age-risk pairs
-        for a1, r1, a2, r2 in itertools.product(*[self.age_group, self.risk_group] * 2):
-            # print(combo)
+        for a1, r1, v1, c1, a2, r2, v2, c2 in itertools.product(
+                *[getattr(self, dim) for dim in self.MAP_DIMS] * 2):
 
             # Get the indices in adj_grp1/adj_grp2
             i = self.adj_grp_mapping.loc[(a1, r1)].values
