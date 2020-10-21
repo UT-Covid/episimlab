@@ -80,7 +80,7 @@ class InitPhi:
         self.phi_t = self.phi[day_idx]
         # print(step, self.day_of_week.size, day_idx)
 
-    def finalize_step(self):
+    def _toy_finalize_step(self):
         """Toy behavior of how the SEIR model would access this array
 
         TODO: a version of this with matrix multiplication
