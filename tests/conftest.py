@@ -29,6 +29,20 @@ def counts_basic(counts_dims, counts_coords):
         coords=counts_coords,
     )
 
+@pytest.fixture()
+def adj_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
+    """A MultiIndex mapping for an adj array"""
+    dims = ['age_group', 'risk_group']
+    coords = {
+        k: v for k, v in counts_coords.items()
+        if k in dims
+    }
+    shape = np.array([len(coords[d]) for d in dims])
+    data = np.arange(np.prod(shape)).reshape(shape)
+    # logging.debug(f"data: {data}")
+    # logging.debug(f"dims: {dims}")
+    # logging.debug(f"coords: {coords}")
+    return xr.DataArray(data=data, dims=dims, coords=coords)
 
 @pytest.fixture()
 def phi_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
