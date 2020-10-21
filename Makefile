@@ -99,7 +99,7 @@ clean-rmi: image | docker
 clean-tests:
 	rm -rf .hypothesis .pytest_cache __pycache__ */__pycache__ \
 		tmp.* *junit.xml local-mount *message_*_*.json logs/*.log \
-		logs/*.o* logs/*.e*
+		logs/*.o* logs/*.e* logs/*.html
 
 ####################################
 # Jupyterhub
