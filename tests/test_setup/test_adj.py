@@ -5,6 +5,7 @@ import numpy as np
 from episimlab.setup import InitToyAdj, InitAdjGrpMapping
 from episimlab.pytest_utils import dask_prof
 
+
 class TestInitAdj:
 
     # @dask_prof(log_dir='./logs')

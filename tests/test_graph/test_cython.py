@@ -2,7 +2,7 @@ import pytest
 import logging
 import xarray as xr
 from episimlab.graph.cython import CythonGraph
-from numbers import Number
+import numpy as np
 
 
 class TestCythonGraph:
@@ -21,14 +21,17 @@ class TestCythonGraph:
             ('age_group', 'risk_group', 'vertex', 'compartment')
         })
         proc = CythonGraph(**inputs)
+
+        logging.debug(f"proc.counts: {proc.counts.coords}")
+        logging.debug(f"proc.counts: {proc.counts.dims}")
+        logging.debug(f"proc.adj_grp_mapping: {proc.adj_grp_mapping.coords}")
+        logging.debug(f"proc.adj_grp_mapping.size: {proc.adj_grp_mapping.size}")
+        logging.debug(f"proc.adj_grp_mapping.shape: {proc.adj_grp_mapping.shape}")
+
         proc.run_step()
 
-        logging.debug(f"proc.adj_t: {proc.adj_t.coords}")
-        logging.debug(f"proc.adj_grp_mapping: {proc.adj_grp_mapping.coords}")
-        # result = proc.foi
-
-        # logging.debug(f"phi_grp_mapping: {phi_grp_mapping}")
-        # logging.debug(f"result: {result}")
-        # assert isinstance(result, Number)
-
+        result = proc.counts_delta_gph
+        assert isinstance(result, np.ndarray)
+        logging.debug(f"result.shape: {result.shape}")
+        logging.debug(f"result: {result}")
 

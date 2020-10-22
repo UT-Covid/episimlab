@@ -32,7 +32,7 @@ def counts_basic(counts_dims, counts_coords):
 @pytest.fixture()
 def adj_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
     """A MultiIndex mapping for an adj array"""
-    dims = ('age_group', 'risk_group', 'vertex', 'compartment')
+    dims = ('vertex', 'age_group', 'risk_group', 'compartment')
     coords = {
         k: v for k, v in counts_coords.items()
         if k in dims
@@ -61,11 +61,11 @@ def phi_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
 
 @pytest.fixture()
 def adj_t(counts_coords):
-    dims = ('age_group', 'risk_group', 'vertex', 'compartment')
+    dims = ('adj_grp1', 'adj_grp2')
     return xr.DataArray(
         data=0.1,
         dims=dims,
-        coords={dim: counts_coords[dim] for dim in dims}
+        coords={dim: range(480) for dim in dims}
     )
 
 @pytest.fixture()

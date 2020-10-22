@@ -7,6 +7,7 @@ from numbers import Number
 from ..apply_counts_delta import ApplyCountsDelta
 from ..setup.coords import InitDefaultCoords
 from ..setup.adj import InitAdjGrpMapping, InitToyAdj
+from . import cy_engine
 
 @xs.process
 class CythonGraph:
@@ -34,5 +35,10 @@ class CythonGraph:
     def run_step(self):
         """
         """
-        pass
+        assert isinstance(self.adj_t, xr.DataArray)
+        assert isinstance(self.counts, xr.DataArray)
+        assert isinstance(self.adj_grp_mapping, xr.DataArray)
+
+        self.counts_delta_gph = cy_engine.graph_high_gran(
+            self.counts.values, self.adj_t.values, self.adj_grp_mapping.values)
 

@@ -71,7 +71,7 @@ image: docker/Dockerfile dist/$(PKG)-$(VERSION).tar.gz requirements.txt | docker
 PYTEST_OPTS ?= -svvv
 .PHONY: pytest-native pytest-tox
 
-pytest: pytest-native
+pytest: cython pytest-native
 
 pytest-native: clean-tests | python
 	PYTHONPATH=./src $(PYTHON) -m pytest $(PYTEST_OPTS)
@@ -100,6 +100,16 @@ clean-tests:
 	rm -rf .hypothesis .pytest_cache __pycache__ */__pycache__ \
 		tmp.* *junit.xml local-mount *message_*_*.json logs/*.log \
 		logs/*.o* logs/*.e* logs/*.html
+
+####################################
+# Cythonize
+####################################
+.PHONY: cython
+
+src/episimlab/graph/%.c: src/episimlab/graph/%.c | $(CC)
+	CC=$(CC) $(PYTHON) setup.py build_ext --inplace
+
+cython: src/episimlab/graph/%.c
 
 ####################################
 # Jupyterhub
