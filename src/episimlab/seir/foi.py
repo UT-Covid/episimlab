@@ -16,7 +16,11 @@ class BaseFOI:
     """
     beta = xs.variable(intent='in')
     omega = xs.variable(dims=('age_group', 'compartment'), intent='in')
+    # TODO: needs a vertex dimension
+    foi = xs.foreign(BaseSEIR, 'foi', intent='out')
 
+    def initialize(self):
+        self.foi = 0.
 
 @xs.process
 class BruteForceFOI(BaseFOI):
@@ -28,8 +32,6 @@ class BruteForceFOI(BaseFOI):
     phi_t = xs.foreign(InitPhi, 'phi_t', intent='in')
     phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
-    # TODO: needs a vertex dimension
-    foi = xs.foreign(BaseSEIR, 'foi', intent='out')
 
     def calculate_foi(self) -> float:
         """

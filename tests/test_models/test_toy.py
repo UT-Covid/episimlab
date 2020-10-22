@@ -2,43 +2,60 @@ import pytest
 import xarray as xr
 import xsimlab as xs
 import logging
-from episimlab.models.toy import SingleCitySEIR, with_adj
+from episimlab.models import toy
 from episimlab.pytest_utils import profiler
 
-class TestSingleCitySEIR:
 
-    @profiler(log_dir='./logs')
-    def test_can_run(self, epis, counts_basic, omega, beta):
-        assert isinstance(omega, xr.DataArray)
-        wrapper = SingleCitySEIR()
-        input_vars = dict()
-        # input_vars['seir'] = epis
-        # input_vars['foi'] = dict(
-            # omega=omega,
-            # beta=beta
-        # )
-        # logging.debug(f"input_vars: {input_vars.keys()}")
-        output_vars = dict()
+@pytest.fixture
+def step_clock():
+    return dict(step=range(
+        10
+    ))
 
-        wrapper.input_ds = xs.create_setup(
-            model=wrapper.model,
-            clocks=dict(step=range(5)),
-            input_vars=input_vars,
-            output_vars=output_vars
-        )
-        # input_ds.update(_epis)
-        result = wrapper.run()
-        assert isinstance(result, xr.Dataset)
+class TestToy:
 
     @profiler()
-    def test_with_adj(self, epis, counts_basic, omega, beta):
-        model = with_adj()
+    def test_slow_seir(self, epis, counts_basic, step_clock):
+        model = toy.slow_seir()
         input_vars = dict()
         output_vars = dict()
 
         input_ds = xs.create_setup(
             model=model,
-            clocks=dict(step=range(10)),
+            clocks=step_clock,
+            input_vars=input_vars,
+            output_vars=output_vars
+        )
+        result = input_ds.xsimlab.run(model=model)
+        assert isinstance(result, xr.Dataset)
+
+
+    @profiler()
+    def test_cy_adj_slow_seir(self, epis, counts_basic, step_clock):
+        model = toy.cy_adj_slow_seir()
+        input_vars = dict()
+        output_vars = dict()
+
+        input_ds = xs.create_setup(
+            model=model,
+            clocks=step_clock,
+            input_vars=input_vars,
+            output_vars=output_vars
+        )
+        # input_ds.update(_epis)
+        result = input_ds.xsimlab.run(model=model)
+        assert isinstance(result, xr.Dataset)
+
+
+    @profiler()
+    def test_cy_adj(self, epis, counts_basic, step_clock):
+        model = toy.cy_adj()
+        input_vars = dict()
+        output_vars = dict()
+
+        input_ds = xs.create_setup(
+            model=model,
+            clocks=step_clock,
             input_vars=input_vars,
             output_vars=output_vars
         )
