@@ -4,11 +4,12 @@ import xsimlab as xs
 import numpy as np
 from dask.diagnostics import ResourceProfiler, Profiler, ProgressBar
 from functools import wraps
+import tracemalloc
 import datetime
 import time
 import logging
 
-def dask_prof(log_dir=None, log_stub=None, show_prof=False):
+def profiler(flavor='dask', log_dir='./logs', log_stub=None, show_prof=False):
     """Decorates `func` with Dask memory and thread profiling. This function
     returns a decorator, so use like:
 
@@ -26,7 +27,9 @@ def dask_prof(log_dir=None, log_stub=None, show_prof=False):
         logging.debug(f"Saving profiling report to '{fp}'...")
         return fp
 
-    def decorator(func):
+    def dask_prof(func):
+        """Decorator
+        """
         @wraps(func)
         def with_prof(*args, **kwargs):
             start = time.time()
@@ -40,6 +43,33 @@ def dask_prof(log_dir=None, log_stub=None, show_prof=False):
             logging.debug(f"'{func.__name__}' took {elapsed:0.2f} seconds")
             return result
         return with_prof
+
+    def mem_prof(func):
+        """Decorator
+        """
+        @wraps(func)
+        def with_prof(*args, **kwargs):
+            start = time.time()
+            tracemalloc.start()
+            result = func(*args, **kwargs)
+
+            snapshot = tracemalloc.take_snapshot()
+            top_stats = snapshot.statistics('filename')
+            print("[ Top 10 ]")
+            for stat in top_stats[:10]:
+                print(stat)
+
+            elapsed = time.time() - start
+            logging.debug(f"'{func.__name__}' took {elapsed:0.2f} seconds")
+            return result
+        return with_prof
+
+    # choose decorator
+    if flavor == 'dask':
+        decorator = dask_prof
+    elif flavor in ('mem', 'ram'):
+        decorator = mem_prof
+
     return decorator
 
 def _get_timestamp():

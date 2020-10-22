@@ -4,9 +4,12 @@ import xarray as xr
 from episimlab.graph.cython import CythonGraph
 import numpy as np
 
+from episimlab.pytest_utils import profiler
+
 
 class TestCythonGraph:
 
+    @profiler(flavor='mem')
     def test_can_run_step(self, omega, counts_basic, counts_coords,
                           adj_grp_mapping, adj_t):
         """
@@ -22,16 +25,16 @@ class TestCythonGraph:
         })
         proc = CythonGraph(**inputs)
 
-        logging.debug(f"proc.counts: {proc.counts.coords}")
-        logging.debug(f"proc.counts: {proc.counts.dims}")
-        logging.debug(f"proc.adj_grp_mapping: {proc.adj_grp_mapping.coords}")
-        logging.debug(f"proc.adj_grp_mapping.size: {proc.adj_grp_mapping.size}")
+        # logging.debug(f"proc.counts: {proc.counts.coords}")
+        # logging.debug(f"proc.counts: {proc.counts.dims}")
+        # logging.debug(f"proc.adj_grp_mapping: {proc.adj_grp_mapping.coords}")
+        # logging.debug(f"proc.adj_grp_mapping.size: {proc.adj_grp_mapping.size}")
         logging.debug(f"proc.adj_grp_mapping.shape: {proc.adj_grp_mapping.shape}")
 
         proc.run_step()
-
         result = proc.counts_delta_gph
         assert isinstance(result, np.ndarray)
-        logging.debug(f"result.shape: {result.shape}")
-        logging.debug(f"result: {result}")
+
+        # logging.debug(f"result.shape: {result.shape}")
+        # logging.debug(f"result: {result}")
 

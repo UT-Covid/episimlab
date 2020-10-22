@@ -3,12 +3,12 @@ import logging
 import xarray as xr
 import numpy as np
 from episimlab.setup import InitToyAdj, InitAdjGrpMapping
-from episimlab.pytest_utils import dask_prof
+from episimlab.pytest_utils import profiler
 
 
 class TestInitAdj:
 
-    # @dask_prof(log_dir='./logs')
+    # @profiler(log_dir='./logs')
     def test_can_run_step(self, counts_coords, adj_grp_mapping):
         inputs = {
             'adj_grp1': np.arange(10),

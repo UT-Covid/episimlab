@@ -11,7 +11,7 @@ def counts_dims():
 @pytest.fixture()
 def counts_coords():
     return {
-        'vertex': range(3),
+        'vertex': range(60),
         'age_group': ['0-4', '5-17', '18-49', '50-64', '65+'],
         'risk_group': ['low', 'high'],
         'compartment': ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
@@ -62,10 +62,15 @@ def phi_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
 @pytest.fixture()
 def adj_t(counts_coords):
     dims = ('adj_grp1', 'adj_grp2')
+    # we assume that all the dimensions in counts are also dimensions
+    # on the adjacency matrix
+    idx_size = np.product([
+        len(coord) for coord in counts_coords.values()
+    ])
     return xr.DataArray(
         data=0.1,
         dims=dims,
-        coords={dim: range(480) for dim in dims}
+        coords={dim: range(idx_size) for dim in dims}
     )
 
 @pytest.fixture()
