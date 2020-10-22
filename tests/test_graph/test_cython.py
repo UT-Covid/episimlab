@@ -9,7 +9,7 @@ from episimlab.pytest_utils import profiler
 
 class TestCythonGraph:
 
-    @profiler(flavor='mem')
+    @profiler(flavor='mem', cumulative=True)
     def test_can_run_step(self, omega, counts_basic, counts_coords,
                           adj_grp_mapping, adj_t):
         """
@@ -32,8 +32,9 @@ class TestCythonGraph:
         logging.debug(f"proc.adj_grp_mapping.shape: {proc.adj_grp_mapping.shape}")
 
         proc.run_step()
+        proc.finalize_step()
         result = proc.counts_delta_gph
-        assert isinstance(result, np.ndarray)
+        assert isinstance(result, xr.DataArray)
 
         # logging.debug(f"result.shape: {result.shape}")
         # logging.debug(f"result: {result}")

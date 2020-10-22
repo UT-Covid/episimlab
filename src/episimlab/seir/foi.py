@@ -5,26 +5,31 @@ from itertools import product
 from numbers import Number
 
 from ..apply_counts_delta import ApplyCountsDelta
-from .seir import BruteForceSEIR
+from .seir import BaseSEIR
 from ..setup.coords import InitDefaultCoords
 from ..setup.phi import InitPhi, InitPhiGrpMapping
 
 
 @xs.process
-class BruteForceFOI:
+class BaseFOI:
+    """
+    """
+    beta = xs.variable(intent='in')
+    omega = xs.variable(dims=('age_group', 'compartment'), intent='in')
+
+
+@xs.process
+class BruteForceFOI(BaseFOI):
     """A readable, brute force algorithm for calculating force of infection (FOI).
     """
 
-    age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
+    age_group = xs.foreign(InitDefaultCoords, 'age_group')
+    risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
     phi_t = xs.foreign(InitPhi, 'phi_t', intent='in')
     phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
     # TODO: needs a vertex dimension
-    foi = xs.foreign(BruteForceSEIR, 'foi', intent='out')
-
-    beta = xs.variable(intent='in')
-    omega = xs.variable(dims=('age_group', 'compartment'), intent='in')
+    foi = xs.foreign(BaseSEIR, 'foi', intent='out')
 
     def calculate_foi(self) -> float:
         """

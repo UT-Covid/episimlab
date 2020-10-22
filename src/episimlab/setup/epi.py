@@ -4,33 +4,34 @@ import numpy as np
 import logging
 
 from ..seir import foi, seir
+from ..setup import InitDefaultCoords
 
 @xs.process
 class InitDefaultEpis:
     """A workaround that ingests np.ndarrays and converts
     """
-    COUNTS_COORDS = {
-        'vertex': range(3),
-        'age_group': ['0-4', '5-17', '18-49', '50-64', '65+'],
-        'risk_group': ['low', 'high'],
-        'compartment': ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
-                        'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
-                        'Py2Iy', 'Iy2Ih', 'H2D']
-    }
+    age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
+    risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
+    vertex = xs.foreign(InitDefaultCoords, 'vertex', intent='in')
+    compartment = xs.foreign(InitDefaultCoords, 'compartment', intent='in')
 
-    beta = xs.foreign(foi.BruteForceFOI, 'beta', intent='out')
-    omega = xs.foreign(foi.BruteForceFOI, 'omega', intent='out')
+    beta = xs.foreign(foi.BaseFOI, 'beta', intent='out')
+    omega = xs.foreign(foi.BaseFOI, 'omega', intent='out')
 
-    rho = xs.foreign(seir.BruteForceSEIR, 'rho', intent='out')
-    gamma = xs.foreign(seir.BruteForceSEIR, 'gamma', intent='out')
-    sigma = xs.foreign(seir.BruteForceSEIR, 'sigma', intent='out')
-    pi = xs.foreign(seir.BruteForceSEIR, 'pi', intent='out')
-    eta = xs.foreign(seir.BruteForceSEIR, 'eta', intent='out')
-    nu = xs.foreign(seir.BruteForceSEIR, 'nu', intent='out')
-    mu = xs.foreign(seir.BruteForceSEIR, 'mu', intent='out')
-    tau = xs.foreign(seir.BruteForceSEIR, 'tau', intent='out')
+    rho = xs.foreign(seir.BaseSEIR, 'rho', intent='out')
+    gamma = xs.foreign(seir.BaseSEIR, 'gamma', intent='out')
+    sigma = xs.foreign(seir.BaseSEIR, 'sigma', intent='out')
+    pi = xs.foreign(seir.BaseSEIR, 'pi', intent='out')
+    eta = xs.foreign(seir.BaseSEIR, 'eta', intent='out')
+    nu = xs.foreign(seir.BaseSEIR, 'nu', intent='out')
+    mu = xs.foreign(seir.BaseSEIR, 'mu', intent='out')
+    tau = xs.foreign(seir.BaseSEIR, 'tau', intent='out')
 
     def initialize(self):
+        self.COUNTS_COORDS = {
+            dim: getattr(self, dim) for dim in
+            ('vertex', 'age_group', 'risk_group', 'compartment')
+        }
         for var_name in ('beta', 'omega', 'rho', 'gamma', 'sigma', 'pi',
                          'eta', 'nu', 'mu', 'tau'):
             getter = getattr(self, f"get_{var_name}")

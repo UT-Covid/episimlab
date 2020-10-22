@@ -11,7 +11,7 @@ def counts_dims():
 @pytest.fixture()
 def counts_coords():
     return {
-        'vertex': range(60),
+        'vertex': range(3),
         'age_group': ['0-4', '5-17', '18-49', '50-64', '65+'],
         'risk_group': ['low', 'high'],
         'compartment': ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',

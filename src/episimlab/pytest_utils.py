@@ -9,7 +9,8 @@ import datetime
 import time
 import logging
 
-def profiler(flavor='dask', log_dir='./logs', log_stub=None, show_prof=False):
+def profiler(flavor='dask', log_dir='./logs', log_stub=None, show_prof=False,
+             cumulative=False):
     """Decorates `func` with Dask memory and thread profiling. This function
     returns a decorator, so use like:
 
@@ -54,7 +55,7 @@ def profiler(flavor='dask', log_dir='./logs', log_stub=None, show_prof=False):
             result = func(*args, **kwargs)
 
             snapshot = tracemalloc.take_snapshot()
-            top_stats = snapshot.statistics('filename')
+            top_stats = snapshot.statistics('filename', cumulative=cumulative)
             print("[ Top 10 ]")
             for stat in top_stats[:10]:
                 print(stat)

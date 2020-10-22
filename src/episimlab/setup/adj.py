@@ -12,7 +12,7 @@ from ..setup.coords import InitDefaultCoords
 class InitAdjGrpMapping:
     """TODO: handle the coords dynamically as a `group`
     """
-    MAP_DIMS = ('age_group', 'risk_group', 'vertex', 'compartment')
+    MAP_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
 
     age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
     risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
@@ -77,7 +77,7 @@ class InitToyAdj:
         self.ADJ_COORDS = {k: getattr(self, k) for k in self.ADJ_DIMS}
         self.MAP_COORDS = {k: getattr(self, k) for k in self.MAP_DIMS}
         self.adj = xr.DataArray(
-            data=0,
+            data=0.,
             dims=self.ADJ_DIMS,
             coords=self.ADJ_COORDS
         )
