@@ -30,7 +30,7 @@ class TestToy:
         assert isinstance(result, xr.Dataset)
 
 
-    @profiler()
+    @profiler(flavor='dask', show_prof=False)
     def test_cy_adj_slow_seir(self, epis, counts_basic, step_clock):
         model = toy.cy_adj_slow_seir()
         input_vars = dict()
@@ -42,8 +42,7 @@ class TestToy:
             input_vars=input_vars,
             output_vars=output_vars
         )
-        # input_ds.update(_epis)
-        result = input_ds.xsimlab.run(model=model)
+        result = input_ds.xsimlab.run(model=model, parallel=False)
         assert isinstance(result, xr.Dataset)
 
 

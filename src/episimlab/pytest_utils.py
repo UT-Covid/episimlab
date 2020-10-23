@@ -9,12 +9,12 @@ import datetime
 import time
 import logging
 
-def profiler(flavor='dask', log_dir='./logs', log_stub=None, show_prof=False,
+def profiler(flavor='wall_clock', log_dir='./logs', log_stub=None, show_prof=False,
              cumulative=False):
     """Decorates `func` with Dask memory and thread profiling. This function
     returns a decorator, so use like:
 
-    @dask_prof()
+    @profiler()
     def my_func():
         pass
     """
@@ -65,11 +65,25 @@ def profiler(flavor='dask', log_dir='./logs', log_stub=None, show_prof=False,
             return result
         return with_prof
 
+    def wall_clock(func):
+        """Decorator
+        """
+        @wraps(func)
+        def with_prof(*args, **kwargs):
+            start = time.time()
+            result = func(*args, **kwargs)
+            elapsed = time.time() - start
+            logging.debug(f"'{func.__name__}' took {elapsed:0.2f} seconds")
+            return result
+        return with_prof
+
     # choose decorator
     if flavor == 'dask':
         decorator = dask_prof
     elif flavor in ('mem', 'ram'):
         decorator = mem_prof
+    elif flavor in ('timer', 'wall_clock'):
+        decorator = wall_clock
 
     return decorator
 

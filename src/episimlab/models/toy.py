@@ -3,6 +3,7 @@ import xarray as xr
 import attr
 from .. import seir, setup, apply_counts_delta, graph
 
+
 def slow_seir():
     return xs.Model(dict(
         init_epi=setup.InitDefaultEpis,

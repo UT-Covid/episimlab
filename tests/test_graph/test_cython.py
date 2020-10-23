@@ -9,7 +9,7 @@ from episimlab.pytest_utils import profiler
 
 class TestCythonGraph:
 
-    @profiler(flavor='mem', cumulative=True)
+    @profiler()
     def test_can_run_step(self, omega, counts_basic, counts_coords,
                           adj_grp_mapping, adj_t):
         """
