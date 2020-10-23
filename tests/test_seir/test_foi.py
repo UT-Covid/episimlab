@@ -1,7 +1,7 @@
 import pytest
 import logging
 import xarray as xr
-from episimlab.seir.foi import BruteForceFOI
+from episimlab.seir.brute_force_foi import BruteForceFOI
 from numbers import Number
 
 

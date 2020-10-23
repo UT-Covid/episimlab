@@ -11,7 +11,7 @@ def slow_seir():
         init_coords=setup.InitDefaultCoords,
         init_phi=setup.InitPhi,
         init_phi_grp_mapping=setup.InitPhiGrpMapping,
-        foi=seir.foi.BruteForceFOI,
+        foi=seir.brute_force_foi.BruteForceFOI,
         seir=seir.brute_force.BruteForceSEIR,
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta
     ))
@@ -28,7 +28,7 @@ def cy_adj_slow_seir():
         # WITH slow SEIR
         init_phi=setup.InitPhi,
         init_phi_grp_mapping=setup.InitPhiGrpMapping,
-        foi=seir.foi.BruteForceFOI,
+        foi=seir.brute_force_foi.BruteForceFOI,
         seir=seir.brute_force.BruteForceSEIR,
 
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta
@@ -44,7 +44,7 @@ def cy_adj():
         travel=graph.cython.CythonGraph,
 
         # without SEIR
-        foi=seir.foi.BaseFOI,
+        foi=seir.brute_force_foi.BaseFOI,
         seir=seir.base.BaseSEIR,
 
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta
