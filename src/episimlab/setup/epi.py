@@ -3,7 +3,8 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..seir import brute_force_foi, base
+from ..seir import base
+from ..foi.base import BaseFOI
 from ..setup import InitDefaultCoords
 
 @xs.process
@@ -15,8 +16,8 @@ class InitDefaultEpis:
     vertex = xs.foreign(InitDefaultCoords, 'vertex', intent='in')
     compartment = xs.foreign(InitDefaultCoords, 'compartment', intent='in')
 
-    beta = xs.foreign(brute_force_foi.BaseFOI, 'beta', intent='out')
-    omega = xs.foreign(brute_force_foi.BaseFOI, 'omega', intent='out')
+    beta = xs.foreign(BaseFOI, 'beta', intent='out')
+    omega = xs.foreign(BaseFOI, 'omega', intent='out')
 
     rho = xs.foreign(base.BaseSEIR, 'rho', intent='out')
     gamma = xs.foreign(base.BaseSEIR, 'gamma', intent='out')

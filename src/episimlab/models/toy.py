@@ -1,7 +1,7 @@
 import xsimlab as xs
 import xarray as xr
 import attr
-from .. import seir, setup, apply_counts_delta, graph
+from .. import seir, foi, setup, apply_counts_delta, graph
 
 
 def slow_seir():
@@ -11,7 +11,7 @@ def slow_seir():
         init_coords=setup.InitDefaultCoords,
         init_phi=setup.InitPhi,
         init_phi_grp_mapping=setup.InitPhiGrpMapping,
-        foi=seir.brute_force_foi.BruteForceFOI,
+        foi=foi.brute_force.BruteForceFOI,
         seir=seir.brute_force.BruteForceSEIR,
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta
     ))
@@ -28,7 +28,7 @@ def cy_adj_slow_seir():
         # WITH slow SEIR
         init_phi=setup.InitPhi,
         init_phi_grp_mapping=setup.InitPhiGrpMapping,
-        foi=seir.brute_force_foi.BruteForceFOI,
+        foi=foi.brute_force.BruteForceFOI,
         seir=seir.brute_force.BruteForceSEIR,
 
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta
@@ -44,7 +44,7 @@ def cy_adj():
         travel=graph.cython.CythonGraph,
 
         # without SEIR
-        foi=seir.brute_force_foi.BaseFOI,
+        foi=foi.brute_force.BaseFOI,
         seir=seir.base.BaseSEIR,
 
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta

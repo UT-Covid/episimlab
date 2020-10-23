@@ -8,19 +8,8 @@ from ..apply_counts_delta import ApplyCountsDelta
 from .base import BaseSEIR
 from ..setup.coords import InitDefaultCoords
 from ..setup.phi import InitPhi, InitPhiGrpMapping
+from .base import BaseFOI
 
-
-@xs.process
-class BaseFOI:
-    """
-    """
-    beta = xs.variable(intent='in')
-    omega = xs.variable(dims=('age_group', 'compartment'), intent='in')
-    # TODO: needs a vertex dimension
-    foi = xs.foreign(BaseSEIR, 'foi', intent='out')
-
-    def initialize(self):
-        self.foi = 0.
 
 @xs.process
 class BruteForceFOI(BaseFOI):
