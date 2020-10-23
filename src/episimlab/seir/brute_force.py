@@ -7,6 +7,7 @@ from numbers import Number
 from ..apply_counts_delta import ApplyCountsDelta
 from ..setup.coords import InitDefaultCoords
 from .base import BaseSEIR
+from ..foi.base import BaseFOI
 
 
 @xs.process
@@ -19,6 +20,7 @@ class BruteForceSEIR(BaseSEIR):
     COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
 
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
+    foi = xs.foreign(BaseFOI, 'foi', intent='in')
     age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
     risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
 

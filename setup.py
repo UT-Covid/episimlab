@@ -73,6 +73,18 @@ extensions = [
               language='c',
               libraries=['gsl'],
               include_dirs=[os.path.join(gsl_config['prefix'], 'include')],
+              library_dirs=[os.path.join(gsl_config['prefix'], 'lib')]),
+    Extension('episimlab.seir.bf_cython_engine',
+              sources=[f"src/episimlab/seir/bf_cython_engine{src_ext}"],
+              language='c',
+              libraries=['gsl'],
+              include_dirs=[os.path.join(gsl_config['prefix'], 'include')],
+              library_dirs=[os.path.join(gsl_config['prefix'], 'lib')]),
+    Extension('episimlab.seir.bf_cython_w_foi_engine',
+              sources=[f"src/episimlab/seir/bf_cython_w_foi_engine{src_ext}"],
+              language='c',
+              libraries=['gsl'],
+              include_dirs=[os.path.join(gsl_config['prefix'], 'include')],
               library_dirs=[os.path.join(gsl_config['prefix'], 'lib')])
 ]
 

@@ -32,4 +32,4 @@ class BruteForceCythonSEIR(BaseSEIR):
     def run_step(self):
         """
         """
-        raise NotImplementedError()
+        pass

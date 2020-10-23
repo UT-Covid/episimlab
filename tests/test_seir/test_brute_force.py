@@ -6,10 +6,12 @@ from episimlab.seir.brute_force import BruteForceSEIR
 
 class TestCountsDeltaSEIR:
 
-    def test_can_run_step(self, counts_basic, epis):
+    def test_can_run_step(self, counts_basic, epis, beta, omega):
         inputs = {
             'age_group': counts_basic.coords['age_group'],
             'risk_group': counts_basic.coords['risk_group'],
+            'beta': beta,
+            'omega': omega,
             'counts': counts_basic,
             'foi': 0.7,
         }

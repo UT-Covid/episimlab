@@ -106,10 +106,8 @@ clean-tests:
 ####################################
 .PHONY: cython
 
-src/episimlab/graph/%.c: src/episimlab/graph/%.c | $(CC)
+cython: | $(CC)
 	CC=$(CC) $(PYTHON) setup.py build_ext --inplace
-
-cython: src/episimlab/graph/%.c
 
 ####################################
 # Jupyterhub

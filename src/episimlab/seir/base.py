@@ -12,7 +12,6 @@ from ..setup.coords import InitDefaultCoords
 class BaseSEIR:
     """
     """
-    foi = xs.variable()
     sigma = xs.variable()
     eta = xs.variable()
     mu = xs.variable()
@@ -20,5 +19,10 @@ class BaseSEIR:
     gamma = xs.variable(dims=('compartment'))
     nu = xs.variable(dims=('age_group'))
     pi = xs.variable(dims=('risk_group', 'age_group'))
-    rho = xs.variable(dims=('age_group', 'compartment'), converter=None, validator=None)
+    rho = xs.variable(dims=('age_group', 'compartment'))
+
+    # Required for force of infection calculation
+    # TODO: define these in BaseFOI instead
+    beta = xs.variable(intent='in')
+    omega = xs.variable(dims=('age_group', 'compartment'), intent='in')
 

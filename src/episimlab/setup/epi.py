@@ -7,6 +7,7 @@ from ..seir import base
 from ..foi.base import BaseFOI
 from ..setup import InitDefaultCoords
 
+
 @xs.process
 class InitDefaultEpis:
     """A workaround that ingests np.ndarrays and converts

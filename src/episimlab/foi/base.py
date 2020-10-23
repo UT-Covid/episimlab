@@ -10,10 +10,11 @@ from ..seir.base import BaseSEIR
 class BaseFOI:
     """
     """
-    beta = xs.variable(intent='in')
-    omega = xs.variable(dims=('age_group', 'compartment'), intent='in')
+    beta = xs.foreign(BaseSEIR, 'beta', intent='in')
+    omega = xs.foreign(BaseSEIR, 'omega', intent='in')
+
     # TODO: needs a vertex dimension
-    foi = xs.foreign(BaseSEIR, 'foi', intent='out')
+    foi = xs.variable(intent='out')
 
     def initialize(self):
         self.foi = 0.
