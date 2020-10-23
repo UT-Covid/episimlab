@@ -23,6 +23,4 @@ class BaseSEIR:
 
     # Required for force of infection calculation
     # TODO: define these in BaseFOI instead
-    beta = xs.variable(intent='in')
-    omega = xs.variable(dims=('age_group', 'compartment'), intent='in')
 

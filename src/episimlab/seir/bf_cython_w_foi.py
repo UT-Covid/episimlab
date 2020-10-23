@@ -7,10 +7,11 @@ from numbers import Number
 from ..apply_counts_delta import ApplyCountsDelta
 from ..setup.coords import InitDefaultCoords
 from .base import BaseSEIR
+from .bf_cython_w_foi_engine import brute_force_SEIR
 
 
 @xs.process
-class BruteForceCythonSEIR(BaseSEIR):
+class BruteForceCythonWFOI(BaseSEIR):
     """Calculate change in `counts` due to SEIR transmission. Brute force
     algorithm for testing purposes.
 
@@ -32,4 +33,4 @@ class BruteForceCythonSEIR(BaseSEIR):
     def run_step(self):
         """
         """
-        pass
+        self.counts_delta_seir = brute_force_SEIR()
