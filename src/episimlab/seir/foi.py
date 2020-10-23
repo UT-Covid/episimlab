@@ -5,7 +5,7 @@ from itertools import product
 from numbers import Number
 
 from ..apply_counts_delta import ApplyCountsDelta
-from .seir import BaseSEIR
+from .base import BaseSEIR
 from ..setup.coords import InitDefaultCoords
 from ..setup.phi import InitPhi, InitPhiGrpMapping
 

@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..seir import foi, seir
+from ..seir import foi, base
 from ..setup import InitDefaultCoords
 
 @xs.process
@@ -18,14 +18,14 @@ class InitDefaultEpis:
     beta = xs.foreign(foi.BaseFOI, 'beta', intent='out')
     omega = xs.foreign(foi.BaseFOI, 'omega', intent='out')
 
-    rho = xs.foreign(seir.BaseSEIR, 'rho', intent='out')
-    gamma = xs.foreign(seir.BaseSEIR, 'gamma', intent='out')
-    sigma = xs.foreign(seir.BaseSEIR, 'sigma', intent='out')
-    pi = xs.foreign(seir.BaseSEIR, 'pi', intent='out')
-    eta = xs.foreign(seir.BaseSEIR, 'eta', intent='out')
-    nu = xs.foreign(seir.BaseSEIR, 'nu', intent='out')
-    mu = xs.foreign(seir.BaseSEIR, 'mu', intent='out')
-    tau = xs.foreign(seir.BaseSEIR, 'tau', intent='out')
+    rho = xs.foreign(base.BaseSEIR, 'rho', intent='out')
+    gamma = xs.foreign(base.BaseSEIR, 'gamma', intent='out')
+    sigma = xs.foreign(base.BaseSEIR, 'sigma', intent='out')
+    pi = xs.foreign(base.BaseSEIR, 'pi', intent='out')
+    eta = xs.foreign(base.BaseSEIR, 'eta', intent='out')
+    nu = xs.foreign(base.BaseSEIR, 'nu', intent='out')
+    mu = xs.foreign(base.BaseSEIR, 'mu', intent='out')
+    tau = xs.foreign(base.BaseSEIR, 'tau', intent='out')
 
     def initialize(self):
         self.COUNTS_COORDS = {

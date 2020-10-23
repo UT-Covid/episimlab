@@ -12,7 +12,7 @@ def slow_seir():
         init_phi=setup.InitPhi,
         init_phi_grp_mapping=setup.InitPhiGrpMapping,
         foi=seir.foi.BruteForceFOI,
-        seir=seir.seir.BruteForceSEIR,
+        seir=seir.brute_force.BruteForceSEIR,
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta
     ))
 
@@ -29,7 +29,7 @@ def cy_adj_slow_seir():
         init_phi=setup.InitPhi,
         init_phi_grp_mapping=setup.InitPhiGrpMapping,
         foi=seir.foi.BruteForceFOI,
-        seir=seir.seir.BruteForceSEIR,
+        seir=seir.brute_force.BruteForceSEIR,
 
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta
     ))
@@ -45,7 +45,7 @@ def cy_adj():
 
         # without SEIR
         foi=seir.foi.BaseFOI,
-        seir=seir.seir.BaseSEIR,
+        seir=seir.base.BaseSEIR,
 
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta
     ))

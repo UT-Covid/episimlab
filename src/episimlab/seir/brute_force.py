@@ -6,21 +6,7 @@ from numbers import Number
 
 from ..apply_counts_delta import ApplyCountsDelta
 from ..setup.coords import InitDefaultCoords
-
-
-@xs.process
-class BaseSEIR:
-    """
-    """
-    foi = xs.variable()
-    rho = xs.variable(dims=('age_group', 'compartment'), converter=None, validator=None)
-    gamma = xs.variable(dims=('compartment'))
-    sigma = xs.variable()
-    pi = xs.variable(dims=('risk_group', 'age_group'))
-    eta = xs.variable()
-    nu = xs.variable(dims=('age_group'))
-    mu = xs.variable()
-    tau = xs.variable()
+from .base import BaseSEIR
 
 
 @xs.process
@@ -32,15 +18,16 @@ class BruteForceSEIR(BaseSEIR):
     """
     COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
 
+    counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
+    age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
+    risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
+
     counts_delta_seir = xs.variable(
         groups=['counts_delta'],
         dims=COUNTS_DIMS,
         static=False,
         intent='out'
     )
-    counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
-    age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
 
     def run_step(self):
         """
