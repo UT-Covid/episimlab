@@ -12,6 +12,9 @@ from ..setup.coords import InitDefaultCoords
 class BaseSEIR:
     """
     """
+    COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
+    counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
+
     sigma = xs.variable()
     eta = xs.variable()
     mu = xs.variable()
@@ -20,7 +23,4 @@ class BaseSEIR:
     nu = xs.variable(dims=('age_group'))
     pi = xs.variable(dims=('risk_group', 'age_group'))
     rho = xs.variable(dims=('age_group', 'compartment'))
-
-    # Required for force of infection calculation
-    # TODO: define these in BaseFOI instead
 

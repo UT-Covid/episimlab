@@ -42,7 +42,7 @@ class TestToy:
             input_vars=input_vars,
             output_vars=output_vars
         )
-        result = input_ds.xsimlab.run(model=model, parallel=False)
+        result = input_ds.xsimlab.run(model=model, parallel=True)
         assert isinstance(result, xr.Dataset)
 
 
