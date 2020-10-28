@@ -17,7 +17,7 @@ class InitDefaultCounts:
 
     def initialize(self):
         self.counts = xr.DataArray(
-            data=0.,
+            data=1.,
             dims=self.COUNTS_DIMS,
             coords={
                 'age_group': self.age_group,

@@ -6,7 +6,8 @@ from numbers import Number
 
 from ..apply_counts_delta import ApplyCountsDelta
 from ..setup.coords import InitDefaultCoords
-from ..setup.phi import InitPhi
+from ..setup.phi import InitPhi, InitPhiGrpMapping
+from ..foi.base import BaseFOI
 from .base import BaseSEIR
 from .bf_cython_w_foi_engine import brute_force_SEIR
 
@@ -19,9 +20,11 @@ class BruteForceCythonWFOI(BaseSEIR):
     TODO: discrete time approximation
     """
 
-    beta = xs.variable(intent='in')
-    omega = xs.variable(dims=('age_group', 'compartment'), intent='in')
+    beta = xs.foreign(BaseFOI, 'beta', intent='in')
+    omega = xs.foreign(BaseFOI, 'omega', intent='in')
+
     phi_t = xs.foreign(InitPhi, 'phi_t', intent='in')
+    phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
 
     counts_delta_seir = xs.variable(
         groups=['counts_delta'],
@@ -34,6 +37,7 @@ class BruteForceCythonWFOI(BaseSEIR):
         """
         """
         self.counts_delta_seir_arr = brute_force_SEIR(
+            phi_grp_mapping=self.phi_grp_mapping.values,
             counts=self.counts.values,
             phi_t=self.phi_t.values,
             # array type
@@ -47,7 +51,7 @@ class BruteForceCythonWFOI(BaseSEIR):
             beta=self.beta,
             sigma=self.sigma,
             tau=self.tau,
-            eta=self.eta,
+            eta=self.eta
         )
 
     def finalize_step(self):

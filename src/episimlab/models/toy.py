@@ -16,6 +16,21 @@ def slow_seir():
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta
     ))
 
+def cy_seir():
+    return xs.Model(dict(
+        init_epi=setup.InitDefaultEpis,
+        init_counts=setup.InitDefaultCounts,
+        init_coords=setup.InitDefaultCoords,
+        init_phi=setup.InitPhi,
+        init_phi_grp_mapping=setup.InitPhiGrpMapping,
+
+        seir=seir.bf_cython_w_foi.BruteForceCythonWFOI,
+        apply_counts_delta=apply_counts_delta.ApplyCountsDelta,
+
+        # used only for `foreign` definitions
+        foi=foi.brute_force.BaseFOI
+    ))
+
 def cy_adj_slow_seir():
     return xs.Model(dict(
         init_epi=setup.InitDefaultEpis,

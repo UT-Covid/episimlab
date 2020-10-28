@@ -19,8 +19,8 @@ from cython.parallel import prange
 DTYPE_FLOAT = np.float64
 DTYPE_INT = np.intc
 
-
-def brute_force_SEIR(np.ndarray counts,
+def brute_force_SEIR(np.ndarray phi_grp_mapping,
+                     np.ndarray counts,
                      np.ndarray phi_t,
                      np.ndarray rho,
                      np.ndarray gamma,
@@ -35,6 +35,7 @@ def brute_force_SEIR(np.ndarray counts,
     """
     """
     cdef:
+        long [:, :] phi_grp_view = phi_grp_mapping
         double [:, :, :, :] counts_view = counts
         double [:, :] phi_view = phi_t
         double [:, :] rho_view = rho
@@ -48,6 +49,7 @@ def brute_force_SEIR(np.ndarray counts,
         # double [:] eta_view = eta
 
     return _brute_force_SEIR(
+        phi_grp_view,
         counts_view,
         phi_view,
         rho_view,
@@ -77,7 +79,8 @@ cdef double discrete_time_approx(double rate, double timestep) nogil:
     return (1 - (1 - rate)**(1/timestep))
 
 
-cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
+cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
+                                  double [:, :, :, :] counts_view,
                                   double [:, :] phi_view,
                                   double [:, :] rho_view,
                                   double [:] gamma_view,
@@ -121,7 +124,7 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
         double gamma_a, gamma_y, gamma_h, nu, pi, \
             kappa, report_rate, rho_a, rho_y
         # epi params for force of infection calculation
-        double beta0_2, phi_1_2, omega_e_2, omega_pa_2, omega_py_2, omega_a_2, \
+        double beta_2, phi_1_2, omega_e_2, omega_pa_2, omega_py_2, omega_a_2, \
             omega_y_2, common_term, deterministic
         # compartment counts
         double S, E, Pa, Py, Ia, Iy, Ih, R, D, E2P, E2Py, P2I, Pa2Ia, Py2Iy, \
@@ -141,8 +144,8 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
         double beta0 = beta
 
     # Iterate over node, age, and risk
-    # for n in prange(node_len, nogil=True):
-    for n in range(node_len):
+    for n in prange(node_len, nogil=True):
+    # for n in range(node_len):
         for a in range(age_len):
             for r in range(risk_len):
 
@@ -196,9 +199,10 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                 for a_2 in range(age_len):
                     for r_2 in range(risk_len):
 
-                        # Get age/compartment stratified params for a_2, r_2
-                        # beta0_2 = counts_view[n, a_2, r_2, 1, 0]
-                        # phi_1_2 = phi_view[a, a_2]
+                        # Get phi
+                        phi_1_2 = phi_view[phi_grp_view[a, r], phi_grp_view[a_2, r_2]]
+
+                        beta_2 = beta
                         omega_a_2 = omega_view[a_2, 4]
                         omega_y_2 = omega_view[a_2, 5]
                         omega_pa_2 = omega_view[a_2, 2]
@@ -215,7 +219,7 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                             continue
 
                         # calculate force of infection
-                        common_term = beta0_2 * kappa * phi_1_2 * S / node_pop[n, a_2]
+                        common_term = beta_2 * phi_1_2 * S / node_pop[n, a_2]
                         rate_S2E = rate_S2E + (common_term * (
                             (omega_a_2 * Ia_2) + \
                             (omega_y_2 * Iy_2) + \
