@@ -67,31 +67,24 @@ except (AssertionError, IndexError, ValueError) as err:
                     "on Mac OS X: brew install gsl.")
 
 # cy_model extensions
+gsl_lib = dict(language='c',
+               libraries=['gsl'],
+               include_dirs=[os.path.join(gsl_config['prefix'], 'include')],
+               library_dirs=[os.path.join(gsl_config['prefix'], 'lib')])
 extensions = [
     Extension('episimlab.graph.cy_engine',
               sources=[f"src/episimlab/graph/cy_engine{src_ext}"],
-              language='c',
-              libraries=['gsl'],
-              include_dirs=[os.path.join(gsl_config['prefix'], 'include')],
-              library_dirs=[os.path.join(gsl_config['prefix'], 'lib')]),
+              **gsl_lib),
     Extension('episimlab.seir.bf_cython_engine',
               sources=[f"src/episimlab/seir/bf_cython_engine{src_ext}"],
-              language='c',
-              libraries=['gsl'],
-              include_dirs=[os.path.join(gsl_config['prefix'], 'include')],
-              library_dirs=[os.path.join(gsl_config['prefix'], 'lib')]),
+              **gsl_lib),
     Extension('episimlab.seir.bf_cython_w_foi_engine',
               sources=[f"src/episimlab/seir/bf_cython_w_foi_engine{src_ext}"],
-              language='c',
-              libraries=['gsl'],
-              include_dirs=[os.path.join(gsl_config['prefix'], 'include')],
-              library_dirs=[os.path.join(gsl_config['prefix'], 'lib')]),
+              **gsl_lib),
     Extension('episimlab.foi.bf_cython_engine',
               sources=[f"src/episimlab/foi/bf_cython_engine.pyx"],
-              language='c',
-              libraries=['gsl'],
-              include_dirs=[os.path.join(gsl_config['prefix'], 'include')],
-              library_dirs=[os.path.join(gsl_config['prefix'], 'lib')])
+              **gsl_lib)
+
 ]
 
 # Cythonize extensions

@@ -21,6 +21,7 @@ class TestBruteForceCythonFOI:
         }
         foi_getter = BruteForceCythonFOI(**inputs)
         foi_getter.run_step()
+        foi_getter.finalize_step()
         result = foi_getter.foi
 
         # logging.debug(f"phi_grp_mapping: {phi_grp_mapping}")

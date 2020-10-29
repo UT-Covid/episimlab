@@ -27,7 +27,13 @@ class BruteForceCythonFOI(BaseFOI):
     def run_step(self):
         """
         """
-        self.foi_arr = brute_force_FOI()
+        self.foi_arr = brute_force_FOI(
+            phi_grp_mapping=self.phi_grp_mapping.values,
+            counts=self.counts.values,
+            phi_t=self.phi_t.values,
+            omega=self.omega.values,
+            beta=self.beta
+        )
 
     def finalize_step(self):
         self.foi = xr.DataArray(

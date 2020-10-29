@@ -20,28 +20,28 @@ DTYPE_FLOAT = np.float64
 DTYPE_INT = np.intc
 
 def brute_force_FOI(np.ndarray phi_grp_mapping,
-                     np.ndarray counts,
-                     np.ndarray phi_t,
-                     np.ndarray rho,
-                     np.ndarray gamma,
-                     np.ndarray pi,
-                     np.ndarray nu,
-                     np.ndarray omega,
-                     float mu,
-                     float sigma,
-                     float eta,
-                     float tau,
-                     float beta):
+                    np.ndarray counts,
+                    np.ndarray phi_t,
+                    # np.ndarray rho,
+                    # np.ndarray gamma,
+                    # np.ndarray pi,
+                    # np.ndarray nu,
+                    np.ndarray omega,
+                    # float mu,
+                    # float sigma,
+                    # float eta,
+                    # float tau,
+                    float beta):
     """
     """
     cdef:
         long [:, :] phi_grp_view = phi_grp_mapping
         double [:, :, :, :] counts_view = counts
         double [:, :] phi_view = phi_t
-        double [:, :] rho_view = rho
-        double [:] gamma_view = gamma
-        double [:, :] pi_view = pi
-        double [:] nu_view = nu
+        # double [:, :] rho_view = rho
+        # double [:] gamma_view = gamma
+        # double [:, :] pi_view = pi
+        # double [:] nu_view = nu
         double [:, :] omega_view = omega
         # double [:] beta_view = beta
         # double [:] tau_view = tau
@@ -52,16 +52,16 @@ def brute_force_FOI(np.ndarray phi_grp_mapping,
         phi_grp_view,
         counts_view,
         phi_view,
-        rho_view,
-        gamma_view,
-        pi_view,
-        nu_view,
+        # rho_view,
+        # gamma_view,
+        # pi_view,
+        # nu_view,
         omega_view,
         # floats
-        mu,
-        sigma,
-        eta,
-        tau,
+        # mu,
+        # sigma,
+        # eta,
+        # tau,
         beta,
     )
 
@@ -80,23 +80,21 @@ cdef double discrete_time_approx(double rate, double timestep) nogil:
 
 
 cdef np.ndarray _brute_force_FOI(long [:, :] phi_grp_view,
-                                  double [:, :, :, :] counts_view,
-                                  double [:, :] phi_view,
-                                  double [:, :] rho_view,
-                                  double [:] gamma_view,
-                                  # risk, age
-                                  double [:, :] pi_view,
-                                  # age
-                                  double [:] nu_view,
-                                  # age, compt
-                                  double [:, :] omega_view,
-                                  double mu,
-                                  double sigma,
-                                  double eta,
-                                  double tau,
-                                  double beta):
-                                  # double int_per_day):
-                                  # gsl_rng *rng):
+                                double [:, :, :, :] counts_view,
+                                double [:, :] phi_view,
+                                # double [:, :] rho_view,
+                                # double [:] gamma_view,
+                                # double [:, :] pi_view,
+                                # double [:] nu_view,
+                                # age, compt
+                                double [:, :] omega_view,
+                                # double mu,
+                                # double sigma,
+                                # double eta,
+                                # double tau,
+                                double beta):
+                                # double int_per_day):
+                                # gsl_rng *rng):
     """
     TODO: pass all args
     TODO: return the deltas, not the updated counts
@@ -111,11 +109,9 @@ cdef np.ndarray _brute_force_FOI(long [:, :] phi_grp_view,
         Py_ssize_t compt_len = counts_view.shape[3]
         Py_ssize_t n, a, r, a_2, r_2
 
-        # output state array. Note that the only 'value_type' we are about
-        # is index 0, or 'count'
-        np.ndarray compt_counts = np.nan * np.empty(
-            (node_len, age_len, risk_len, compt_len), dtype=DTYPE_FLOAT)
-        double [:, :, :, :] compt_v = compt_counts
+        np.ndarray foi = np.nan * np.empty(
+            (node_len, age_len, risk_len), dtype=DTYPE_FLOAT)
+        double [:, :, :] foi_view = foi
         # node population is the sum of all compartments for a given
         # node, age, risk, compartment
         np.ndarray node_pop_arr = np.sum(counts_view[:, :, :, :], axis=(2, -1))
@@ -138,8 +134,7 @@ cdef np.ndarray _brute_force_FOI(long [:, :] phi_grp_view,
             new_D, new_E2P, new_E2Py, new_P2I, new_Pa2Ia, new_Py2Iy, \
             new_Iy2Ih, new_H2D
         # rates between compartments
-        double rate_S2E, rate_E2I, rate_E2P, rate_Pa2Ia, rate_Py2Iy, rate_Ia2R, \
-            rate_Iy2R, rate_Ih2R, rate_Iy2Ih, rate_Ih2D,
+        double rate_S2E
         # TODO
         double beta0 = beta
 
@@ -156,19 +151,19 @@ cdef np.ndarray _brute_force_FOI(long [:, :] phi_grp_view,
                 # dimension assumes that epi param
                 # is same for all compartments
                 # beta0 = counts_view[n, a, r, 1, 0]
-                sigma = discrete_time_approx(sigma, int_per_day)
-                gamma_a = discrete_time_approx(gamma_view[4], int_per_day)
-                gamma_y = discrete_time_approx(gamma_view[5], int_per_day)
-                gamma_h = discrete_time_approx(gamma_view[6], int_per_day)
-                eta = discrete_time_approx(eta, int_per_day)
-                mu = discrete_time_approx(mu, int_per_day)
+                # sigma = discrete_time_approx(sigma, int_per_day)
+                # gamma_a = discrete_time_approx(gamma_view[4], int_per_day)
+                # gamma_y = discrete_time_approx(gamma_view[5], int_per_day)
+                # gamma_h = discrete_time_approx(gamma_view[6], int_per_day)
+                # eta = discrete_time_approx(eta, int_per_day)
+                # mu = discrete_time_approx(mu, int_per_day)
                 # _tau = counts_view[n, a, r, 7, 0]
-                nu = nu_view[a]
-                pi = pi_view[r, a]
+                # nu = nu_view[a]
+                # pi = pi_view[r, a]
                 # _kappa = counts_view[n, a, r, 10, 0]
                 # _report_rate = counts_view[n, a, r, 11, 0]
-                rho_a = discrete_time_approx(rho_view[a, 4], int_per_day)
-                rho_y = discrete_time_approx(rho_view[a, 5], int_per_day)
+                # rho_a = discrete_time_approx(rho_view[a, 4], int_per_day)
+                # rho_y = discrete_time_approx(rho_view[a, 5], int_per_day)
                 # TODO: reimplement
                 # _deterministic = counts_view[n, a, r, 13, 0]
 
@@ -226,133 +221,5 @@ cdef np.ndarray _brute_force_FOI(long [:, :] phi_grp_view,
                             (omega_pa_2 * Pa_2) + \
                             (omega_py_2 * Py_2)))
 
-                # ----------------   Get other deltas  -----------------
-
-                rate_E2P = sigma * E
-                rate_Pa2Ia = rho_a * Pa
-                rate_Py2Iy = rho_y * Py
-                rate_Ia2R = gamma_a * Ia
-                rate_Iy2R = (1 - pi) * gamma_y * Iy
-                rate_Ih2R = (1 - nu) * gamma_h * Ih
-                rate_Iy2Ih = pi * eta * Iy
-                rate_Ih2D = nu * mu * Ih
-
-                # --------------   Sample from Poisson  ----------------
-                # For `deterministic` == 0 only
-
-                # TODO: reimplement stochasticity
-                # TODO: reimplement GSL isinf
-                # if deterministic == 0:
-                    # rate_S2E = gsl_ran_poisson(rng, rate_S2E)
-                    # rate_E2I = gsl_ran_poisson(rng, rate_E2I)
-                    # rate_Ia2R = gsl_ran_poisson(rng, rate_Ia2R)
-                    # rate_Iy2R = gsl_ran_poisson(rng, rate_Iy2R)
-                    # rate_Ih2R = gsl_ran_poisson(rng, rate_Ih2R)
-                    # rate_Iy2Ih = gsl_ran_poisson(rng, rate_Iy2Ih)
-                    # rate_Ih2D = gsl_ran_poisson(rng, rate_Ih2D)
-                # if isinf(rate_S2E):
-                    # rate_S2E = 0
-                # if isinf(rate_E2I):
-                    # rate_E2I = 0
-                # if isinf(rate_Ia2R):
-                    # rate_Ia2R = 0
-                # if isinf(rate_Iy2R):
-                    # rate_Iy2R = 0
-                # if isinf(rate_Ih2R):
-                    # rate_Ih2R = 0
-                # if isinf(rate_Iy2Ih):
-                    # rate_Iy2Ih = 0
-                # if isinf(rate_Ih2D):
-                    # rate_Ih2D = 0
-
-                # -----------------   Apply deltas  --------------------
-
-                d_S = -rate_S2E
-                new_S = S + d_S
-                if new_S < 0:
-                    rate_S2E = S
-                    rate_S2E = 0
-
-                d_E = rate_S2E - rate_E2P
-                new_E = E + d_E
-                if new_E < 0:
-                    rate_E2P = E + rate_S2E
-                    new_E = 0
-
-                new_E2P = rate_E2P
-                new_E2Py = tau * rate_E2P
-                if new_E2Py < 0:
-                    rate_E2P = 0
-                    new_E2P = 0
-                    new_E2Py = 0
-
-                d_Pa = (1 - tau) * rate_E2P - rate_Pa2Ia
-                new_Pa = Pa + d_Pa
-                new_Pa2Ia = rate_Pa2Ia
-                if new_Pa < 0:
-                    rate_Pa2Ia = Pa + (1 - tau) * rate_E2P
-                    new_Pa = 0
-                    new_Pa2Ia = rate_Pa2Ia
-
-                d_Py = tau * rate_E2P - rate_Py2Iy
-                new_Py = Py + d_Py
-                new_Py2Iy = rate_Py2Iy
-                if new_Py < 0:
-                    rate_Py2Iy = Py + tau * rate_E2P
-                    new_Py = 0
-                    new_Py2Iy = rate_Py2Iy
-
-                new_P2I = new_Pa2Ia + new_Py2Iy
-
-                d_Ia = rate_Pa2Ia - rate_Ia2R
-                new_Ia = Ia + d_Ia
-                if new_Ia < 0:
-                    rate_Ia2R = Ia + rate_Pa2Ia
-                    new_Ia = 0
-
-                d_Iy = rate_Py2Iy - rate_Iy2R - rate_Iy2Ih
-                new_Iy = Iy + d_Iy
-                if new_Iy < 0:
-                    rate_Iy2R = (Iy + rate_Py2Iy) * rate_Iy2R / (rate_Iy2R + rate_Iy2Ih)
-                    rate_Iy2Ih = Iy + rate_Py2Iy - rate_Iy2R
-                    new_Iy = 0
-
-                new_Iy2Ih = rate_Iy2Ih
-                if new_Iy2Ih < 0:
-                    new_Iy2Ih = 0
-
-                d_Ih = rate_Iy2Ih - rate_Ih2R - rate_Ih2D
-                new_Ih = Ih + d_Ih
-                if new_Ih < 0:
-                    rate_Ih2R = (Ih + rate_Iy2Ih) * rate_Ih2R / (rate_Ih2R + rate_Ih2D)
-                    rate_Ih2D = Ih + rate_Iy2Ih - rate_Ih2R
-                    new_Ih = 0
-
-                d_R = rate_Ia2R + rate_Iy2R + rate_Ih2R
-                new_R = R + d_R
-
-                d_D = rate_Ih2D
-                new_H2D = rate_Ih2D
-                new_D = D + d_D
-
-                # ----------   Load new vals to state array  ---------------
-
-                # 'S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia', 'Py2Iy', 'Iy2Ih', 'H2D'
-                compt_v[n, a, r, 0] = new_S
-                compt_v[n, a, r, 1] = new_E
-                compt_v[n, a, r, 2] = new_Pa
-                compt_v[n, a, r, 3] = new_Py
-                compt_v[n, a, r, 4] = new_Ia
-                compt_v[n, a, r, 5] = new_Iy
-                compt_v[n, a, r, 6] = new_Ih
-                compt_v[n, a, r, 7] = new_R
-                compt_v[n, a, r, 8] = new_D
-
-                compt_v[n, a, r, 9] = new_E2P
-                compt_v[n, a, r, 10] = new_E2Py
-                compt_v[n, a, r, 11] = new_P2I
-                compt_v[n, a, r, 12] = new_Pa2Ia
-                compt_v[n, a, r, 13] = new_Py2Iy
-                compt_v[n, a, r, 14] = new_Iy2Ih
-                compt_v[n, a, r, 15] = new_H2D
-    return compt_counts
+                foi_view[n, a, r] = rate_S2E
+    return foi
