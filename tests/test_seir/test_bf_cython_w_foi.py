@@ -24,9 +24,3 @@ class TestBruteForceCythonWFOI:
         # logging.debug(f"result: {result}")
         assert isinstance(result, xr.DataArray)
 
-    @pytest.mark.skip
-    def test_can_reproduce_python():
-        pass
-
-
-

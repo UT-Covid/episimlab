@@ -19,6 +19,15 @@ def counts_coords():
                         'Py2Iy', 'Iy2Ih', 'H2D']
     }
 
+@pytest.fixture
+def foi(counts_coords):
+    dims = ('vertex', 'age_group', 'risk_group')
+    return xr.DataArray(
+        data=0.75,
+        dims=dims,
+        coords={dim: counts_coords[dim] for dim in dims}
+    )
+
 @pytest.fixture()
 def counts_basic(counts_dims, counts_coords):
     """

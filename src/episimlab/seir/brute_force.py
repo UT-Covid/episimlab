@@ -59,7 +59,11 @@ class BruteForceSEIR(BaseSEIR):
                 # logging.debug(f"cc: {cc()}")
 
                 # Calculate rates of change between each compartment
-                rate_S2E = self.foi
+                rate_S2E = self.foi.loc[{
+                    'vertex': v,
+                    'age_group': a,
+                    'risk_group': r
+                }]
                 rate_E2P = self.sigma * cts('E')
                 rate_Pa2Ia = self.rho.loc[{
                     'age_group': a,

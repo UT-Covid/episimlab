@@ -2,7 +2,6 @@ import pytest
 import logging
 import xarray as xr
 from episimlab.foi.brute_force import BruteForceFOI
-from numbers import Number
 
 
 class TestFOIBruteForce:
@@ -13,6 +12,7 @@ class TestFOIBruteForce:
         inputs = {
             'age_group': counts_basic.coords['age_group'],
             'risk_group': counts_basic.coords['risk_group'],
+            'vertex': counts_basic.coords['vertex'],
             'beta': 0.035,
             'omega': omega,
             'counts': counts_basic,
@@ -25,6 +25,6 @@ class TestFOIBruteForce:
 
         # logging.debug(f"phi_grp_mapping: {phi_grp_mapping}")
         # logging.debug(f"result: {result}")
-        assert isinstance(result, Number)
+        assert isinstance(result, xr.DataArray)
 
 

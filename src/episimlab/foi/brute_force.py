@@ -14,19 +14,25 @@ from .base import BaseFOI
 class BruteForceFOI(BaseFOI):
     """A readable, brute force algorithm for calculating force of infection (FOI).
     """
+    FOI_DIMS = ('vertex', 'age_group', 'risk_group')
 
     age_group = xs.foreign(InitDefaultCoords, 'age_group')
     risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
+    vertex = xs.foreign(InitDefaultCoords, 'vertex')
+
     phi_t = xs.foreign(InitPhi, 'phi_t', intent='in')
     phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
 
-    def calculate_foi(self) -> float:
+    def run_step(self):
         """
         """
-        # assert isinstance(self.counts, xr.DataArray), type(self.counts)
-        # assert isinstance(self.omega, xr.DataArray), type(self.omega)
-        foi = 0.
+        # Instantiate as array of zeros
+        self.foi = xr.DataArray(
+            data=0.,
+            dims=self.FOI_DIMS,
+            coords={dim: getattr(self, dim) for dim in self.FOI_DIMS}
+        )
 
         # Iterate over each vertex
         for v in range(self.counts.coords['vertex'].size):
@@ -85,19 +91,13 @@ class BruteForceFOI(BaseFOI):
                 # logging.debug(f"counts_I: {counts_I}")
 
                 # Get value of omega for these infectious compartments
-                # omega_I = self.omega.loc[{'age_group': a2, 'compartment': compt_I}]
-                omega_I = 0.66
+                omega_I = self.omega.loc[{'age_group': a2, 'compartment': compt_I}]
 
                 # Calculate force of infection
                 common_term = beta * phi * counts_S / age_pop
                 # logging.debug(f"common_term: {common_term}")
                 _sum = (common_term * omega_I * counts_I).sum(dim='compartment').values
-                foi += _sum
-        return foi
-
-
-    def run_step(self):
-        self.foi = self.calculate_foi()
+                self.foi.loc[dict(vertex=v, age_group=a1, risk_group=r1)] += _sum
 
 
 def get_foi_numpy(compt_ia, compt_iy, compt_pa, compt_py, compt_s, phi_, beta, kappa,
