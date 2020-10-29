@@ -85,6 +85,12 @@ extensions = [
               language='c',
               libraries=['gsl'],
               include_dirs=[os.path.join(gsl_config['prefix'], 'include')],
+              library_dirs=[os.path.join(gsl_config['prefix'], 'lib')]),
+    Extension('episimlab.foi.bf_cython_engine',
+              sources=[f"src/episimlab/foi/bf_cython_engine.pyx"],
+              language='c',
+              libraries=['gsl'],
+              include_dirs=[os.path.join(gsl_config['prefix'], 'include')],
               library_dirs=[os.path.join(gsl_config['prefix'], 'lib')])
 ]
 

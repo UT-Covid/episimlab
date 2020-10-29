@@ -4,7 +4,7 @@ import xarray as xr
 from episimlab.foi.brute_force import BruteForceFOI
 
 
-class TestFOIBruteForce:
+class TestBruteForceFOI:
 
     def test_can_run_step(self, omega, counts_basic, phi_grp_mapping, phi_t):
         """
