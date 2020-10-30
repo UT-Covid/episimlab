@@ -8,8 +8,8 @@ class TestCountsDeltaSEIR:
 
     def test_can_run_step(self, foi, counts_basic, epis):
         inputs = {
-            'age_group': counts_basic.coords['age_group'],
-            'risk_group': counts_basic.coords['risk_group'],
+            # 'age_group': counts_basic.coords['age_group'],
+            # 'risk_group': counts_basic.coords['risk_group'],
             # 'beta': beta,
             # 'omega': omega,
             'counts': counts_basic,

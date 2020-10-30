@@ -130,8 +130,8 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
             rate_Iy2R, rate_Ih2R, rate_Iy2Ih, rate_Ih2D,
 
     # Iterate over node, age, and risk
-    for n in prange(node_len, nogil=True):
-    # for n in range(node_len):
+    # for n in prange(node_len, nogil=True):
+    for n in range(node_len):
         for a in range(age_len):
             for r in range(risk_len):
 
@@ -291,21 +291,13 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                 # ----------   Load new vals to state array  ---------------
 
                 # 'S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia', 'Py2Iy', 'Iy2Ih', 'H2D'
-                compt_v[n, a, r, 0] = new_S
-                compt_v[n, a, r, 1] = new_E
-                compt_v[n, a, r, 2] = new_Pa
-                compt_v[n, a, r, 3] = new_Py
-                compt_v[n, a, r, 4] = new_Ia
-                compt_v[n, a, r, 5] = new_Iy
-                compt_v[n, a, r, 6] = new_Ih
-                compt_v[n, a, r, 7] = new_R
-                compt_v[n, a, r, 8] = new_D
-
-                compt_v[n, a, r, 9] = new_E2P
-                compt_v[n, a, r, 10] = new_E2Py
-                compt_v[n, a, r, 11] = new_P2I
-                compt_v[n, a, r, 12] = new_Pa2Ia
-                compt_v[n, a, r, 13] = new_Py2Iy
-                compt_v[n, a, r, 14] = new_Iy2Ih
-                compt_v[n, a, r, 15] = new_H2D
+                compt_v[n, a, r, 0] = d_S
+                compt_v[n, a, r, 1] = d_E
+                compt_v[n, a, r, 2] = d_Pa
+                compt_v[n, a, r, 3] = d_Py
+                compt_v[n, a, r, 4] = d_Ia
+                compt_v[n, a, r, 5] = d_Iy
+                compt_v[n, a, r, 6] = d_Ih
+                compt_v[n, a, r, 7] = d_R
+                compt_v[n, a, r, 8] = d_D
     return compt_counts

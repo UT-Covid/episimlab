@@ -1,5 +1,6 @@
 import xsimlab as xs
 import xarray as xr
+import numpy as np
 import logging
 from itertools import product
 from numbers import Number
@@ -21,8 +22,8 @@ class BruteForceSEIR(BaseSEIR):
 
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
     foi = xs.foreign(BaseFOI, 'foi', intent='in')
-    age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
+    # age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
+    # risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
 
     counts_delta_seir = xs.variable(
         groups=['counts_delta'],
@@ -49,12 +50,13 @@ class BruteForceSEIR(BaseSEIR):
             return self.counts.loc[idx(*args, **kwargs)].values
 
         # Abbreviation for `self.counts_delta`
-        self.counts_delta_seir = xr.zeros_like(self.counts)
+        self.counts_delta_seir = np.nan * xr.zeros_like(self.counts)
 
         # Iterate over each vertex
         for v in range(self.counts.coords['vertex'].size):
             # Iterate over every pair of age-risk categories
-            for a, r in product(self.age_group, self.risk_group):
+            for a, r in product(self.counts.coords['age_group'].values,
+                                self.counts.coords['risk_group'].values):
                 # logging.debug([a, r])
                 # logging.debug(f"cc: {cc()}")
 
