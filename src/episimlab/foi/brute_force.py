@@ -40,7 +40,6 @@ class BruteForceFOI(BaseFOI):
             for a1, r1, a2, r2 in product(*[self.age_group, self.risk_group] * 2):
                 if a1 == a2 and r1 == r2:
                     continue
-                # logging.debug([a1, r1, a2, r2])
 
                 age_pop = self.counts.loc[dict(
                     vertex=v, age_group=a2, # risk_group=r2
@@ -58,7 +57,6 @@ class BruteForceFOI(BaseFOI):
                 phi = self.phi_t.loc[dict(
                     phi_grp1=phi_grp1, phi_grp2=phi_grp2
                 )].values
-                # logging.debug(f"phi: {phi}")
 
                 # Get S compt
                 counts_S = self.counts.loc[{
@@ -67,7 +65,6 @@ class BruteForceFOI(BaseFOI):
                     'risk_group': r2,
                     'compartment': 'S'
                 }].values
-                # logging.debug(f"counts_S: {counts_S}")
 
                 # Get value of beta
                 # beta = self.beta.loc[{
@@ -78,7 +75,6 @@ class BruteForceFOI(BaseFOI):
                 # }]
                 beta = self.beta
                 assert isinstance(beta, Number)
-                # logging.debug(f"beta: {beta}")
 
                 # Get infectious compartments
                 compt_I = ['Ia', 'Iy', 'Pa', 'Py']
@@ -88,14 +84,12 @@ class BruteForceFOI(BaseFOI):
                     'risk_group': r2,
                     'compartment': compt_I
                 }]
-                # logging.debug(f"counts_I: {counts_I}")
 
                 # Get value of omega for these infectious compartments
                 omega_I = self.omega.loc[{'age_group': a2, 'compartment': compt_I}]
 
                 # Calculate force of infection
                 common_term = beta * phi * counts_S / age_pop
-                # logging.debug(f"common_term: {common_term}")
                 _sum = (common_term * omega_I * counts_I).sum(dim='compartment').values
                 self.foi.loc[dict(vertex=v, age_group=a1, risk_group=r1)] += _sum
 
