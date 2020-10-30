@@ -117,14 +117,4 @@ _Work in progress_
 
 _Work in progress_
 
-The `enho/episimlab:1.0.0` Docker image has Episimlab pip installed with all necessary dependencies. The image can be pulled or built from the repository root:
-```bash
-# Pull using Docker CLI
-docker pull enho/seircity:2.0.0
-
-# Build using Docker CLI from the repository root
-make image
-```
-
-
 [1]: https://www.gnu.org/software/gsl/
