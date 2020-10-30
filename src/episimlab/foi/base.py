@@ -10,21 +10,20 @@ from ..setup import InitDefaultCoords
 class BaseFOI:
     """
     """
+    FOI_DIMS = ('vertex', 'age_group', 'risk_group')
+
     age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
     risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
+    vertex = xs.foreign(InitDefaultCoords, 'vertex', intent='in')
 
     beta = xs.variable(intent='in')
     omega = xs.variable(dims=('age_group', 'compartment'), intent='in')
 
-    # TODO: needs a vertex dimension
-    foi = xs.variable(dims=('age_group', 'risk_group'), intent='out')
+    foi = xs.variable(dims=FOI_DIMS, intent='out')
 
     def initialize(self):
         self.foi = xr.DataArray(
             data=0.,
-            dims=('age_group', 'risk_group'),
-            coords=dict(
-                age_group=self.age_group,
-                risk_group=self.risk_group
-            )
+            dims=self.FOI_DIMS,
+            coords={dim: getattr(self, dim) for dim in self.FOI_DIMS}
         )

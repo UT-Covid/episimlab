@@ -16,8 +16,8 @@ def step_clock():
 class TestToyModels:
 
     @profiler()
-    def test_cy_seir(self, epis, counts_basic, step_clock):
-        model = toy.cy_seir()
+    def test_cy_seir_w_foi(self, epis, counts_basic, step_clock):
+        model = toy.cy_seir_w_foi()
         input_vars = dict()
         output_vars = dict()
 
@@ -46,7 +46,7 @@ class TestToyModels:
         assert isinstance(result, xr.Dataset)
 
 
-    @profiler(flavor='dask', show_prof=False)
+    @profiler()
     def test_cy_adj_slow_seir(self, epis, counts_basic, step_clock):
         model = toy.cy_adj_slow_seir()
         input_vars = dict()
@@ -75,6 +75,21 @@ class TestToyModels:
             output_vars=output_vars
         )
         # input_ds.update(_epis)
+        result = input_ds.xsimlab.run(model=model)
+        assert isinstance(result, xr.Dataset)
+
+    @profiler()
+    def test_slow_seir_cy_foi(self, epis, counts_basic, step_clock):
+        model = toy.slow_seir_cy_foi()
+        input_vars = dict()
+        output_vars = dict()
+
+        input_ds = xs.create_setup(
+            model=model,
+            clocks=step_clock,
+            input_vars=input_vars,
+            output_vars=output_vars
+        )
         result = input_ds.xsimlab.run(model=model)
         assert isinstance(result, xr.Dataset)
 

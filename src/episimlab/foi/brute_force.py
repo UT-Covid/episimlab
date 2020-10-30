@@ -14,11 +14,6 @@ from .base import BaseFOI
 class BruteForceFOI(BaseFOI):
     """A readable, brute force algorithm for calculating force of infection (FOI).
     """
-    FOI_DIMS = ('vertex', 'age_group', 'risk_group')
-
-    age_group = xs.foreign(InitDefaultCoords, 'age_group')
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
-    vertex = xs.foreign(InitDefaultCoords, 'vertex')
 
     phi_t = xs.foreign(InitPhi, 'phi_t', intent='in')
     phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
