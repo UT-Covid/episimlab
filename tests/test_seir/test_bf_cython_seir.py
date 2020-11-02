@@ -48,3 +48,4 @@ class TestBruteForceCython:
 
         # assert are the same
         xr.testing.assert_allclose(py_result, cy_result)
+

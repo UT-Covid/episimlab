@@ -8,10 +8,10 @@ import xarray as xr
 def counts_dims():
     return ['vertex', 'age_group', 'risk_group', 'compartment']
 
-@pytest.fixture()
-def counts_coords():
+@pytest.fixture(params=[3])
+def counts_coords(request):
     return {
-        'vertex': range(3),
+        'vertex': range(request.param),
         'age_group': ['0-4', '5-17', '18-49', '50-64', '65+'],
         'risk_group': ['low', 'high'],
         'compartment': ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
@@ -28,15 +28,32 @@ def foi(counts_coords):
         coords={dim: counts_coords[dim] for dim in dims}
     )
 
-@pytest.fixture()
-def counts_basic(counts_dims, counts_coords):
-    """
-    """
-    return xr.DataArray(
-        data=1.,
-        dims=counts_dims,
-        coords=counts_coords,
-    )
+@pytest.fixture(params=[
+    'realistic',
+    'ones'
+])
+def counts_basic(counts_dims, counts_coords, request):
+    if request.param == 'realistic':
+        da = xr.DataArray(
+            data=0.,
+            dims=counts_dims,
+            coords=counts_coords,
+        )
+        # Houston
+        da.loc[dict(vertex=0, compartment='S')] = 2.326e6 / 10.
+        # Austin
+        da.loc[dict(vertex=1, compartment='S')] = 1e6 / 10.
+        # Beaumont
+        da.loc[dict(vertex=2, compartment='S')] = 1.18e5 / 10.
+    elif request.param == 'ones':
+        da = xr.DataArray(
+            data=1.,
+            dims=counts_dims,
+            coords=counts_coords,
+        )
+    else:
+        raise ValueError()
+    return da
 
 @pytest.fixture()
 def adj_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
@@ -190,4 +207,27 @@ def omega(counts_coords):
     da.loc[dict(compartment=['Ia', 'Iy', 'Pa', 'Py'])] = data.T
     assert isinstance(da, xr.DataArray), type(da)
     return da
+
+"""
+@pytest.fixture
+def fxa():
+    return 'a'
+
+@pytest.fixture
+def fxb():
+    return 'b'
+
+@pytest.fixture(params=['fxa', 'fxb'])
+def arg(request):
+    print(dir(request))
+    print(type(request))
+    return request.getfixturevalue(request.param)
+
+def test_foo(arg):
+    assert len(arg) == 1
+    assert isinstance(arg, str), type(arg)
+    assert 0
+"""
+
+
 
