@@ -8,7 +8,10 @@ import xarray as xr
 def counts_dims():
     return ['vertex', 'age_group', 'risk_group', 'compartment']
 
-@pytest.fixture(params=[3])
+@pytest.fixture(params=[
+    3,
+    # 5
+])
 def counts_coords(request):
     return {
         'vertex': range(request.param),
@@ -19,11 +22,13 @@ def counts_coords(request):
                         'Py2Iy', 'Iy2Ih', 'H2D']
     }
 
-@pytest.fixture
-def foi(counts_coords):
+@pytest.fixture(params=[
+    0.75,
+])
+def foi(request, counts_coords):
     dims = ('vertex', 'age_group', 'risk_group')
     return xr.DataArray(
-        data=0.75,
+        data=request.param,
         dims=dims,
         coords={dim: counts_coords[dim] for dim in dims}
     )
@@ -65,9 +70,6 @@ def adj_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
     }
     shape = np.array([len(coords[d]) for d in dims])
     data = np.arange(np.prod(shape)).reshape(shape)
-    # logging.debug(f"data: {data}")
-    # logging.debug(f"dims: {dims}")
-    # logging.debug(f"coords: {coords}")
     return xr.DataArray(data=data, dims=dims, coords=coords)
 
 @pytest.fixture()
@@ -80,9 +82,6 @@ def phi_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
     }
     shape = np.array([len(coords[d]) for d in dims])
     data = np.arange(np.prod(shape)).reshape(shape)
-    # logging.debug(f"data: {data}")
-    # logging.debug(f"dims: {dims}")
-    # logging.debug(f"coords: {coords}")
     return xr.DataArray(data=data, dims=dims, coords=coords)
 
 @pytest.fixture()
@@ -207,27 +206,6 @@ def omega(counts_coords):
     da.loc[dict(compartment=['Ia', 'Iy', 'Pa', 'Py'])] = data.T
     assert isinstance(da, xr.DataArray), type(da)
     return da
-
-"""
-@pytest.fixture
-def fxa():
-    return 'a'
-
-@pytest.fixture
-def fxb():
-    return 'b'
-
-@pytest.fixture(params=['fxa', 'fxb'])
-def arg(request):
-    print(dir(request))
-    print(type(request))
-    return request.getfixturevalue(request.param)
-
-def test_foo(arg):
-    assert len(arg) == 1
-    assert isinstance(arg, str), type(arg)
-    assert 0
-"""
 
 
 

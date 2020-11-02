@@ -132,3 +132,4 @@ class TestToyModels:
         # non zero?
         assert np.any(cy_result['apply_counts_delta__counts'].values)
         assert np.any(py_result['apply_counts_delta__counts'].values)
+
