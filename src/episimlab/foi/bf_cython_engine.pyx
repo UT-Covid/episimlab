@@ -152,7 +152,6 @@ cdef np.ndarray _brute_force_FOI(long [:, :] phi_grp_view,
                         # Ignore case where node population is zero or negative
                         if node_pop[n, a_2] <= 0:
                             continue
-                            # pass
 
                         # Get phi
                         phi_1_2 = phi_view[phi_grp_view[a, r], phi_grp_view[a_2, r_2]]

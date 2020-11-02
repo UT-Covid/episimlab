@@ -102,6 +102,7 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
     TODO: return the deltas, not the updated counts
     """
     cdef:
+        # TODO
         # DEBUG
         double int_per_day = 1.
         # indexers and lengths of each dimension in state space
@@ -124,7 +125,7 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
         double gamma_a, gamma_y, gamma_h, nu, pi, \
             kappa, report_rate, rho_a, rho_y
         # epi params for force of infection calculation
-        double beta_2, phi_1_2, omega_e_2, omega_pa_2, omega_py_2, omega_a_2, \
+        double phi_1_2, omega_e_2, omega_pa_2, omega_py_2, omega_a_2, \
             omega_y_2, common_term, deterministic
         # compartment counts
         double S, E, Pa, Py, Ia, Iy, Ih, R, D, E2P, E2Py, P2I, Pa2Ia, Py2Iy, \
@@ -140,12 +141,10 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
         # rates between compartments
         double rate_S2E, rate_E2I, rate_E2P, rate_Pa2Ia, rate_Py2Iy, rate_Ia2R, \
             rate_Iy2R, rate_Ih2R, rate_Iy2Ih, rate_Ih2D,
-        # TODO
-        double beta0 = beta
 
     # Iterate over node, age, and risk
-    for n in prange(node_len, nogil=True):
-    # for n in range(node_len):
+    # for n in prange(node_len, nogil=True):
+    for n in range(node_len):
         for a in range(age_len):
             for r in range(risk_len):
 
@@ -198,11 +197,18 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
                 rate_S2E = 0.
                 for a_2 in range(age_len):
                     for r_2 in range(risk_len):
+                        # Skip if same
+                        if a == a_2 and r == r_2:
+                            continue
+
+                        # Ignore case where node population is zero or negative
+                        if node_pop[n, a_2] <= 0:
+                            continue
 
                         # Get phi
                         phi_1_2 = phi_view[phi_grp_view[a, r], phi_grp_view[a_2, r_2]]
 
-                        beta_2 = beta
+                        # Enumerate omega
                         omega_a_2 = omega_view[a_2, 4]
                         omega_y_2 = omega_view[a_2, 5]
                         omega_pa_2 = omega_view[a_2, 2]
@@ -214,12 +220,8 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
                         Ia_2 = counts_view[n, a_2, r_2, 4]
                         Iy_2 = counts_view[n, a_2, r_2, 5]
 
-                        # Ignore case where node population is zero or negative
-                        if node_pop[n, a_2] <= 0:
-                            continue
-
                         # calculate force of infection
-                        common_term = beta_2 * phi_1_2 * S / node_pop[n, a_2]
+                        common_term = beta * phi_1_2 * S / node_pop[n, a_2]
                         rate_S2E = rate_S2E + (common_term * (
                             (omega_a_2 * Ia_2) + \
                             (omega_y_2 * Iy_2) + \
@@ -338,21 +340,13 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
                 # ----------   Load new vals to state array  ---------------
 
                 # 'S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia', 'Py2Iy', 'Iy2Ih', 'H2D'
-                compt_v[n, a, r, 0] = new_S
-                compt_v[n, a, r, 1] = new_E
-                compt_v[n, a, r, 2] = new_Pa
-                compt_v[n, a, r, 3] = new_Py
-                compt_v[n, a, r, 4] = new_Ia
-                compt_v[n, a, r, 5] = new_Iy
-                compt_v[n, a, r, 6] = new_Ih
-                compt_v[n, a, r, 7] = new_R
-                compt_v[n, a, r, 8] = new_D
-
-                compt_v[n, a, r, 9] = new_E2P
-                compt_v[n, a, r, 10] = new_E2Py
-                compt_v[n, a, r, 11] = new_P2I
-                compt_v[n, a, r, 12] = new_Pa2Ia
-                compt_v[n, a, r, 13] = new_Py2Iy
-                compt_v[n, a, r, 14] = new_Iy2Ih
-                compt_v[n, a, r, 15] = new_H2D
+                compt_v[n, a, r, 0] = d_S
+                compt_v[n, a, r, 1] = d_E
+                compt_v[n, a, r, 2] = d_Pa
+                compt_v[n, a, r, 3] = d_Py
+                compt_v[n, a, r, 4] = d_Ia
+                compt_v[n, a, r, 5] = d_Iy
+                compt_v[n, a, r, 6] = d_Ih
+                compt_v[n, a, r, 7] = d_R
+                compt_v[n, a, r, 8] = d_D
     return compt_counts
