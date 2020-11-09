@@ -23,7 +23,6 @@ cdef np.ndarray _graph_high_gran(double [:, :, :, :] counts_view,
                                  double [:, :] adj_view,
                                  long [:, :, :, :] mapping_view):
     """
-    TODO: read adj_grp_mapping instead of calculating idx1 and idx2
     """
 
     # Type setting

@@ -10,7 +10,7 @@ from ..setup.coords import InitDefaultCoords
 
 @xs.process
 class InitAdjGrpMapping:
-    """TODO: handle the coords dynamically as a `group`
+    """
     """
     MAP_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
 

@@ -10,7 +10,7 @@ from ..setup.coords import InitDefaultCoords
 
 @xs.process
 class InitPhiGrpMapping:
-    """TODO: handle the coords dynamically as a `group`
+    """
     """
 
     age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')

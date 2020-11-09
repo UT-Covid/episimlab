@@ -96,8 +96,6 @@ cdef np.ndarray _brute_force_FOI(long [:, :] phi_grp_view,
                                 # double int_per_day):
                                 # gsl_rng *rng):
     """
-    TODO: pass all args
-    TODO: return the deltas, not the updated counts
     """
     cdef:
         # DEBUG

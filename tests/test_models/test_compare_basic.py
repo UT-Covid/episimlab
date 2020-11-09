@@ -23,6 +23,7 @@ def step_clock():
         10
     ))
 
+@pytest.mark.slow
 class TestCompareBasicModels:
 
     @pytest.mark.parametrize('foi1, seir1', [

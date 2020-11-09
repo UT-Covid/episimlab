@@ -188,6 +188,12 @@ def beta():
 def tau():
     return 0.57
 
+@pytest.fixture(params=[
+    0, 5, 20
+])
+def sto_toggle(request):
+    return request.param
+
 @pytest.fixture()
 def omega(counts_coords):
     # omega_a = np.array([0.66666667, 0.66666667, 0.66666667, 0.66666667, 0.66666667])
