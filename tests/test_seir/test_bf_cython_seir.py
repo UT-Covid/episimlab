@@ -11,10 +11,13 @@ class TestBruteForceCython:
         inputs = {
             'counts': counts_basic,
             'foi': foi,
+            'seed_state': seed_state,
+            'stochastic': stochastic,
         }
         inputs.update(epis)
 
         proc = BruteForceCython(**inputs)
+        proc.initialize()
         proc.run_step()
         proc.finalize_step()
         result = proc.counts_delta_seir
@@ -25,15 +28,18 @@ class TestBruteForceCython:
         # TODO
         # assert not result.isnull().any()
 
-    def test_same_as_python(self, foi, counts_basic, epis):
+    def test_same_as_python(self, foi, seed_state, counts_basic, epis):
         inputs = {
             'counts': counts_basic,
             'foi': foi,
+            'seed_state': seed_state,
+            'stochastic': stochastic,
         }
         inputs.update(epis)
 
         # run in cython
         cy_proc = BruteForceCython(**inputs)
+        cy_proc.initialize()
         cy_proc.run_step()
         cy_proc.finalize_step()
         cy_result = cy_proc.counts_delta_seir
@@ -41,6 +47,7 @@ class TestBruteForceCython:
 
         # run in python
         py_proc = BruteForceSEIR(**inputs)
+        cy_proc.initialize()
         py_proc.run_step()
         # py_proc.finalize_step()
         py_result = py_proc.counts_delta_seir

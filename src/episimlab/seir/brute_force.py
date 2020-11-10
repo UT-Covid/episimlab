@@ -9,6 +9,8 @@ from ..apply_counts_delta import ApplyCountsDelta
 from ..setup.coords import InitDefaultCoords
 from .base import BaseSEIR
 from ..foi.base import BaseFOI
+from ..setup.seed import SeedFromRNG
+from ..setup.sto import InitStochasticFromToggle
 
 
 @xs.process
@@ -22,6 +24,9 @@ class BruteForceSEIR(BaseSEIR):
 
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
     foi = xs.foreign(BaseFOI, 'foi', intent='in')
+    seed_state = xs.foreign(SeedFromRNG, 'seed_state', intent='in')
+    stochastic = xs.foreign(InitStochasticFromToggle, 'stochastic', intent='in')
+
     # age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
     # risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
 
@@ -31,6 +36,9 @@ class BruteForceSEIR(BaseSEIR):
         static=False,
         intent='out'
     )
+
+    def initialize(self):
+        self.rng = np.random.default_rng(seed=self.seed_state)
 
     def run_step(self):
         """
@@ -96,6 +104,16 @@ class BruteForceSEIR(BaseSEIR):
                 rate_Ih2D = self.nu.loc[{
                     'age_group': a
                 }] * self.mu * cts('Ih')
+
+                # ------------------- Apply stochasticity ---------------------
+
+                if self.stochastic:
+                    rate_S2E = self.rng.poisson(rate_S2E)
+                    rate_Ia2R = self.rng.poisson(rate_Ia2R)
+                    rate_Iy2R = self.rng.poisson(rate_Iy2R)
+                    rate_Ih2R = self.rng.poisson(rate_Ih2R)
+                    rate_Iy2Ih = self.rng.poisson(rate_Iy2Ih)
+                    rate_Ih2D = self.rng.poisson(rate_Ih2D)
 
                 # ---------------------- Apply deltas -------------------------
 

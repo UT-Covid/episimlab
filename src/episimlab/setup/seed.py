@@ -9,16 +9,13 @@ from ..setup import InitDefaultCoords
 
 
 @xs.process
-class StaticSeed:
-    """
+class SeedEntropy:
+    """Sets seed entropy for testing purposes
     """
     seed_entropy = xs.variable(static=True, intent='out')
-    seed_state = xs.variable(intent='out')
 
     def initialize(self):
         self.seed_entropy = 12345
-        self.seed_seq = np.random.SeedSequence(entropy=(self.seed_entropy))
-        self.seed_state = self.seed_seq.generate_state(1)[0]
 
 
 @xs.process
@@ -44,7 +41,6 @@ class SeedFromRNG:
         child_state_arr = child_ss.generate_state(1)
         assert isinstance(child_state_arr, np.ndarray), type(child_state_arr)
         return child_state_arr[0]
-
 
     def run_step(self):
         self.seed_state = self.spawn_next(self.seed_seq)

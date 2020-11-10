@@ -5,17 +5,18 @@ import numpy as np
 import logging
 from numbers import Number
 
-from episimlab.setup.seed import StaticSeed, SeedFromRNG
+from episimlab.setup.seed import SeedEntropy, SeedFromRNG
 
 
-class TestStaticSeed:
+class TestSeedEntropy:
 
     def test_can_init(self):
-        proc = StaticSeed()
+        proc = SeedEntropy()
         proc.initialize()
-        result = proc.seed_state
+        result = proc.seed_entropy
 
         assert isinstance(result, Number)
+
 
 class TestSeedFromRNG:
 

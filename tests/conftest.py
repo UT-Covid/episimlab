@@ -213,5 +213,14 @@ def omega(counts_coords):
     assert isinstance(da, xr.DataArray), type(da)
     return da
 
+@pytest.fixture()
+def seed_state():
+    return 12345
 
+
+@pytest.fixture(params=[
+    True, False
+])
+def stochastic(request):
+    return request.param
 
