@@ -6,7 +6,8 @@ from episimlab.seir.brute_force import BruteForceSEIR
 
 class TestCountsDeltaSEIR:
 
-    def test_can_run_step(self, seed_state, stochastic, foi, counts_basic, epis):
+    def test_can_run_step(self, seed_entropy, stochastic, foi,
+                          counts_basic, epis):
         inputs = {
             # 'age_group': counts_basic.coords['age_group'],
             # 'risk_group': counts_basic.coords['risk_group'],
@@ -14,7 +15,7 @@ class TestCountsDeltaSEIR:
             # 'omega': omega,
             'counts': counts_basic,
             'foi': foi,
-            'seed_state': seed_state,
+            'seed_state': seed_entropy,
             'stochastic': stochastic,
         }
         inputs.update(epis)
@@ -26,6 +27,3 @@ class TestCountsDeltaSEIR:
 
         # logging.debug(f"result: {result}")
         assert isinstance(result, xr.DataArray)
-
-
-

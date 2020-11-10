@@ -19,7 +19,7 @@ class SeedEntropy:
 
 
 @xs.process
-class SeedFromRNG:
+class SeedGenerator:
     """
     """
     seed_entropy = xs.variable(static=True, intent='in')
@@ -44,4 +44,3 @@ class SeedFromRNG:
 
     def run_step(self):
         self.seed_state = self.spawn_next(self.seed_seq)
-

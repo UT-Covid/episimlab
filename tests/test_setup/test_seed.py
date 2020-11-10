@@ -5,7 +5,7 @@ import numpy as np
 import logging
 from numbers import Number
 
-from episimlab.setup.seed import SeedEntropy, SeedFromRNG
+from episimlab.setup.seed import SeedEntropy, SeedGenerator
 
 
 class TestSeedEntropy:
@@ -18,7 +18,7 @@ class TestSeedEntropy:
         assert isinstance(result, Number)
 
 
-class TestSeedFromRNG:
+class TestSeedGenerator:
 
     @pytest.mark.parametrize('step, expected', [
         (1, 959183449),
@@ -29,7 +29,7 @@ class TestSeedFromRNG:
         inputs = {
             'seed_entropy': 12345
         }
-        proc = SeedFromRNG(**inputs)
+        proc = SeedGenerator(**inputs)
         proc.initialize()
 
         for _ in range(step):
@@ -38,4 +38,3 @@ class TestSeedFromRNG:
 
         assert isinstance(result, Number), type(result)
         assert result == expected
-

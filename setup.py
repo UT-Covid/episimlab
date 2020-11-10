@@ -168,4 +168,3 @@ setup(
     ext_modules=extensions,
     include_dirs=[numpy.get_include()],
 )
-

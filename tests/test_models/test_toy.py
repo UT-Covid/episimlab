@@ -8,17 +8,25 @@ from episimlab.pytest_utils import profiler
 
 
 @pytest.fixture
+def input_vars(seed_entropy, sto_toggle):
+    return {
+        'rng__seed_entropy': seed_entropy,
+        'sto__sto_toggle': sto_toggle
+    }
+
+
+@pytest.fixture
 def step_clock():
     return dict(step=range(
         10
     ))
 
+
 class TestToyModels:
 
     @profiler()
-    def test_cy_seir_w_foi(self, epis, counts_basic, step_clock):
+    def test_cy_seir_w_foi(self, epis, input_vars, counts_basic, step_clock):
         model = toy.cy_seir_w_foi()
-        input_vars = dict()
         output_vars = dict()
 
         input_ds = xs.create_setup(
@@ -31,9 +39,8 @@ class TestToyModels:
         assert isinstance(result, xr.Dataset)
 
     @profiler()
-    def test_slow_seir(self, epis, counts_basic, step_clock):
+    def test_slow_seir(self, epis, counts_basic, input_vars, step_clock):
         model = toy.slow_seir()
-        input_vars = dict()
         output_vars = dict()
 
         input_ds = xs.create_setup(
@@ -47,9 +54,8 @@ class TestToyModels:
 
 
     @profiler()
-    def test_cy_adj_slow_seir(self, epis, counts_basic, step_clock):
+    def test_cy_adj_slow_seir(self, epis, input_vars, counts_basic, step_clock):
         model = toy.cy_adj_slow_seir()
-        input_vars = dict()
         output_vars = dict()
 
         input_ds = xs.create_setup(
@@ -63,9 +69,8 @@ class TestToyModels:
 
 
     @profiler()
-    def test_cy_adj(self, epis, counts_basic, step_clock):
+    def test_cy_adj(self, epis, input_vars, counts_basic, step_clock):
         model = toy.cy_adj()
-        input_vars = dict()
         output_vars = dict()
 
         input_ds = xs.create_setup(
@@ -79,9 +84,8 @@ class TestToyModels:
         assert isinstance(result, xr.Dataset)
 
     @profiler()
-    def test_slow_seir_cy_foi(self, epis, counts_basic, step_clock):
+    def test_slow_seir_cy_foi(self, epis, input_vars, counts_basic, step_clock):
         model = toy.slow_seir_cy_foi()
-        input_vars = dict()
         output_vars = dict()
 
         input_ds = xs.create_setup(
@@ -95,14 +99,13 @@ class TestToyModels:
 
     # TODO
     @pytest.mark.skip
-    def test_cy_seir_is_same(self, epis, counts_basic, step_clock):
+    def test_cy_seir_is_same(self, epis, input_vars, counts_basic, step_clock):
         """Can the cython SEIR implementation generate same results
         as the "slow" python implementation?
         """
         # Establish inputs and models
         cy_model = toy.cy_seir()
         py_model = toy.slow_seir()
-        input_vars = dict()
         output_vars = dict(apply_counts_delta__counts='step')
 
         # SEIR in cython
@@ -132,4 +135,3 @@ class TestToyModels:
         # non zero?
         assert np.any(cy_result['apply_counts_delta__counts'].values)
         assert np.any(py_result['apply_counts_delta__counts'].values)
-

@@ -131,4 +131,3 @@ jhub: image-jhub | docker
 docs:
 	cp src/SEIRcity/model/cy_model.html docsrc/_static || true
 	cd docsrc && make html
-

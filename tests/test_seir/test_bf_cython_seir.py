@@ -7,11 +7,11 @@ from episimlab.seir.brute_force import BruteForceSEIR
 
 class TestBruteForceCython:
 
-    def test_can_run_step(self, foi, counts_basic, epis):
+    def test_can_run_step(self, foi, seed_entropy, stochastic, counts_basic, epis):
         inputs = {
             'counts': counts_basic,
             'foi': foi,
-            'seed_state': seed_state,
+            'seed_state': seed_entropy,
             'stochastic': stochastic,
         }
         inputs.update(epis)
@@ -28,11 +28,11 @@ class TestBruteForceCython:
         # TODO
         # assert not result.isnull().any()
 
-    def test_same_as_python(self, foi, seed_state, counts_basic, epis):
+    def test_same_as_python(self, foi, seed_entropy, counts_basic, epis):
         inputs = {
             'counts': counts_basic,
             'foi': foi,
-            'seed_state': seed_state,
+            'seed_state': seed_entropy,
             'stochastic': stochastic,
         }
         inputs.update(epis)
@@ -55,4 +55,3 @@ class TestBruteForceCython:
 
         # assert are the same
         xr.testing.assert_allclose(py_result, cy_result)
-

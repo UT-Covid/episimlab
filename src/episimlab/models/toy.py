@@ -3,8 +3,13 @@ import xarray as xr
 import attr
 from .. import seir, foi, setup, apply_counts_delta, graph
 
+
 def minimum_viable():
     return xs.Model(dict(
+        # Random number generator
+        rng=setup.seed.SeedGenerator,
+        sto=setup.sto.InitStochasticFromToggle,
+
         # Instantiate coords, counts array, default parameters
         init_epi=setup.InitDefaultEpis,
         init_counts=setup.InitDefaultCounts,

@@ -9,7 +9,7 @@ from ..apply_counts_delta import ApplyCountsDelta
 from ..setup.coords import InitDefaultCoords
 from .base import BaseSEIR
 from ..foi.base import BaseFOI
-from ..setup.seed import SeedFromRNG
+from ..setup.seed import SeedGenerator
 from ..setup.sto import InitStochasticFromToggle
 
 
@@ -24,7 +24,7 @@ class BruteForceSEIR(BaseSEIR):
 
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
     foi = xs.foreign(BaseFOI, 'foi', intent='in')
-    seed_state = xs.foreign(SeedFromRNG, 'seed_state', intent='in')
+    seed_state = xs.foreign(SeedGenerator, 'seed_state', intent='in')
     stochastic = xs.foreign(InitStochasticFromToggle, 'stochastic', intent='in')
 
     # age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
@@ -37,12 +37,16 @@ class BruteForceSEIR(BaseSEIR):
         intent='out'
     )
 
-    def initialize(self):
-        self.rng = np.random.default_rng(seed=self.seed_state)
+    def get_rng(self):
+        return np.random.default_rng(seed=self.seed_state)
 
     def run_step(self):
         """
         """
+        # Get a RNG for this timepoint, based off of the uint64 seed
+        # at this timepoint
+        self.rng = self.get_rng()
+
         def idx(compt=None):
             d = {
                 'vertex': v,
@@ -194,4 +198,3 @@ class BruteForceSEIR(BaseSEIR):
                 self.counts_delta_seir.loc[idx('Ih')] = d_Ih
                 self.counts_delta_seir.loc[idx('R')] = d_R
                 self.counts_delta_seir.loc[idx('D')] = d_D
-

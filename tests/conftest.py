@@ -189,7 +189,9 @@ def tau():
     return 0.57
 
 @pytest.fixture(params=[
-    0, 5, 20
+    0,
+    5,
+    20
 ])
 def sto_toggle(request):
     return request.param
@@ -214,7 +216,7 @@ def omega(counts_coords):
     return da
 
 @pytest.fixture()
-def seed_state():
+def seed_entropy():
     return 12345
 
 
@@ -223,4 +225,3 @@ def seed_state():
 ])
 def stochastic(request):
     return request.param
-

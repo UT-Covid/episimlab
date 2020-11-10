@@ -5,6 +5,7 @@ import logging
 
 from ..seir import base
 from ..foi.base import BaseFOI
+from ..seir.base import BaseSEIR
 from ..setup import InitDefaultCoords
 
 
@@ -13,7 +14,7 @@ class InitStochasticFromToggle:
     """Switches on stochasticity after simulation has run `sto_toggle` steps.
     """
     sto_toggle = xs.variable(static=True, intent='in')
-    stochastic = xs.variable(static=False, intent='out')
+    stochastic = xs.foreign(BaseSEIR, 'stochastic', intent='out')
 
     @xs.runtime(args="step")
     def run_step(self, step):
@@ -21,4 +22,3 @@ class InitStochasticFromToggle:
             self.stochastic = True
         else:
             self.stochastic = False
-
