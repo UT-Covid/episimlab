@@ -10,6 +10,7 @@ from ..setup.phi import InitPhi, InitPhiGrpMapping
 from .base import BaseFOI
 from .bf_cython_engine import brute_force_FOI
 
+
 @xs.process
 class BruteForceCythonFOI(BaseFOI):
     """A readable, brute force algorithm for calculating force of infection (FOI).

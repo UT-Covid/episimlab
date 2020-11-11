@@ -18,10 +18,19 @@ from episimlab.foi import (
 
 
 @pytest.fixture
+def input_vars(seed_entropy, sto_toggle):
+    return {
+        'rng__seed_entropy': seed_entropy,
+        'sto__sto_toggle': sto_toggle
+    }
+
+
+@pytest.fixture
 def step_clock():
     return dict(step=range(
         10
     ))
+
 
 @pytest.mark.slow
 class TestCompareBasicModels:
@@ -42,7 +51,7 @@ class TestCompareBasicModels:
         # Cython SEIR with FOI
         # (foi_base.BaseFOI, seir_bf_cython_w_foi.BruteForceCythonWFOI),
     ])
-    def test_seir_foi_combos(self, step_clock, foi1, seir1, foi2, seir2):
+    def test_seir_foi_combos(self, input_vars, step_clock, foi1, seir1, foi2, seir2):
         # load default model
         model = episimlab.models.toy.slow_seir()
 
@@ -60,7 +69,7 @@ class TestCompareBasicModels:
         in_ds = xs.create_setup(
             model=model,
             clocks=step_clock,
-            input_vars=dict(),
+            input_vars=input_vars,
             output_vars=dict(apply_counts_delta__counts='step')
         )
 
@@ -72,5 +81,3 @@ class TestCompareBasicModels:
         assert isinstance(result1, xr.DataArray)
         assert isinstance(result2, xr.DataArray)
         xr.testing.assert_allclose(result1, result2)
-
-
