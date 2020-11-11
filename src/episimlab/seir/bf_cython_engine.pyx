@@ -19,6 +19,54 @@ from cython.parallel import prange
 DTYPE_FLOAT = np.float64
 DTYPE_INT = np.intc
 
+
+# Random generator from GSL lib
+cdef extern from "gsl/gsl_rng.h" nogil:
+    ctypedef struct gsl_rng_type:
+        pass
+    ctypedef struct gsl_rng:
+        pass
+    gsl_rng_type *gsl_rng_mt19937
+    gsl_rng *gsl_rng_alloc(gsl_rng_type * T)
+    void gsl_rng_set(gsl_rng * r, unsigned long int)
+    void gsl_rng_free(gsl_rng * r)
+
+# Poisson distribution from GSL lib
+cdef extern from "gsl/gsl_randist.h" nogil:
+    unsigned int gsl_ran_poisson(gsl_rng * r, double mu)
+
+
+cdef gsl_rng *get_seeded_rng(int int_seed) nogil:
+    """Returns a C pointer to instance of MT-19937 generator
+    (https://www.gnu.org/software/gsl/doc/html/rng.html#c.gsl_rng_mt19937).
+    Seeds with int32 seed `int_seed`.
+    """
+    cdef:
+        gsl_rng *rng = gsl_rng_alloc(gsl_rng_mt19937)
+    gsl_rng_set(rng, int_seed)
+    return rng
+
+
+def test_gsl_poisson(double mu, int int_seed, int iters, int enable_omp):
+    """For testing purposes only
+    TODO
+    """
+    cdef:
+        gsl_rng *rng = get_seeded_rng(int_seed)
+        Py_ssize_t iter_len = iters
+        Py_ssize_t i
+        np.ndarray result_arr = np.zeros((iters), dtype=DTYPE_INT)
+        int [:] rv = result_arr
+
+    if enable_omp == 0:
+        for i in range(iters):
+            rv[i] = gsl_ran_poisson(rng, mu)
+    else:
+        for i in prange(iters, nogil=True):
+            rv[i] = gsl_ran_poisson(rng, mu)
+    return result_arr
+
+
 def brute_force_SEIR(np.ndarray counts,
                      np.ndarray foi,
                      np.ndarray rho,
@@ -29,6 +77,7 @@ def brute_force_SEIR(np.ndarray counts,
                      float sigma,
                      float eta,
                      float tau,
+                     unsigned int stochastic
                      ):
     """
     """
@@ -42,6 +91,8 @@ def brute_force_SEIR(np.ndarray counts,
         # double [:] tau_view = tau
         # double [:] sigma_view = sigma
         # double [:] eta_view = eta
+        # GSL random number generator
+        gsl_rng *rng = get_seeded_rng(int_seed)
 
     return _brute_force_SEIR(
         counts_view,
@@ -55,6 +106,8 @@ def brute_force_SEIR(np.ndarray counts,
         sigma,
         eta,
         tau,
+        stochastic,
+        4
     )
 
 
