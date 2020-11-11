@@ -21,7 +21,7 @@ class TestCountsDeltaSEIR:
         inputs.update(epis)
 
         proc = BruteForceSEIR(**inputs)
-        proc.initialize()
+        # proc.initialize()
         proc.run_step()
         result = proc.counts_delta_seir
 

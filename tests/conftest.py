@@ -8,8 +8,10 @@ import xarray as xr
 def counts_dims():
     return ['vertex', 'age_group', 'risk_group', 'compartment']
 
+
 @pytest.fixture(params=[
     3,
+    # TODO
     # 5
 ])
 def counts_coords(request):
@@ -22,6 +24,7 @@ def counts_coords(request):
                         'Py2Iy', 'Iy2Ih', 'H2D']
     }
 
+
 @pytest.fixture(params=[
     0.75,
 ])
@@ -33,9 +36,10 @@ def foi(request, counts_coords):
         coords={dim: counts_coords[dim] for dim in dims}
     )
 
+
 @pytest.fixture(params=[
     'realistic',
-    'ones'
+    # 'ones'
 ])
 def counts_basic(counts_dims, counts_coords, request):
     if request.param == 'realistic':
@@ -60,6 +64,7 @@ def counts_basic(counts_dims, counts_coords, request):
         raise ValueError()
     return da
 
+
 @pytest.fixture()
 def adj_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
     """A MultiIndex mapping for an adj array"""
@@ -72,6 +77,7 @@ def adj_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
     data = np.arange(np.prod(shape)).reshape(shape)
     return xr.DataArray(data=data, dims=dims, coords=coords)
 
+
 @pytest.fixture()
 def phi_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
     """A MultiIndex mapping for a phi array"""
@@ -83,6 +89,7 @@ def phi_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
     shape = np.array([len(coords[d]) for d in dims])
     data = np.arange(np.prod(shape)).reshape(shape)
     return xr.DataArray(data=data, dims=dims, coords=coords)
+
 
 @pytest.fixture()
 def adj_t(counts_coords):
@@ -97,6 +104,7 @@ def adj_t(counts_coords):
         dims=dims,
         coords={dim: range(idx_size) for dim in dims}
     )
+
 
 @pytest.fixture()
 def phi_t():
@@ -117,12 +125,14 @@ def phi_t():
     }
     return xr.DataArray(data=data, dims=dims, coords=coords)
 
+
 @pytest.fixture()
 def epis(rho, gamma, sigma, pi, eta, nu, mu, tau):
     return dict(
         rho=rho, gamma=gamma, sigma=sigma, pi=pi,
         eta=eta, nu=nu, mu=mu, tau=tau
     )
+
 
 @pytest.fixture()
 def rho(counts_coords):
@@ -180,21 +190,25 @@ def nu(counts_coords):
 def mu():
     return 0.12820513
 
+
 @pytest.fixture()
 def beta():
     return 0.035
+
 
 @pytest.fixture()
 def tau():
     return 0.57
 
+
 @pytest.fixture(params=[
-    0,
+    # 0,
     5,
-    20
+    # 20
 ])
 def sto_toggle(request):
     return request.param
+
 
 @pytest.fixture()
 def omega(counts_coords):
@@ -215,13 +229,16 @@ def omega(counts_coords):
     assert isinstance(da, xr.DataArray), type(da)
     return da
 
+
 @pytest.fixture()
 def seed_entropy():
     return 12345
 
 
 @pytest.fixture(params=[
-    True, False
+    # TODO
+    # True,
+    False
 ])
 def stochastic(request):
     return request.param

@@ -6,6 +6,7 @@ import logging
 from ..seir import base
 from ..foi.base import BaseFOI
 from ..setup import InitDefaultCoords
+from ..seir.base import BaseSEIR
 
 
 @xs.process
@@ -23,7 +24,7 @@ class SeedGenerator:
     """
     """
     seed_entropy = xs.variable(static=True, intent='in')
-    seed_state = xs.variable(intent='out')
+    seed_state = xs.foreign(BaseSEIR, 'seed_state', intent='out')
 
     def initialize(self):
         # instantiate a SeedSequence
