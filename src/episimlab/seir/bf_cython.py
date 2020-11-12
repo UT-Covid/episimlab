@@ -54,7 +54,8 @@ class BruteForceCython(BaseSEIR):
             sigma=self.sigma,
             tau=self.tau,
             eta=self.eta,
-            stochastic=self.stochastic
+            stochastic=self.stochastic,
+            int_seed=self.seed_state
         )
 
     def finalize_step(self):

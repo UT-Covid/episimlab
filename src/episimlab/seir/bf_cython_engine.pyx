@@ -67,6 +67,19 @@ def test_gsl_poisson(double mu, int int_seed, int iters, int enable_omp):
     return result_arr
 
 
+cdef double discrete_time_approx(double rate, double timestep) nogil:
+        """
+        :param rate: daily rate
+        :param timestep: timesteps per day
+        :return: rate rescaled by time step
+        """
+        # if rate >= 1:
+            # return np.nan
+        # elif timestep == 0:
+            # return np.nan
+        return (1 - (1 - rate)**(1/timestep))
+
+
 def brute_force_SEIR(np.ndarray counts,
                      np.ndarray foi,
                      np.ndarray rho,
@@ -77,7 +90,8 @@ def brute_force_SEIR(np.ndarray counts,
                      float sigma,
                      float eta,
                      float tau,
-                     unsigned int stochastic
+                     unsigned int stochastic,
+                     unsigned int int_seed
                      ):
     """
     """
@@ -107,21 +121,8 @@ def brute_force_SEIR(np.ndarray counts,
         eta,
         tau,
         stochastic,
-        4
+        rng
     )
-
-
-cdef double discrete_time_approx(double rate, double timestep) nogil:
-    """
-    :param rate: daily rate
-    :param timestep: timesteps per day
-    :return: rate rescaled by time step
-    """
-    # if rate >= 1:
-        # return np.nan
-    # elif timestep == 0:
-        # return np.nan
-    return (1 - (1 - rate)**(1/timestep))
 
 
 cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
@@ -136,9 +137,11 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                                   double mu,
                                   double sigma,
                                   double eta,
-                                  double tau):
+                                  double tau,
+                                  unsigned int stochastic,
+                                  gsl_rng *rng,
+                                  ):
                                   # double int_per_day):
-                                  # gsl_rng *rng):
     """
     """
     cdef:
@@ -242,18 +245,17 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                 rate_Ih2D = nu * mu * Ih
 
                 # --------------   Sample from Poisson  ----------------
-                # For `deterministic` == 0 only
 
-                # TODO: reimplement stochasticity
+                if stochastic == 1:
+                    rate_S2E = gsl_ran_poisson(rng, rate_S2E)
+                    rate_E2I = gsl_ran_poisson(rng, rate_E2I)
+                    rate_Ia2R = gsl_ran_poisson(rng, rate_Ia2R)
+                    rate_Iy2R = gsl_ran_poisson(rng, rate_Iy2R)
+                    rate_Ih2R = gsl_ran_poisson(rng, rate_Ih2R)
+                    rate_Iy2Ih = gsl_ran_poisson(rng, rate_Iy2Ih)
+                    rate_Ih2D = gsl_ran_poisson(rng, rate_Ih2D)
+
                 # TODO: reimplement GSL isinf
-                # if deterministic == 0:
-                    # rate_S2E = gsl_ran_poisson(rng, rate_S2E)
-                    # rate_E2I = gsl_ran_poisson(rng, rate_E2I)
-                    # rate_Ia2R = gsl_ran_poisson(rng, rate_Ia2R)
-                    # rate_Iy2R = gsl_ran_poisson(rng, rate_Iy2R)
-                    # rate_Ih2R = gsl_ran_poisson(rng, rate_Ih2R)
-                    # rate_Iy2Ih = gsl_ran_poisson(rng, rate_Iy2Ih)
-                    # rate_Ih2D = gsl_ran_poisson(rng, rate_Ih2D)
                 # if isinf(rate_S2E):
                     # rate_S2E = 0
                 # if isinf(rate_E2I):
