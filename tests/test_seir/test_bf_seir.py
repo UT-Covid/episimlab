@@ -25,7 +25,7 @@ class TestBruteForceSEIR:
         # Check that the net change in population is still 0
         for _ in range(n_steps):
             proc.run_step()
-            assert proc.counts_delta_seir.sum() == 0.
+            assert abs(proc.counts_delta_seir.sum()) <= 1e-8
 
         result = proc.counts_delta_seir
 

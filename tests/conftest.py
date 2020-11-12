@@ -237,7 +237,7 @@ def seed_entropy():
 
 @pytest.fixture(params=[
     True,
-    # False
+    False
 ])
 def stochastic(request):
     return request.param

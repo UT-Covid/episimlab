@@ -28,6 +28,9 @@ class TestBruteForceCython:
         # TODO
         # assert not result.isnull().any()
 
+    # Python and Cython use different RNG
+    # so it's useless to compare them even with the same seed
+    @pytest.mark.parametrize('stochastic', [False])
     def test_same_as_python(self, foi, stochastic, seed_entropy, counts_basic, epis):
         inputs = {
             'counts': counts_basic,
