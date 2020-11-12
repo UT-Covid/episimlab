@@ -7,7 +7,8 @@ from episimlab.seir.brute_force import BruteForceSEIR
 
 class TestBruteForceCython:
 
-    def test_can_run_step(self, foi, seed_entropy, stochastic, counts_basic, epis):
+    def test_can_run_step(self, foi, seed_entropy, stochastic, counts_basic,
+                          epis):
         inputs = {
             'counts': counts_basic,
             'foi': foi,
@@ -15,10 +16,9 @@ class TestBruteForceCython:
             'stochastic': stochastic,
         }
         inputs.update(epis)
-
         proc = BruteForceCython(**inputs)
-        # proc.initialize()
         proc.run_step()
+
         proc.finalize_step()
         result = proc.counts_delta_seir
 

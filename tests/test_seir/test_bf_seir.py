@@ -4,15 +4,15 @@ import xarray as xr
 from episimlab.seir.brute_force import BruteForceSEIR
 
 
-class TestCountsDeltaSEIR:
+class TestBruteForceSEIR:
 
+    @pytest.mark.parametrize('n_steps', [
+        # TODO: more values, better cov
+        10
+    ])
     def test_can_run_step(self, seed_entropy, stochastic, foi,
-                          counts_basic, epis):
+                          counts_basic, epis, n_steps):
         inputs = {
-            # 'age_group': counts_basic.coords['age_group'],
-            # 'risk_group': counts_basic.coords['risk_group'],
-            # 'beta': beta,
-            # 'omega': omega,
             'counts': counts_basic,
             'foi': foi,
             'seed_state': seed_entropy,
@@ -21,8 +21,12 @@ class TestCountsDeltaSEIR:
         inputs.update(epis)
 
         proc = BruteForceSEIR(**inputs)
-        # proc.initialize()
-        proc.run_step()
+
+        # Check that the net change in population is still 0
+        for _ in range(n_steps):
+            proc.run_step()
+            assert proc.counts_delta_seir.sum() == 0.
+
         result = proc.counts_delta_seir
 
         # logging.debug(f"result: {result}")
