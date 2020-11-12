@@ -8,8 +8,19 @@ from episimlab.pytest_utils import profiler
 
 
 @pytest.fixture
-def input_vars(seed_entropy, sto_toggle):
+def output_vars():
     return {
+        'apply_counts_delta__counts': 'step',
+        # 'seir__counts_delta_seir': 'step',
+        # 'foi__foi': 'step',
+        # 'foi__omega': 'step',
+    }
+
+
+@pytest.fixture
+def input_vars(seed_entropy, sto_toggle, counts_basic):
+    return {
+        # 'apply_counts_delta__counts': counts_basic,
         'rng__seed_entropy': seed_entropy,
         'sto__sto_toggle': sto_toggle
     }
@@ -24,114 +35,71 @@ def step_clock():
 
 class TestToyModels:
 
-    @profiler()
-    def test_cy_seir_w_foi(self, epis, input_vars, counts_basic, step_clock):
-        model = toy.cy_seir_w_foi()
-        output_vars = dict()
-
+    def run_model(self, model, step_clock, input_vars, output_vars):
         input_ds = xs.create_setup(
             model=model,
             clocks=step_clock,
             input_vars=input_vars,
             output_vars=output_vars
         )
-        result = input_ds.xsimlab.run(model=model)
-        assert isinstance(result, xr.Dataset)
+        return input_ds.xsimlab.run(model=model)
 
     @profiler()
-    def test_slow_seir(self, epis, counts_basic, input_vars, step_clock):
-        model = toy.slow_seir()
-        output_vars = dict()
+    @pytest.mark.parametrize('model', (
+        toy.slow_seir(),
+        toy.slow_seir_cy_foi(),
+        toy.cy_seir_w_foi(),
+        toy.cy_adj_slow_seir(),
+        # Travel only does not change net S compt
+        # toy.cy_adj()
+    ))
+    def test_can_change_S(self, epis, model, input_vars, counts_basic,
+                           output_vars, step_clock):
+        result = self.run_model(model, step_clock, input_vars, output_vars)
+        assert isinstance(result, xr.Dataset)
+        counts = result['apply_counts_delta__counts']
 
-        input_ds = xs.create_setup(
-            model=model,
-            clocks=step_clock,
-            input_vars=input_vars,
-            output_vars=output_vars
-        )
-        result = input_ds.xsimlab.run(model=model)
+        # ensure that S compt has changed between first and last timesteps
+        S_init = counts[dict(step=0)].loc[dict(compartment="S")]
+        S_final = counts[dict(step=-1)].loc[dict(compartment="S")]
+        S_change = (S_final - S_init).sum()
+        assert abs(S_change) > 1e-8
+
+    # @profiler()
+    @pytest.mark.parametrize('model', (
+        toy.slow_seir(),
+        toy.slow_seir_cy_foi(),
+        # These Cython implementations do not report FOI
+        # toy.cy_seir_w_foi(),
+        # toy.cy_adj_slow_seir(),
+        # toy.cy_adj()
+    ))
+    def test_non_zero_foi(self, epis, model, input_vars, counts_basic,
+                           output_vars, step_clock):
+        input_vars['foi__foi'] = 'step'
+        result = self.run_model(model, step_clock, input_vars, output_vars)
         assert isinstance(result, xr.Dataset)
 
+        # NOTE: will break if no FOI is reported
+        # ensure non-zero force of infection at first timepoint
+        foi_init = result['foi__foi'][dict(step=1)].sum()
+        assert foi_init > 1e-8
 
-    @profiler()
-    def test_cy_adj_slow_seir(self, epis, input_vars, counts_basic, step_clock):
-        model = toy.cy_adj_slow_seir()
-        output_vars = dict()
-
-        input_ds = xs.create_setup(
-            model=model,
-            clocks=step_clock,
-            input_vars=input_vars,
-            output_vars=output_vars
-        )
-        result = input_ds.xsimlab.run(model=model, parallel=True)
+    # @profiler()
+    @pytest.mark.parametrize('model', (
+        toy.slow_seir(),
+        toy.slow_seir_cy_foi(),
+        toy.cy_seir_w_foi(),
+        toy.cy_adj_slow_seir(),
+        toy.cy_adj()
+    ))
+    def test_constant_pop(self, epis, model, input_vars, counts_basic,
+                           output_vars, step_clock):
+        result = self.run_model(model, step_clock, input_vars, output_vars)
         assert isinstance(result, xr.Dataset)
+        counts = result['apply_counts_delta__counts']
 
-
-    @profiler()
-    def test_cy_adj(self, epis, input_vars, counts_basic, step_clock):
-        model = toy.cy_adj()
-        output_vars = dict()
-
-        input_ds = xs.create_setup(
-            model=model,
-            clocks=step_clock,
-            input_vars=input_vars,
-            output_vars=output_vars
-        )
-        # input_ds.update(_epis)
-        result = input_ds.xsimlab.run(model=model)
-        assert isinstance(result, xr.Dataset)
-
-    @profiler()
-    def test_slow_seir_cy_foi(self, epis, input_vars, counts_basic, step_clock):
-        model = toy.slow_seir_cy_foi()
-        output_vars = dict()
-
-        input_ds = xs.create_setup(
-            model=model,
-            clocks=step_clock,
-            input_vars=input_vars,
-            output_vars=output_vars
-        )
-        result = input_ds.xsimlab.run(model=model)
-        assert isinstance(result, xr.Dataset)
-
-    # TODO
-    @pytest.mark.skip
-    def test_cy_seir_is_same(self, epis, input_vars, counts_basic, step_clock):
-        """Can the cython SEIR implementation generate same results
-        as the "slow" python implementation?
-        """
-        # Establish inputs and models
-        cy_model = toy.cy_seir()
-        py_model = toy.slow_seir()
-        output_vars = dict(apply_counts_delta__counts='step')
-
-        # SEIR in cython
-        cy_in_ds = xs.create_setup(
-            model=cy_model,
-            clocks=step_clock,
-            input_vars=input_vars,
-            output_vars=output_vars
-        )
-        cy_result = cy_in_ds.xsimlab.run(model=cy_model)
-        assert isinstance(cy_result, xr.Dataset)
-
-        # same inputs, but in python
-        py_in_ds = xs.create_setup(
-            model=py_model,
-            clocks=step_clock,
-            input_vars=input_vars,
-            output_vars=output_vars
-        )
-        py_result = py_in_ds.xsimlab.run(model=py_model)
-        assert isinstance(cy_result, xr.Dataset)
-
-        # assert equality
-        xr.testing.assert_equal(cy_result['apply_counts_delta__counts'],
-                                py_result['apply_counts_delta__counts'])
-
-        # non zero?
-        assert np.any(cy_result['apply_counts_delta__counts'].values)
-        assert np.any(py_result['apply_counts_delta__counts'].values)
+        # ensure that the total population has not changed between
+        # first and last timepoints
+        net_change = (counts[dict(step=0)] - counts[dict(step=-1)]).sum()
+        assert abs(net_change) <= 1e-8

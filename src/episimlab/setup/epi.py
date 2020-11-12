@@ -108,4 +108,3 @@ class InitDefaultEpis:
         da.loc[dict(compartment=['Ia', 'Iy', 'Pa', 'Py'])] = data.T
         assert isinstance(da, xr.DataArray), type(da)
         return da
-

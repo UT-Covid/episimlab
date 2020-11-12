@@ -22,3 +22,4 @@ class InitStochasticFromToggle:
             self.stochastic = True
         else:
             self.stochastic = False
+        # logging.debug(f"self.stochastic: {self.stochastic}")

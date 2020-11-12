@@ -135,8 +135,8 @@ cdef np.ndarray _brute_force_FOI(long [:, :] phi_grp_view,
         double rate_S2E
 
     # Iterate over node, age, and risk
-    for n in prange(node_len, nogil=True):
-    # for n in range(node_len):
+    # for n in prange(node_len, nogil=True):
+    for n in range(node_len):
         for a in range(age_len):
             for r in range(risk_len):
                 rate_S2E = 0.

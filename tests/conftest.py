@@ -54,6 +54,8 @@ def counts_basic(counts_dims, counts_coords, request):
         da.loc[dict(vertex=1, compartment='S')] = 1e6 / 10.
         # Beaumont
         da.loc[dict(vertex=2, compartment='S')] = 1.18e5 / 10.
+        # Start with 50 infected asymp in Austin
+        da.loc[dict(vertex=1, compartment='Ia')] = 50.
     elif request.param == 'ones':
         da = xr.DataArray(
             data=1.,
@@ -202,8 +204,8 @@ def tau():
 
 
 @pytest.fixture(params=[
-    0,
-    5,
+    # 0,
+    # 5,
     20
 ])
 def sto_toggle(request):

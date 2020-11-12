@@ -38,6 +38,7 @@ class InitDefaultCounts:
         da.loc[dict(vertex=1, compartment='S')] = 1e6 / 10.
         # Beaumont
         da.loc[dict(vertex=2, compartment='S')] = 1.18e5 / 10.
+        # Start with 50 infected asymp in Austin
+        da.loc[dict(vertex=1, compartment='Ia')] = 50.
 
         return da
-

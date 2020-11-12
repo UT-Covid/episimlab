@@ -85,6 +85,9 @@ class BruteForceFOI(BaseFOI):
 
                 # Calculate force of infection
                 common_term = beta * phi * counts_S / age_pop
+                # DEBUG
+                # if v == 1:
+                #     breakpoint()
                 _sum = (common_term * omega_I * counts_I).sum(dim='compartment').values
                 self.foi.loc[dict(vertex=v, age_group=a1, risk_group=r1)] += _sum
 

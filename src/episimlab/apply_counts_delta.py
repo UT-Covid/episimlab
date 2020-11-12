@@ -11,10 +11,9 @@ class ApplyCountsDelta:
     counts = xs.variable(
         dims=COUNTS_DIMS,
         static=False,
-        intent='inout'
+        intent='inout',
     )
     counts_delta = xs.group(name='counts_delta')
 
     def finalize_step(self):
         self.counts += xr.concat(self.counts_delta, dim='_delta').sum(dim='_delta')
-

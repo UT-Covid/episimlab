@@ -14,7 +14,7 @@ class TestBruteForceCythonFOI:
             'age_group': counts_basic.coords['age_group'],
             'risk_group': counts_basic.coords['risk_group'],
             'vertex': counts_basic.coords['vertex'],
-            'beta': 0.035,
+            'beta': beta,
             'omega': omega,
             'counts': counts_basic,
             'phi_t': phi_t,
@@ -25,10 +25,11 @@ class TestBruteForceCythonFOI:
         foi_getter.finalize_step()
         result = foi_getter.foi
 
+        # assert that FOI is non zero
+        assert result.sum() >= 1e-8
         # logging.debug(f"phi_grp_mapping: {phi_grp_mapping}")
         # logging.debug(f"result: {result}")
         assert isinstance(result, xr.DataArray)
-
 
     def test_can_reproduce_python(self, beta, omega, counts_basic, phi_grp_mapping, phi_t):
         """
@@ -57,5 +58,7 @@ class TestBruteForceCythonFOI:
         py_result = py_proc.foi
         assert isinstance(py_result, xr.DataArray)
 
+        # assert that FOI is non zero
+        assert cy_result.sum() >= 1e-8
         # assert equality
         xr.testing.assert_allclose(cy_result, py_result)

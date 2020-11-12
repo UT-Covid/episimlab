@@ -38,7 +38,7 @@ class TestCompareBasicModels:
     @pytest.mark.parametrize('foi1, seir1', [
         # Python SEIR and FOI
         (foi_bf.BruteForceFOI, seir_bf.BruteForceSEIR),
-        # Python SEIR with Cython FOI
+        # Cython SEIR with Python FOI
         (foi_bf.BruteForceFOI, seir_bf_cython.BruteForceCython),
         # Cython SEIR with Cython FOI
         (foi_bf_cython.BruteForceCythonFOI, seir_bf_cython.BruteForceCython),

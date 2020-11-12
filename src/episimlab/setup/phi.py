@@ -70,7 +70,12 @@ class InitPhi:
         # dims = [self.day_of_week, self.phi_grp1, self.phi_grp2]
         dims = ('day_of_week', 'phi_grp1', 'phi_grp2')
         coords = (('day_of_week', self.day_of_week), ('phi_grp1', self.phi_grp1), ('phi_grp2', self.phi_grp2))
-        self.phi = xr.DataArray(data=0., dims=dims, coords=coords)
+        self.phi = xr.DataArray(
+            # TODO
+            data=0.75,
+            dims=dims,
+            coords=coords
+        )
 
     @xs.runtime(args='step')
     def run_step(self, step):
