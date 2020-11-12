@@ -202,9 +202,9 @@ def tau():
 
 
 @pytest.fixture(params=[
-    # 0,
+    0,
     5,
-    # 20
+    20
 ])
 def sto_toggle(request):
     return request.param

@@ -68,7 +68,7 @@ image: docker/Dockerfile dist/$(PKG)-$(VERSION).tar.gz requirements.txt | docker
 ####################################
 # Pytest
 ####################################
-PYTEST_OPTS ?= -svvvm 'not slow'
+PYTEST_OPTS ?= -svvv
 .PHONY: pytest-native pytest-tox
 
 pytest: cython pytest-native
