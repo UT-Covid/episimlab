@@ -48,6 +48,7 @@ class TestToyModels:
     @pytest.mark.parametrize('model', (
         toy.slow_seir(),
         toy.slow_seir_cy_foi(),
+        toy.cy_seir_cy_foi(),
         toy.cy_seir_w_foi(),
         toy.cy_adj_slow_seir(),
         # Travel only does not change net S compt
@@ -69,6 +70,7 @@ class TestToyModels:
     @pytest.mark.parametrize('model', (
         toy.slow_seir(),
         toy.slow_seir_cy_foi(),
+        toy.cy_seir_cy_foi(),
         # These Cython implementations do not report FOI
         # toy.cy_seir_w_foi(),
         # toy.cy_adj_slow_seir(),
@@ -76,7 +78,7 @@ class TestToyModels:
     ))
     def test_non_zero_foi(self, epis, model, input_vars, counts_basic,
                            output_vars, step_clock):
-        input_vars['foi__foi'] = 'step'
+        output_vars['foi__foi'] = 'step'
         result = self.run_model(model, step_clock, input_vars, output_vars)
         assert isinstance(result, xr.Dataset)
 
@@ -89,6 +91,7 @@ class TestToyModels:
     @pytest.mark.parametrize('model', (
         toy.slow_seir(),
         toy.slow_seir_cy_foi(),
+        toy.cy_seir_cy_foi(),
         toy.cy_seir_w_foi(),
         toy.cy_adj_slow_seir(),
         toy.cy_adj()

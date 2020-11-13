@@ -51,7 +51,9 @@ class BruteForceCythonWFOI(BaseSEIR):
             beta=self.beta,
             sigma=self.sigma,
             tau=self.tau,
-            eta=self.eta
+            eta=self.eta,
+            stochastic=self.stochastic,
+            int_seed=self.seed_state
         )
 
     def finalize_step(self):

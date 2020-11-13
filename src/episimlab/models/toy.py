@@ -70,3 +70,11 @@ def slow_seir_cy_foi():
     return model.update_processes(dict(
         foi=foi.bf_cython.BruteForceCythonFOI,
     ))
+
+
+def cy_seir_cy_foi():
+    model = slow_seir()
+    return model.update_processes(dict(
+        foi=foi.bf_cython.BruteForceCythonFOI,
+        seir=seir.bf_cython.BruteForceCython
+    ))

@@ -141,6 +141,7 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
             rate_Iy2R, rate_Ih2R, rate_Iy2Ih, rate_Ih2D,
 
     # Iterate over node, age, and risk
+    # TODO
     # for n in prange(node_len, nogil=True):
     for n in range(node_len):
         for a in range(age_len):

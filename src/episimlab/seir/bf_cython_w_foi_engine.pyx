@@ -48,7 +48,10 @@ def brute_force_SEIR(np.ndarray phi_grp_mapping,
                      float sigma,
                      float eta,
                      float tau,
-                     float beta):
+                     float beta,
+                     unsigned int stochastic,
+                     unsigned int int_seed
+                     ):
     """
     """
     cdef:
@@ -64,6 +67,7 @@ def brute_force_SEIR(np.ndarray phi_grp_mapping,
         # double [:] tau_view = tau
         # double [:] sigma_view = sigma
         # double [:] eta_view = eta
+        gsl_rng *rng = get_seeded_rng(int_seed)
 
     return _brute_force_SEIR(
         phi_grp_view,
@@ -100,9 +104,10 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
                                   double sigma,
                                   double eta,
                                   double tau,
-                                  double beta):
+                                  double beta,
                                   # double int_per_day):
-                                  # gsl_rng *rng):
+                                  unsigned int stochastic,
+                                  gsl_rng *rng):
     """
     """
     cdef:
@@ -147,8 +152,9 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
             rate_Iy2R, rate_Ih2R, rate_Iy2Ih, rate_Ih2D,
 
     # Iterate over node, age, and risk
-    for n in prange(node_len, nogil=True):
-    # for n in range(node_len):
+    # TODO
+    # for n in prange(node_len, nogil=True):
+    for n in range(node_len):
         for a in range(age_len):
             for r in range(risk_len):
 
@@ -158,7 +164,6 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
                 # WARNING: index on 0 at compartments
                 # dimension assumes that epi param
                 # is same for all compartments
-                # beta0 = counts_view[n, a, r, 1, 0]
                 sigma = discrete_time_approx(sigma, int_per_day)
                 gamma_a = discrete_time_approx(gamma_view[4], int_per_day)
                 gamma_y = discrete_time_approx(gamma_view[5], int_per_day)
@@ -244,18 +249,17 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
                 rate_Ih2D = nu * mu * Ih
 
                 # --------------   Sample from Poisson  ----------------
-                # For `deterministic` == 0 only
 
-                # TODO: reimplement stochasticity
+                if stochastic == 1:
+                    rate_S2E = gsl_ran_poisson(rng, rate_S2E)
+                    rate_E2I = gsl_ran_poisson(rng, rate_E2I)
+                    rate_Ia2R = gsl_ran_poisson(rng, rate_Ia2R)
+                    rate_Iy2R = gsl_ran_poisson(rng, rate_Iy2R)
+                    rate_Ih2R = gsl_ran_poisson(rng, rate_Ih2R)
+                    rate_Iy2Ih = gsl_ran_poisson(rng, rate_Iy2Ih)
+                    rate_Ih2D = gsl_ran_poisson(rng, rate_Ih2D)
+
                 # TODO: reimplement GSL isinf
-                # if deterministic == 0:
-                    # rate_S2E = gsl_ran_poisson(rng, rate_S2E)
-                    # rate_E2I = gsl_ran_poisson(rng, rate_E2I)
-                    # rate_Ia2R = gsl_ran_poisson(rng, rate_Ia2R)
-                    # rate_Iy2R = gsl_ran_poisson(rng, rate_Iy2R)
-                    # rate_Ih2R = gsl_ran_poisson(rng, rate_Ih2R)
-                    # rate_Iy2Ih = gsl_ran_poisson(rng, rate_Iy2Ih)
-                    # rate_Ih2D = gsl_ran_poisson(rng, rate_Ih2D)
                 # if isinf(rate_S2E):
                     # rate_S2E = 0
                 # if isinf(rate_E2I):
