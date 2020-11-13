@@ -14,6 +14,7 @@ import numpy as np
 cimport numpy as np
 cimport cython
 from cython.parallel import prange
+from ..cy_utils.cy_utils cimport get_seeded_rng, discrete_time_approx
 
 # Abbreviate numpy dtypes
 DTYPE_FLOAT = np.float64
@@ -34,50 +35,6 @@ cdef extern from "gsl/gsl_rng.h" nogil:
 # Poisson distribution from GSL lib
 cdef extern from "gsl/gsl_randist.h" nogil:
     unsigned int gsl_ran_poisson(gsl_rng * r, double mu)
-
-
-cdef gsl_rng *get_seeded_rng(int int_seed) nogil:
-    """Returns a C pointer to instance of MT-19937 generator
-    (https://www.gnu.org/software/gsl/doc/html/rng.html#c.gsl_rng_mt19937).
-    Seeds with int32 seed `int_seed`.
-    """
-    cdef:
-        gsl_rng *rng = gsl_rng_alloc(gsl_rng_mt19937)
-    gsl_rng_set(rng, int_seed)
-    return rng
-
-
-def test_gsl_poisson(double mu, int int_seed, int iters, int enable_omp):
-    """For testing purposes only
-    TODO
-    """
-    cdef:
-        gsl_rng *rng = get_seeded_rng(int_seed)
-        Py_ssize_t iter_len = iters
-        Py_ssize_t i
-        np.ndarray result_arr = np.zeros((iters), dtype=DTYPE_INT)
-        int [:] rv = result_arr
-
-    if enable_omp == 0:
-        for i in range(iters):
-            rv[i] = gsl_ran_poisson(rng, mu)
-    else:
-        for i in prange(iters, nogil=True):
-            rv[i] = gsl_ran_poisson(rng, mu)
-    return result_arr
-
-
-cdef double discrete_time_approx(double rate, double timestep) nogil:
-        """
-        :param rate: daily rate
-        :param timestep: timesteps per day
-        :return: rate rescaled by time step
-        """
-        # if rate >= 1:
-            # return np.nan
-        # elif timestep == 0:
-            # return np.nan
-        return (1 - (1 - rate)**(1/timestep))
 
 
 def brute_force_SEIR(np.ndarray counts,

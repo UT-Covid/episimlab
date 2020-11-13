@@ -14,10 +14,27 @@ import numpy as np
 cimport numpy as np
 cimport cython
 from cython.parallel import prange
+from ..cy_utils.cy_utils cimport get_seeded_rng, discrete_time_approx
 
 # Abbreviate numpy dtypes
 DTYPE_FLOAT = np.float64
 DTYPE_INT = np.intc
+
+
+# Random generator from GSL lib
+cdef extern from "gsl/gsl_rng.h" nogil:
+    ctypedef struct gsl_rng_type:
+        pass
+    ctypedef struct gsl_rng:
+        pass
+    gsl_rng_type *gsl_rng_mt19937
+    gsl_rng *gsl_rng_alloc(gsl_rng_type * T)
+    void gsl_rng_set(gsl_rng * r, unsigned long int)
+    void gsl_rng_free(gsl_rng * r)
+
+# Poisson distribution from GSL lib
+cdef extern from "gsl/gsl_randist.h" nogil:
+    unsigned int gsl_ran_poisson(gsl_rng * r, double mu)
 
 def brute_force_SEIR(np.ndarray phi_grp_mapping,
                      np.ndarray counts,
@@ -63,20 +80,9 @@ def brute_force_SEIR(np.ndarray phi_grp_mapping,
         eta,
         tau,
         beta,
+        stochastic,
+        rng
     )
-
-
-cdef double discrete_time_approx(double rate, double timestep) nogil:
-    """
-    :param rate: daily rate
-    :param timestep: timesteps per day
-    :return: rate rescaled by time step
-    """
-    # if rate >= 1:
-        # return np.nan
-    # elif timestep == 0:
-        # return np.nan
-    return (1 - (1 - rate)**(1/timestep))
 
 
 cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,

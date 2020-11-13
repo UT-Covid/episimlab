@@ -72,6 +72,9 @@ gsl_lib = dict(language='c',
                include_dirs=[os.path.join(gsl_config['prefix'], 'include')],
                library_dirs=[os.path.join(gsl_config['prefix'], 'lib')])
 extensions = [
+    Extension('episimlab.cy_utils.cy_utils',
+              sources=[f"src/episimlab/cy_utils/cy_utils{src_ext}"],
+              **gsl_lib),
     Extension('episimlab.graph.cy_engine',
               sources=[f"src/episimlab/graph/cy_engine{src_ext}"],
               **gsl_lib),
