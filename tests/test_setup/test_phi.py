@@ -2,7 +2,7 @@ import pytest
 import logging
 import xarray as xr
 import numpy as np
-from episimlab.setup import InitPhi, InitPhiGrpMapping
+from episimlab.setup.phi import InitPhi, InitPhiGrpMapping
 
 
 class TestInitPhi:

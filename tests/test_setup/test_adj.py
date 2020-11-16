@@ -2,7 +2,7 @@ import pytest
 import logging
 import xarray as xr
 import numpy as np
-from episimlab.setup import InitToyAdj, InitAdjGrpMapping
+from episimlab.setup.adj import InitToyAdj, InitAdjGrpMapping
 from episimlab.pytest_utils import profiler
 
 

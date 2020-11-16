@@ -6,7 +6,7 @@ import logging
 from ..seir import base
 from ..foi.base import BaseFOI
 from ..seir.base import BaseSEIR
-from ..setup import InitDefaultCoords
+from ..setup.coords import InitDefaultCoords
 
 
 @xs.process

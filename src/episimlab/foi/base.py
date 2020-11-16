@@ -4,7 +4,7 @@ import logging
 from itertools import product
 from numbers import Number
 
-from ..setup import InitDefaultCoords
+from ..setup.coords import InitDefaultCoords
 
 @xs.process
 class BaseFOI:

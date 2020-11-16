@@ -80,4 +80,17 @@ class TestCompareBasicModels:
         # check typing and equality
         assert isinstance(result1, xr.DataArray)
         assert isinstance(result2, xr.DataArray)
-        xr.testing.assert_allclose(result1, result2)
+
+        # DEBUG
+        try:
+            xr.testing.assert_allclose(result1, result2)
+        except:
+            diff = result1 - result2
+            # 1 if different above threshold
+            dw = xr.where(diff <= 1e-5, 1, 0)
+            # iterate over coords
+            for dim in diff.dims:
+                for c in diff.coords[dim].values:
+                    n_diff = dw.loc[{dim: c}].sum().values
+                    logging.debug(f"number of different at {dim} == {c}?: {n_diff}")
+            raise
