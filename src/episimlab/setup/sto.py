@@ -18,7 +18,9 @@ class InitStochasticFromToggle:
 
     @xs.runtime(args="step")
     def run_step(self, step):
-        if step >= self.sto_toggle:
+        if self.sto_toggle == -1:
+            self.stochastic = False
+        elif step >= self.sto_toggle:
             self.stochastic = True
         else:
             self.stochastic = False

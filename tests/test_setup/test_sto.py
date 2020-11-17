@@ -14,6 +14,7 @@ class TestInitStochasticFromToggle:
         (0., 10, True),
         (5.5, 5, False),
         (10, 10, True),
+        (-1, 1000, False),
     ])
     def test_can_switch(self, sto_toggle, step, expected):
         inputs = {
@@ -26,4 +27,3 @@ class TestInitStochasticFromToggle:
 
         assert isinstance(result, bool)
         assert result == expected
-
