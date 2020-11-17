@@ -1,23 +1,37 @@
 import xsimlab as xs
 import xarray as xr
 import attr
-from .. import seir, foi, setup, apply_counts_delta, graph
+
+from ..setup import seed, sto, epi, counts, coords, adj, phi
+from ..foi import (
+    base as base_foi,
+    brute_force as bf_foi,
+    bf_cython as bf_cython_foi
+)
+from ..seir import (
+    base as base_seir,
+    brute_force as bf_seir,
+    bf_cython as bf_cython_seir,
+    bf_cython_w_foi
+)
+from .. import apply_counts_delta
+from ..graph import cython
 
 
 def minimum_viable():
     return xs.Model(dict(
         # Random number generator
-        rng=setup.seed.SeedGenerator,
-        sto=setup.sto.InitStochasticFromToggle,
+        rng=seed.SeedGenerator,
+        sto=sto.InitStochasticFromToggle,
 
         # Instantiate coords, counts array, default parameters
-        init_epi=setup.epi.InitDefaultEpis,
-        init_counts=setup.counts.InitDefaultCounts,
-        init_coords=setup.coords.InitDefaultCoords,
+        init_epi=epi.InitDefaultEpis,
+        init_counts=counts.InitDefaultCounts,
+        init_coords=coords.InitDefaultCoords,
 
         # no SEIR engine, these are just placeholders
-        foi=foi.brute_force.BaseFOI,
-        seir=seir.base.BaseSEIR,
+        foi=bf_foi.BaseFOI,
+        seir=base_seir.BaseSEIR,
 
         # Apply all changes made to counts
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta
@@ -27,54 +41,54 @@ def slow_seir():
     model = minimum_viable()
     return model.update_processes(dict(
         # Instantiate phi array
-        init_phi=setup.phi.InitPhi,
-        init_phi_grp_mapping=setup.phi.InitPhiGrpMapping,
+        init_phi=phi.InitPhi,
+        init_phi_grp_mapping=phi.InitPhiGrpMapping,
         # Force of infection calculation in python
-        foi=foi.brute_force.BruteForceFOI,
+        foi=bf_foi.BruteForceFOI,
         # SEIR engine in python
-        seir=seir.brute_force.BruteForceSEIR,
+        seir=bf_seir.BruteForceSEIR,
     ))
 
 def cy_seir_w_foi():
     model = minimum_viable()
     return model.update_processes(dict(
         # Instantiate phi array
-        init_phi=setup.phi.InitPhi,
-        init_phi_grp_mapping=setup.phi.InitPhiGrpMapping,
+        init_phi=phi.InitPhi,
+        init_phi_grp_mapping=phi.InitPhiGrpMapping,
         # cython SEIR engine, also calculates FOI
-        seir=seir.bf_cython_w_foi.BruteForceCythonWFOI,
+        seir=bf_cython_w_foi.BruteForceCythonWFOI,
     ))
 
 def cy_adj():
     model = minimum_viable()
     return model.update_processes(dict(
         # Initialize adjacency matrix
-        init_adj=setup.adj.InitToyAdj,
-        init_adj_grp_mapping=setup.adj.InitAdjGrpMapping,
+        init_adj=adj.InitToyAdj,
+        init_adj_grp_mapping=adj.InitAdjGrpMapping,
         # Use adjacency matrix to simulate travel between vertices in cython
-        travel=graph.cython.CythonGraph,
+        travel=cython.CythonGraph,
     ))
 
 def cy_adj_slow_seir():
     model = slow_seir()
     return model.update_processes(dict(
         # Initialize adjacency matrix
-        init_adj=setup.adj.InitToyAdj,
-        init_adj_grp_mapping=setup.adj.InitAdjGrpMapping,
+        init_adj=adj.InitToyAdj,
+        init_adj_grp_mapping=adj.InitAdjGrpMapping,
         # Use adjacency matrix to simulate travel between vertices in cython
-        travel=graph.cython.CythonGraph,
+        travel=cython.CythonGraph,
     ))
 
 def slow_seir_cy_foi():
     model = slow_seir()
     return model.update_processes(dict(
-        foi=foi.bf_cython.BruteForceCythonFOI,
+        foi=bf_cython_foi.BruteForceCythonFOI,
     ))
 
 
 def cy_seir_cy_foi():
     model = slow_seir()
     return model.update_processes(dict(
-        foi=foi.bf_cython.BruteForceCythonFOI,
-        seir=seir.bf_cython.BruteForceCython
+        foi=bf_cython_foi.BruteForceCythonFOI,
+        seir=bf_cython_seir.BruteForceCython
     ))

@@ -3,7 +3,6 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..seir import base
 from ..foi.base import BaseFOI
 from ..setup.coords import InitDefaultCoords
 from ..seir.base import BaseSEIR
