@@ -49,9 +49,9 @@ def brute_force_SEIR(np.ndarray phi_grp_mapping,
                      float eta,
                      float tau,
                      float beta,
+                     float int_per_day,
                      unsigned int stochastic,
-                     unsigned int int_seed
-                     ):
+                     unsigned int int_seed):
     """
     """
     cdef:
@@ -84,6 +84,7 @@ def brute_force_SEIR(np.ndarray phi_grp_mapping,
         eta,
         tau,
         beta,
+        int_per_day,
         stochastic,
         rng
     )
@@ -105,15 +106,12 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
                                   double eta,
                                   double tau,
                                   double beta,
-                                  # double int_per_day):
+                                  double int_per_day,
                                   unsigned int stochastic,
                                   gsl_rng *rng):
     """
     """
     cdef:
-        # TODO
-        # DEBUG
-        double int_per_day = 1.
         # indexers and lengths of each dimension in state space
         Py_ssize_t node_len = counts_view.shape[0]
         Py_ssize_t age_len = counts_view.shape[1]

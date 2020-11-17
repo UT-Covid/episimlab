@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 import logging
 import xarray as xr
 from episimlab.seir.bf_cython_w_foi import BruteForceCythonWFOI
@@ -20,7 +21,7 @@ class TestBruteForceCythonWFOI:
         inputs.update(epis)
 
         proc = BruteForceCythonWFOI(**inputs)
-        proc.run_step()
+        proc.run_step(step_delta=np.timedelta64(1, 'D'))
         proc.finalize_step()
         result = proc.counts_delta_seir
 

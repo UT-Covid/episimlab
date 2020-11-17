@@ -1,3 +1,4 @@
+import numpy as np
 import xsimlab as xs
 import xarray as xr
 import logging
@@ -16,8 +17,6 @@ from .bf_cython_w_foi_engine import brute_force_SEIR
 class BruteForceCythonWFOI(BaseSEIR):
     """Calculate change in `counts` due to SEIR transmission. Brute force
     algorithm for testing purposes.
-
-    TODO: discrete time approximation
     """
 
     beta = xs.foreign(BaseFOI, 'beta', intent='in')
@@ -33,9 +32,18 @@ class BruteForceCythonWFOI(BaseSEIR):
         intent='out'
     )
 
-    def run_step(self):
+    def get_int_per_day(self, step_delta):
         """
         """
+        assert isinstance(step_delta, np.timedelta64)
+        return np.timedelta64(1, 'D') / step_delta
+
+    @xs.runtime(args='step_delta')
+    def run_step(self, step_delta):
+        """
+        """
+        int_per_day = self.get_int_per_day(step_delta)
+
         self.counts_delta_seir_arr = brute_force_SEIR(
             phi_grp_mapping=self.phi_grp_mapping.values,
             counts=self.counts.values,
@@ -48,10 +56,11 @@ class BruteForceCythonWFOI(BaseSEIR):
             omega=self.omega.values,
             # float type
             mu=self.mu,
-            beta=self.beta,
             sigma=self.sigma,
-            tau=self.tau,
             eta=self.eta,
+            tau=self.tau,
+            beta=self.beta,
+            int_per_day=int_per_day,
             stochastic=self.stochastic,
             int_seed=self.seed_state
         )

@@ -1,6 +1,7 @@
 import pytest
 import xarray as xr
 import xsimlab as xs
+import pandas as pd
 import numpy as np
 import logging
 import episimlab
@@ -24,13 +25,6 @@ def input_vars(seed_entropy, sto_toggle):
         'rng__seed_entropy': seed_entropy,
         'sto__sto_toggle': sto_toggle
     }
-
-
-@pytest.fixture
-def step_clock():
-    return dict(step=range(
-        10
-    ))
 
 
 @pytest.mark.slow

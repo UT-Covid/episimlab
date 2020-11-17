@@ -26,13 +26,6 @@ def input_vars(seed_entropy, sto_toggle, counts_basic):
     }
 
 
-@pytest.fixture
-def step_clock():
-    return dict(step=range(
-        10
-    ))
-
-
 class TestToyModels:
 
     def run_model(self, model, step_clock, input_vars, output_vars):

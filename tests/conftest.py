@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import pandas as pd
 import logging
 import xarray as xr
 
@@ -252,3 +253,15 @@ def seed_entropy():
 ])
 def stochastic(request):
     return request.param
+
+
+@pytest.fixture
+def step_clock():
+    # return dict(step=range(
+    #     10
+    # ))
+    return {
+        'step': pd.date_range(
+            start='1/1/2018', end='1/08/2018', freq='12H'
+        )
+    }
