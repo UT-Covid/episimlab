@@ -7,7 +7,6 @@ from episimlab.seir.brute_force import BruteForceSEIR
 class TestBruteForceSEIR:
 
     @pytest.mark.parametrize('n_steps', [
-        # TODO: more values, better cov
         10
     ])
     def test_can_run_step(self, seed_entropy, stochastic, foi,
