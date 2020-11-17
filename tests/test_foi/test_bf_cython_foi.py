@@ -22,7 +22,6 @@ class TestBruteForceCythonFOI:
         }
         foi_getter = BruteForceCythonFOI(**inputs)
         foi_getter.run_step()
-        foi_getter.finalize_step()
         result = foi_getter.foi
 
         # assert that FOI is non zero
@@ -48,7 +47,6 @@ class TestBruteForceCythonFOI:
         # get FOI in cython
         cy_proc = BruteForceCythonFOI(**inputs)
         cy_proc.run_step()
-        cy_proc.finalize_step()
         cy_result = cy_proc.foi
         assert isinstance(cy_result, xr.DataArray)
 

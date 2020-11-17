@@ -38,6 +38,8 @@ def minimum_viable():
     ))
 
 def slow_seir():
+    """Python FOI and SEIR with 11 compartments.
+    """
     model = minimum_viable()
     return model.update_processes(dict(
         # Instantiate phi array

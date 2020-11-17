@@ -50,8 +50,8 @@ class TestCompareBasicModels:
     @pytest.mark.parametrize('foi2, seir2', [
         # Python SEIR and FOI
         # (foi_bf.BruteForceFOI, seir_bf.BruteForceSEIR),
-        # Cython SEIR with FOI
-        (foi_base.BaseFOI, seir_bf_cython_w_foi.BruteForceCythonWFOI),
+        # Cython SEIR with Cython FOI
+        (foi_bf_cython.BruteForceCythonFOI, seir_bf_cython.BruteForceCython),
     ])
     def test_seir_foi_combos(self, input_vars, step_clock, foi1, seir1, foi2, seir2):
         # load default model
