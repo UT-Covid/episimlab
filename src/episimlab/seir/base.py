@@ -1,3 +1,4 @@
+import numpy as np
 import xsimlab as xs
 import xarray as xr
 import logging
@@ -26,3 +27,9 @@ class BaseSEIR:
     nu = xs.variable(dims=('age_group'))
     pi = xs.variable(dims=('risk_group', 'age_group'))
     rho = xs.variable(dims=('age_group', 'compartment'))
+
+    def get_int_per_day(self, step_delta) -> float:
+        """
+        """
+        assert isinstance(step_delta, np.timedelta64)
+        return np.timedelta64(1, 'D') / step_delta

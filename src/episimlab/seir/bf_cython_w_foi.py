@@ -32,12 +32,6 @@ class BruteForceCythonWFOI(BaseSEIR):
         intent='out'
     )
 
-    def get_int_per_day(self, step_delta):
-        """
-        """
-        assert isinstance(step_delta, np.timedelta64)
-        return np.timedelta64(1, 'D') / step_delta
-
     @xs.runtime(args='step_delta')
     def run_step(self, step_delta):
         """

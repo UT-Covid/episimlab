@@ -48,7 +48,7 @@ class TestToyModels:
         # toy.cy_adj()
     ))
     def test_can_change_S(self, epis, model, input_vars, counts_basic,
-                           output_vars, step_clock):
+                          output_vars, step_clock):
         result = self.run_model(model, step_clock, input_vars, output_vars)
         assert isinstance(result, xr.Dataset)
         counts = result['apply_counts_delta__counts']
