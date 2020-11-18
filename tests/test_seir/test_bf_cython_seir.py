@@ -52,7 +52,7 @@ class TestBruteForceCython:
         # run in python
         py_proc = BruteForceSEIR(**inputs)
         # cy_proc.initialize()
-        py_proc.run_step()
+        py_proc.run_step(step_delta)
         # py_proc.finalize_step()
         py_result = py_proc.counts_delta_seir
         assert isinstance(py_result, xr.DataArray)

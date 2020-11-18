@@ -10,7 +10,7 @@ class TestBruteForceSEIR:
         10
     ])
     def test_can_run_step(self, seed_entropy, stochastic, foi,
-                          counts_basic, epis, n_steps):
+                          counts_basic, epis, n_steps, step_delta):
         inputs = {
             'counts': counts_basic,
             'foi': foi,
@@ -23,7 +23,7 @@ class TestBruteForceSEIR:
 
         # Check that the net change in population is still 0
         for _ in range(n_steps):
-            proc.run_step()
+            proc.run_step(step_delta)
             assert abs(proc.counts_delta_seir.sum()) <= 1e-8
 
         result = proc.counts_delta_seir

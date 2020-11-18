@@ -40,6 +40,7 @@ def foi(request, counts_coords):
 
 @pytest.fixture(params=[
     'realistic',
+    # 'mid_sim',
     # 'ones'
 ])
 def counts_basic(counts_dims, counts_coords, request):
@@ -63,6 +64,8 @@ def counts_basic(counts_dims, counts_coords, request):
             dims=counts_dims,
             coords=counts_coords,
         )
+    elif request.param == 'mid_sim':
+        raise NotImplementedError()
     else:
         raise ValueError()
     return da
@@ -257,7 +260,7 @@ def stochastic(request):
 
 @pytest.fixture(params=[
     # int_per_day == 1
-    '24H',
+    # '24H',
     # int_per_day == 2
     '12H'
 ])
@@ -271,13 +274,13 @@ def step_clock(request):
 
 @pytest.fixture(params=[
     # int_per_day == 1
-    1,
+    24,
     # int_per_day == 2
-    2
+    12
 ])
 def step_delta(request):
     try:
-        return np.timedelta64(request.param, 'D')
+        return np.timedelta64(request.param, 'h')
     except ValueError:
         logging.debug(f"type(request.param): {type(request.param)}")
         raise

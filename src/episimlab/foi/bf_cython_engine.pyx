@@ -66,19 +66,6 @@ def brute_force_FOI(np.ndarray phi_grp_mapping,
     )
 
 
-cdef double discrete_time_approx(double rate, double timestep) nogil:
-    """
-    :param rate: daily rate
-    :param timestep: timesteps per day
-    :return: rate rescaled by time step
-    """
-    # if rate >= 1:
-        # return np.nan
-    # elif timestep == 0:
-        # return np.nan
-    return (1 - (1 - rate)**(1/timestep))
-
-
 cdef np.ndarray _brute_force_FOI(long [:, :] phi_grp_view,
                                 double [:, :, :, :] counts_view,
                                 double [:, :] phi_view,

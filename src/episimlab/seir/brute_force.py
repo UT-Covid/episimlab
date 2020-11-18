@@ -40,12 +40,37 @@ class BruteForceSEIR(BaseSEIR):
     def get_rng(self):
         return np.random.default_rng(seed=self.seed_state)
 
-    def run_step(self):
+    def discrete_time_approx(self, rate):
+        """
+        :param rate: daily rate
+        :param timestep: timesteps per day
+        :return: rate rescaled by time step
+        """
+        # if rate >= 1:
+            # return np.nan
+        # elif timestep == 0:
+            # return np.nan
+        try:
+            rate = float(rate)
+            timestep = float(self.int_per_day)
+            mod = (1 - (1 - rate)**(1/timestep))
+            assert isinstance(rate, Number), (type(rate), rate)
+        except AssertionError:
+            logging.debug(f"mod: {mod}")
+            raise
+        else:
+            return mod
+
+    @xs.runtime(args='step_delta')
+    def run_step(self, step_delta):
         """
         """
         # Get a RNG for this timepoint, based off of the uint64 seed
         # at this timepoint
         self.rng = self.get_rng()
+
+        # Get interval per day
+        self.int_per_day = self.get_int_per_day(step_delta)
 
         def idx(compt=None):
             d = {
@@ -72,42 +97,45 @@ class BruteForceSEIR(BaseSEIR):
                 # logging.debug([a, r])
                 # logging.debug(f"cc: {cc()}")
 
+                # Need self.discrete_time_approx
+                # sigma, gamma, eta, mu, rho
+
                 # Calculate rates of change between each compartment
                 rate_S2E = self.foi.loc[{
                     'vertex': v,
                     'age_group': a,
                     'risk_group': r
                 }]
-                rate_E2P = self.sigma * cts('E')
-                rate_Pa2Ia = self.rho.loc[{
+                rate_E2P = self.discrete_time_approx(self.sigma) * cts('E')
+                rate_Pa2Ia = self.discrete_time_approx(self.rho.loc[{
                     'age_group': a,
                     'compartment': 'Ia'
-                }] * cts('Pa')
-                rate_Py2Iy = self.rho.loc[{
+                }]) * cts('Pa')
+                rate_Py2Iy = self.discrete_time_approx(self.rho.loc[{
                     'age_group': a,
                     'compartment': 'Iy'
-                }] * cts('Py')
-                rate_Ia2R = self.gamma.loc[{
+                }]) * cts('Py')
+                rate_Ia2R = self.discrete_time_approx(self.gamma.loc[{
                     'compartment': 'Ia'
-                }] * cts('Ia')
-                rate_Iy2R = self.gamma.loc[{
+                }]) * cts('Ia')
+                rate_Iy2R = self.discrete_time_approx(self.gamma.loc[{
                     'compartment': 'Iy'
-                }] * cts('Iy') * (1 - self.pi.loc[{
+                }]) * cts('Iy') * (1 - self.pi.loc[{
                     'age_group': a,
                     'risk_group': r
                 }])
-                rate_Ih2R = self.gamma.loc[{
+                rate_Ih2R = self.discrete_time_approx(self.gamma.loc[{
                     'compartment': 'Ih'
-                }] * cts('Ih') * (1 - self.nu.loc[{
+                }]) * cts('Ih') * (1 - self.nu.loc[{
                     'age_group': a,
                 }])
                 rate_Iy2Ih = self.pi.loc[{
                     'age_group': a,
                     'risk_group': r
-                }] * self.eta * cts('Iy')
+                }] * self.discrete_time_approx(self.eta) * cts('Iy')
                 rate_Ih2D = self.nu.loc[{
                     'age_group': a
-                }] * self.mu * cts('Ih')
+                }] * self.discrete_time_approx(self.mu) * cts('Ih')
 
                 # ------------------- Apply stochasticity ---------------------
 
