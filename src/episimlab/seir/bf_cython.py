@@ -34,7 +34,8 @@ class BruteForceCython(BaseSEIR):
         intent='out'
     )
 
-    def run_step(self):
+    @xs.runtime(args='step_delta')
+    def run_step(self, step_delta):
         """
         """
         self.counts_delta_seir_arr = brute_force_SEIR(
@@ -54,6 +55,7 @@ class BruteForceCython(BaseSEIR):
             sigma=self.sigma,
             tau=self.tau,
             eta=self.eta,
+            int_per_day=self.get_int_per_day(step_delta),
             stochastic=self.stochastic,
             int_seed=self.seed_state
         )

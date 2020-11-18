@@ -255,13 +255,29 @@ def stochastic(request):
     return request.param
 
 
-@pytest.fixture
-def step_clock():
-    # return dict(step=range(
-    #     10
-    # ))
+@pytest.fixture(params=[
+    # int_per_day == 1
+    '24H',
+    # int_per_day == 2
+    '12H'
+])
+def step_clock(request):
     return {
         'step': pd.date_range(
-            start='1/1/2018', end='1/08/2018', freq='12H'
+            start='1/1/2018', end='1/15/2018', freq=request.param
         )
     }
+
+
+@pytest.fixture(params=[
+    # int_per_day == 1
+    1,
+    # int_per_day == 2
+    2
+])
+def step_delta(request):
+    try:
+        return np.timedelta64(request.param, 'D')
+    except ValueError:
+        logging.debug(f"type(request.param): {type(request.param)}")
+        raise

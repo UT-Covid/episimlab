@@ -47,6 +47,7 @@ def brute_force_SEIR(np.ndarray counts,
                      float sigma,
                      float eta,
                      float tau,
+                     float int_per_day,
                      unsigned int stochastic,
                      unsigned int int_seed
                      ):
@@ -77,6 +78,7 @@ def brute_force_SEIR(np.ndarray counts,
         sigma,
         eta,
         tau,
+        int_per_day,
         stochastic,
         rng
     )
@@ -95,6 +97,7 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                                   double sigma,
                                   double eta,
                                   double tau,
+                                  double int_per_day,
                                   unsigned int stochastic,
                                   gsl_rng *rng,
                                   ):
@@ -102,8 +105,6 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
     """
     """
     cdef:
-        # DEBUG
-        double int_per_day = 1.
         # indexers and lengths of each dimension in state space
         Py_ssize_t node_len = counts_view.shape[0]
         Py_ssize_t age_len = counts_view.shape[1]
