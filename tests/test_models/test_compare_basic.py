@@ -16,8 +16,10 @@ from episimlab.foi import (
     brute_force as foi_bf,
     bf_cython as foi_bf_cython,
 )
+from episimlab.pytest_utils import plotter
 
 VERBOSE = False
+
 
 @pytest.fixture
 def input_vars(seed_entropy, sto_toggle):

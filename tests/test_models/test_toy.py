@@ -102,3 +102,21 @@ class TestToyModels:
         # first and last timepoints
         net_change = (counts[dict(step=0)] - counts[dict(step=-1)]).sum()
         assert abs(net_change) <= 1e-8
+
+    # @profiler()
+    @pytest.mark.parametrize('model', (
+        toy.slow_seir(),
+        toy.slow_seir_cy_foi(),
+        toy.cy_seir_cy_foi(),
+        toy.cy_seir_w_foi(),
+        toy.cy_adj_slow_seir(),
+        toy.cy_adj()
+    ))
+    def test_non_null_coords(self, epis, model, input_vars, counts_basic,
+                             output_vars, step_clock):
+        result = self.run_model(model, step_clock, input_vars, output_vars)
+        counts = result['apply_counts_delta__counts']
+
+        # ensure that no coords are null
+        for coord in result.coords.values():
+            assert not coord.isnull().any()
