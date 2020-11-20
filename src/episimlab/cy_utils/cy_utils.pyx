@@ -29,6 +29,11 @@ cdef gsl_rng *get_seeded_rng(int int_seed) nogil:
     gsl_rng_set(rng, int_seed)
     return rng
 
+def discrete_time_approx_wrapper(float rate, float timestep):
+    """Thin Python wrapper around the below C function
+    """
+    return discrete_time_approx(rate, timestep)
+
 
 def test_gsl_poisson(double mu, int int_seed, int iters, int enable_omp):
     """For testing purposes only
@@ -60,4 +65,4 @@ cdef double discrete_time_approx(double rate, double timestep) nogil:
             # return np.nan
         # elif timestep == 0:
             # return np.nan
-        return (1 - (1 - rate)**(1/timestep))
+        return 1. - (1. - rate)**(1. / timestep)

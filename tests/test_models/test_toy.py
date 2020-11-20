@@ -27,6 +27,9 @@ def input_vars(seed_entropy, sto_toggle, counts_basic):
 
 
 class TestToyModels:
+    """
+    TODO: cache model results
+    """
 
     def run_model(self, model, step_clock, input_vars, output_vars):
         input_ds = xs.create_setup(

@@ -11,6 +11,8 @@ from .base import BaseSEIR
 from ..foi.base import BaseFOI
 from ..setup.seed import SeedGenerator
 from ..setup.sto import InitStochasticFromToggle
+from ..utils import discrete_time_approx as py_dta
+from ..cy_utils.cy_utils import discrete_time_approx_wrapper as cy_dta
 
 
 @xs.process
@@ -40,7 +42,7 @@ class BruteForceSEIR(BaseSEIR):
     def get_rng(self):
         return np.random.default_rng(seed=self.seed_state)
 
-    def discrete_time_approx(self, rate):
+    def _old_discrete_time_approx(self, rate):
         """
         :param rate: daily rate
         :param timestep: timesteps per day
@@ -53,13 +55,26 @@ class BruteForceSEIR(BaseSEIR):
         try:
             rate = float(rate)
             timestep = float(self.int_per_day)
-            mod = (1 - (1 - rate)**(1/timestep))
+            mod = 1. - (1. - rate)**(1./timestep)
             assert isinstance(rate, Number), (type(rate), rate)
         except AssertionError:
             logging.debug(f"mod: {mod}")
             raise
         else:
+            # logging.debug(f"{}")
             return mod
+
+    def discrete_time_approx(self, rate):
+        """
+        :param rate: daily rate
+        :param timestep: timesteps per day
+        :return: rate rescaled by time step
+        """
+        rate = float(rate)
+        timestep = float(self.int_per_day)
+        val = cy_dta(rate=rate, timestep=timestep)
+        logging.debug(f"{rate}, {timestep}, {val}")
+        return val
 
     @xs.runtime(args='step_delta')
     def run_step(self, step_delta):

@@ -9,6 +9,7 @@ import datetime
 import time
 import logging
 
+
 def profiler(flavor='wall_clock', log_dir='./logs', log_stub=None, show_prof=False,
              cumulative=False):
     """Decorates `func` with Dask memory and thread profiling. This function

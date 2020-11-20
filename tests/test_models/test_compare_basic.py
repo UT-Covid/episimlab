@@ -27,9 +27,9 @@ def input_vars(seed_entropy, sto_toggle):
     }
 
 
-@pytest.mark.slow
 class TestCompareBasicModels:
 
+    # @plotter(flavor='mpl', plotter_kwargs=dict())
     @pytest.mark.parametrize('foi1, seir1', [
         # Python SEIR and FOI
         (foi_bf.BruteForceFOI, seir_bf.BruteForceSEIR),
@@ -67,7 +67,9 @@ class TestCompareBasicModels:
         # shared inputs based on the default model
         in_ds = xs.create_setup(
             model=model,
-            clocks=step_clock,
+            # TODO
+            # DEBUG
+            clocks={k: step_clock[k][:3] for k in step_clock},
             input_vars=input_vars,
             output_vars=dict(apply_counts_delta__counts='step')
         )
