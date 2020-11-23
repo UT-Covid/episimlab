@@ -20,6 +20,9 @@ from ..cy_utils.cy_utils cimport get_seeded_rng, discrete_time_approx
 DTYPE_FLOAT = np.float64
 DTYPE_INT = np.intc
 
+# isinf from C math.h
+cdef extern from "math.h" nogil:
+    unsigned int isinf(double f)
 
 # Random generator from GSL lib
 cdef extern from "gsl/gsl_rng.h" nogil:
@@ -244,21 +247,21 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
                     rate_Iy2Ih = gsl_ran_poisson(rng, rate_Iy2Ih)
                     rate_Ih2D = gsl_ran_poisson(rng, rate_Ih2D)
 
-                # TODO: reimplement GSL isinf
-                # if isinf(rate_S2E):
-                    # rate_S2E = 0
-                # if isinf(rate_E2I):
-                    # rate_E2I = 0
-                # if isinf(rate_Ia2R):
-                    # rate_Ia2R = 0
-                # if isinf(rate_Iy2R):
-                    # rate_Iy2R = 0
-                # if isinf(rate_Ih2R):
-                    # rate_Ih2R = 0
-                # if isinf(rate_Iy2Ih):
-                    # rate_Iy2Ih = 0
-                # if isinf(rate_Ih2D):
-                    # rate_Ih2D = 0
+                # reimplement GSL isinf
+                if isinf(rate_S2E):
+                    rate_S2E = 0
+                if isinf(rate_E2I):
+                    rate_E2I = 0
+                if isinf(rate_Ia2R):
+                    rate_Ia2R = 0
+                if isinf(rate_Iy2R):
+                    rate_Iy2R = 0
+                if isinf(rate_Ih2R):
+                    rate_Ih2R = 0
+                if isinf(rate_Iy2Ih):
+                    rate_Iy2Ih = 0
+                if isinf(rate_Ih2D):
+                    rate_Ih2D = 0
 
                 # -----------------   Apply deltas  --------------------
 

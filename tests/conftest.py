@@ -12,7 +12,6 @@ def counts_dims():
 
 @pytest.fixture(params=[
     3,
-    # TODO
     # 5
 ])
 def counts_coords(request):
@@ -209,19 +208,11 @@ def tau():
 
 @pytest.fixture(params=[
     -1,
-    # 0,
+    0,
     # 5,
     # 20
 ])
 def sto_toggle(request):
-    return request.param
-
-
-@pytest.fixture(params=[
-    1,
-    # 2
-])
-def steps_per_day(request):
     return request.param
 
 

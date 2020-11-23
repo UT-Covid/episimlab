@@ -1,6 +1,7 @@
 import xsimlab as xs
 import xarray as xr
 import numpy as np
+from numpy import isinf
 import logging
 from itertools import product
 from numbers import Number
@@ -156,6 +157,21 @@ class BruteForceSEIR(BaseSEIR):
                     rate_Ih2R = self.rng.poisson(rate_Ih2R)
                     rate_Iy2Ih = self.rng.poisson(rate_Iy2Ih)
                     rate_Ih2D = self.rng.poisson(rate_Ih2D)
+
+                if isinf(rate_S2E):
+                    rate_S2E = 0
+                if isinf(rate_E2P):
+                    rate_E2I = 0
+                if isinf(rate_Ia2R):
+                    rate_Ia2R = 0
+                if isinf(rate_Iy2R):
+                    rate_Iy2R = 0
+                if isinf(rate_Ih2R):
+                    rate_Ih2R = 0
+                if isinf(rate_Iy2Ih):
+                    rate_Iy2Ih = 0
+                if isinf(rate_Ih2D):
+                    rate_Ih2D = 0
 
                 # ---------------------- Apply deltas -------------------------
 
