@@ -1,5 +1,5 @@
 #!python
-#cython: boundscheck=True
+#cython: boundscheck=False
 #cython: cdivision=True
 #cython: infertypes=False
 #cython: initializedcheck=False
@@ -143,19 +143,10 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
             rate_Iy2R, rate_Ih2R, rate_Iy2Ih, rate_Ih2D,
 
     # Iterate over node, age, and risk
-    # for n in prange(node_len, nogil=True):
-    for n in range(node_len):
+    for n in prange(node_len, nogil=True):
+    # for n in range(node_len):
         for a in range(age_len):
             for r in range(risk_len):
-
-                # --------------   Expand epi parameters  --------------
-
-                # 'count', 'beta0', 'sigma', 'gamma', 'eta', 'mu', 'omega', 'tau', 'nu', 'pi', 'kappa', 'report_rate', 'rho'
-                # WARNING: index on 0 at compartments
-                # dimension assumes that epi param
-                # is same for all compartments
-                # TODO: reimplement
-                # _deterministic = counts_view[n, a, r, 13, 0]
 
                 # -----------   Expand compartment counts  -------------
 
@@ -178,15 +169,16 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                 Iy2Ih = counts_view[n, a, r, 14]
                 H2D = counts_view[n, a, r, 15]
 
-                # ----------------   Get other deltas  -----------------
+                # --------------   Expand epi parameters  --------------
 
-                # Some shortcuts
                 # NOTE: be careful of variable name reuse here!
                 gamma_a = discrete_time_approx(gamma_view[4], int_per_day)
                 gamma_y = discrete_time_approx(gamma_view[5], int_per_day)
                 gamma_h = discrete_time_approx(gamma_view[6], int_per_day)
                 nu = nu_view[a]
                 pi = pi_view[r, a]
+
+                # ----------------   Get other deltas  -----------------
 
                 rate_S2E = foi_view[n, a, r]
                 rate_E2P = E * discrete_time_approx(sigma, int_per_day)

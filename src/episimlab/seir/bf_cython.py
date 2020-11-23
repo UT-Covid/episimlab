@@ -16,8 +16,6 @@ from .bf_cython_engine import brute_force_SEIR
 class BruteForceCython(BaseSEIR):
     """Calculate change in `counts` due to SEIR transmission. Brute force
     algorithm for testing purposes.
-
-    TODO: discrete time approximation
     """
 
     # beta = xs.foreign(BaseFOI, 'beta', intent='in')

@@ -19,8 +19,6 @@ from ..cy_utils.cy_utils import discrete_time_approx_wrapper as cy_dta
 class BruteForceSEIR(BaseSEIR):
     """Calculate change in `counts` due to SEIR transmission. Brute force
     algorithm for testing purposes.
-
-    TODO: discrete time approximation
     """
     COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
 

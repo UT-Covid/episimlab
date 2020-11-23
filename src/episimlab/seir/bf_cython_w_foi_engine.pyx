@@ -1,5 +1,5 @@
 #!python
-#cython: boundscheck=True
+#cython: boundscheck=False
 #cython: cdivision=True
 #cython: infertypes=False
 #cython: initializedcheck=False
@@ -150,8 +150,8 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
             rate_Iy2R, rate_Ih2R, rate_Iy2Ih, rate_Ih2D,
 
     # Iterate over node, age, and risk
-    # for n in prange(node_len, nogil=True):
-    for n in range(node_len):
+    for n in prange(node_len, nogil=True):
+    # for n in range(node_len):
         for a in range(age_len):
             for r in range(risk_len):
 
