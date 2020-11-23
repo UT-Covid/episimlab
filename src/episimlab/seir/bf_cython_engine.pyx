@@ -103,6 +103,7 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                                   ):
                                   # double int_per_day):
     """
+    TODO: clean up cdefs
     """
     cdef:
         # indexers and lengths of each dimension in state space
@@ -153,19 +154,6 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                 # WARNING: index on 0 at compartments
                 # dimension assumes that epi param
                 # is same for all compartments
-                sigma = discrete_time_approx(sigma, int_per_day)
-                gamma_a = discrete_time_approx(gamma_view[4], int_per_day)
-                gamma_y = discrete_time_approx(gamma_view[5], int_per_day)
-                gamma_h = discrete_time_approx(gamma_view[6], int_per_day)
-                eta = discrete_time_approx(eta, int_per_day)
-                mu = discrete_time_approx(mu, int_per_day)
-                # _tau = counts_view[n, a, r, 7, 0]
-                nu = nu_view[a]
-                pi = pi_view[r, a]
-                # _kappa = counts_view[n, a, r, 10, 0]
-                # _report_rate = counts_view[n, a, r, 11, 0]
-                rho_a = discrete_time_approx(rho_view[a, 4], int_per_day)
-                rho_y = discrete_time_approx(rho_view[a, 5], int_per_day)
                 # TODO: reimplement
                 # _deterministic = counts_view[n, a, r, 13, 0]
 
@@ -192,15 +180,23 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
 
                 # ----------------   Get other deltas  -----------------
 
+                # Some shortcuts
+                # NOTE: be careful of variable name reuse here!
+                gamma_a = discrete_time_approx(gamma_view[4], int_per_day)
+                gamma_y = discrete_time_approx(gamma_view[5], int_per_day)
+                gamma_h = discrete_time_approx(gamma_view[6], int_per_day)
+                nu = nu_view[a]
+                pi = pi_view[r, a]
+
                 rate_S2E = foi_view[n, a, r]
-                rate_E2P = sigma * E
-                rate_Pa2Ia = rho_a * Pa
-                rate_Py2Iy = rho_y * Py
-                rate_Ia2R = gamma_a * Ia
+                rate_E2P = E * discrete_time_approx(sigma, int_per_day)
+                rate_Pa2Ia = Pa * discrete_time_approx(rho_view[a, 4], int_per_day)
+                rate_Py2Iy = Py * discrete_time_approx(rho_view[a, 5], int_per_day)
+                rate_Ia2R = Ia * gamma_a
                 rate_Iy2R = (1 - pi) * gamma_y * Iy
                 rate_Ih2R = (1 - nu) * gamma_h * Ih
-                rate_Iy2Ih = pi * eta * Iy
-                rate_Ih2D = nu * mu * Ih
+                rate_Iy2Ih = pi * Iy * discrete_time_approx(eta, int_per_day)
+                rate_Ih2D = nu * Ih * discrete_time_approx(mu, int_per_day)
 
                 # --------------   Sample from Poisson  ----------------
 
@@ -302,13 +298,13 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                 # ----------   Load new vals to state array  ---------------
 
                 # 'S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia', 'Py2Iy', 'Iy2Ih', 'H2D'
-                compt_v[n, a, r, 0] = d_S
-                compt_v[n, a, r, 1] = d_E
-                compt_v[n, a, r, 2] = d_Pa
-                compt_v[n, a, r, 3] = d_Py
-                compt_v[n, a, r, 4] = d_Ia
-                compt_v[n, a, r, 5] = d_Iy
-                compt_v[n, a, r, 6] = d_Ih
-                compt_v[n, a, r, 7] = d_R
-                compt_v[n, a, r, 8] = d_D
+                compt_v[n, a, r, 0] = new_S - S
+                compt_v[n, a, r, 1] = new_E - E
+                compt_v[n, a, r, 2] = new_Pa - Pa
+                compt_v[n, a, r, 3] = new_Py - Py
+                compt_v[n, a, r, 4] = new_Ia - Ia
+                compt_v[n, a, r, 5] = new_Iy - Iy
+                compt_v[n, a, r, 6] = new_Ih - Ih
+                compt_v[n, a, r, 7] = new_R - R
+                compt_v[n, a, r, 8] = new_D - D
     return compt_counts

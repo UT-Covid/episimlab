@@ -65,4 +65,5 @@ cdef double discrete_time_approx(double rate, double timestep) nogil:
             # return np.nan
         # elif timestep == 0:
             # return np.nan
+
         return 1. - (1. - rate)**(1. / timestep)

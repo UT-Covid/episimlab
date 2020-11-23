@@ -24,6 +24,6 @@ class TestDiscreteTimeApprox:
         cy_result = cy_dta(rate=rate, timestep=timestep)
 
         rel_tol = 1e-7
+        assert isclose(py_result, cy_result, rel_tol=rel_tol)
         assert isclose(py_result, expected, rel_tol=rel_tol)
         assert isclose(cy_result, expected, rel_tol=rel_tol)
-        assert isclose(py_result, cy_result, rel_tol=rel_tol)

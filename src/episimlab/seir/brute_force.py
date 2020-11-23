@@ -72,34 +72,21 @@ class BruteForceSEIR(BaseSEIR):
         """
         rate = float(rate)
         timestep = float(self.int_per_day)
-        val = cy_dta(rate=rate, timestep=timestep)
-        logging.debug(f"{rate}, {timestep}, {val}")
+        val = py_dta(rate=rate, timestep=timestep)
+        # logging.debug(f"{rate}, {timestep}, {val}")
         return val
 
     @xs.runtime(args='step_delta')
     def run_step(self, step_delta):
         """
         """
+
         # Get a RNG for this timepoint, based off of the uint64 seed
         # at this timepoint
         self.rng = self.get_rng()
 
         # Get interval per day
         self.int_per_day = self.get_int_per_day(step_delta)
-
-        def idx(compt=None):
-            d = {
-                'vertex': v,
-                'age_group': a,
-                'risk_group': r
-            }
-            # logging.debug(f"d: {d}")
-            if compt is not None:
-                d['compartment'] = compt
-            return d
-
-        def cts(*args, **kwargs):
-            return self.counts.loc[idx(*args, **kwargs)].values
 
         # Abbreviation for `self.counts_delta`
         self.counts_delta_seir = np.nan * xr.zeros_like(self.counts)
@@ -109,11 +96,21 @@ class BruteForceSEIR(BaseSEIR):
             # Iterate over every pair of age-risk categories
             for a, r in product(self.counts.coords['age_group'].values,
                                 self.counts.coords['risk_group'].values):
-                # logging.debug([a, r])
-                # logging.debug(f"cc: {cc()}")
 
-                # Need self.discrete_time_approx
-                # sigma, gamma, eta, mu, rho
+                def idx(compt=None):
+                    d = {
+                        'vertex': v,
+                        'age_group': a,
+                        'risk_group': r
+                    }
+                    # logging.debug(f"d: {d}")
+                    if compt is not None:
+                        d['compartment'] = compt
+                    return d
+
+                def cts(*args, **kwargs):
+                    return self.counts.loc[idx(*args, **kwargs)].values
+
 
                 # Calculate rates of change between each compartment
                 rate_S2E = self.foi.loc[{
@@ -180,6 +177,8 @@ class BruteForceSEIR(BaseSEIR):
                 new_E2Py = self.tau * rate_E2P
                 if new_E2Py < 0:
                     rate_E2P = 0
+                    new_E2P = 0
+                    new_E2Py = 0
 
                 d_Pa = (1 - self.tau) * rate_E2P - rate_Pa2Ia
                 new_Pa = cts('Pa') + d_Pa
@@ -232,12 +231,12 @@ class BruteForceSEIR(BaseSEIR):
 
                 # -------------------- Load into output array -----------------
 
-                self.counts_delta_seir.loc[idx('S')] = d_S
-                self.counts_delta_seir.loc[idx('E')] = d_E
-                self.counts_delta_seir.loc[idx('Pa')] = d_Pa
-                self.counts_delta_seir.loc[idx('Py')] = d_Py
-                self.counts_delta_seir.loc[idx('Ia')] = d_Ia
-                self.counts_delta_seir.loc[idx('Iy')] = d_Iy
-                self.counts_delta_seir.loc[idx('Ih')] = d_Ih
-                self.counts_delta_seir.loc[idx('R')] = d_R
-                self.counts_delta_seir.loc[idx('D')] = d_D
+                self.counts_delta_seir.loc[idx('S')] = new_S - cts('S')
+                self.counts_delta_seir.loc[idx('E')] = new_E - cts('E')
+                self.counts_delta_seir.loc[idx('Pa')] = new_Pa - cts('Pa')
+                self.counts_delta_seir.loc[idx('Py')] = new_Py - cts('Py')
+                self.counts_delta_seir.loc[idx('Ia')] = new_Ia - cts('Ia')
+                self.counts_delta_seir.loc[idx('Iy')] = new_Iy - cts('Iy')
+                self.counts_delta_seir.loc[idx('Ih')] = new_Ih - cts('Ih')
+                self.counts_delta_seir.loc[idx('R')] = new_R - cts('R')
+                self.counts_delta_seir.loc[idx('D')] = new_D - cts('D')

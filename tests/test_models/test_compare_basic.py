@@ -48,9 +48,9 @@ class TestCompareBasicModels:
         # Python SEIR and FOI
         # (foi_bf.BruteForceFOI, seir_bf.BruteForceSEIR),
         # Cython SEIR with FOI
-        (foi_base.BaseFOI, seir_bf_cython_w_foi.BruteForceCythonWFOI),
+        # (foi_base.BaseFOI, seir_bf_cython_w_foi.BruteForceCythonWFOI),
         # Cython SEIR with Cython FOI
-        # (foi_bf_cython.BruteForceCythonFOI, seir_bf_cython.BruteForceCython),
+        (foi_bf_cython.BruteForceCythonFOI, seir_bf_cython.BruteForceCython),
     ])
     def test_seir_foi_combos(self, input_vars, step_clock, foi1, seir1, foi2, seir2):
         # load default model
@@ -67,18 +67,17 @@ class TestCompareBasicModels:
         ))
 
         # shared inputs based on the default model
+        out_var_key = 'apply_counts_delta__counts'
         in_ds = xs.create_setup(
             model=model,
-            # TODO
-            # DEBUG
-            clocks={k: step_clock[k][:3] for k in step_clock},
+            clocks={k: step_clock[k] for k in step_clock},
             input_vars=input_vars,
-            output_vars=dict(apply_counts_delta__counts='step')
+            output_vars={out_var_key: 'step'}
         )
 
         # run both models
-        result1 = in_ds.xsimlab.run(model=model1)['apply_counts_delta__counts']
-        result2 = in_ds.xsimlab.run(model=model2)['apply_counts_delta__counts']
+        result1 = in_ds.xsimlab.run(model=model1)[out_var_key]
+        result2 = in_ds.xsimlab.run(model=model2)[out_var_key]
 
         # check typing and equality
         assert isinstance(result1, xr.DataArray)
@@ -87,11 +86,21 @@ class TestCompareBasicModels:
         # DEBUG
         try:
             xr.testing.assert_allclose(result1, result2)
-        except:
+        except AssertionError:
+            # DEBUG
+            diff = result1 - result2
+            # 1 if different above threshold
+            dw = xr.where(diff <= 1e-5, 1, 0)
+
+            def view(x):
+                return x.loc[dict(vertex=1)].sum(
+                    ['age_group', 'risk_group']
+                )[dict(compartment=slice(None, -7))]
+            v1 = view(result1)
+            v2 = view(result2)
+            compt_labels = diff.coords['compartment']
+
             if VERBOSE:
-                diff = result1 - result2
-                # 1 if different above threshold
-                dw = xr.where(diff <= 1e-5, 1, 0)
                 # iterate over coords
                 for dim in diff.dims:
                     for c in diff.coords[dim].values:

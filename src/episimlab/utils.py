@@ -1,4 +1,6 @@
 import numpy as np
+from math import isclose
+from .cy_utils.cy_utils import discrete_time_approx_wrapper as cy_dta
 
 
 def discrete_time_approx(rate, timestep):
@@ -11,4 +13,8 @@ def discrete_time_approx(rate, timestep):
         # return np.nan
     # elif timestep == 0:
         # return np.nan
-    return (1. - (1. - rate)**(1/timestep))
+
+    val = 1. - (1. - rate)**(1. / timestep)
+    cy_val = cy_dta(rate, timestep)
+    assert isclose(val, cy_val, rel_tol=1e-7), (val, cy_val)
+    return val
