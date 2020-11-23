@@ -155,28 +155,6 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
         for a in range(age_len):
             for r in range(risk_len):
 
-                # --------------   Expand epi parameters  --------------
-
-                # 'count', 'beta0', 'sigma', 'gamma', 'eta', 'mu', 'omega', 'tau', 'nu', 'pi', 'kappa', 'report_rate', 'rho'
-                # WARNING: index on 0 at compartments
-                # dimension assumes that epi param
-                # is same for all compartments
-                sigma = discrete_time_approx(sigma, int_per_day)
-                gamma_a = discrete_time_approx(gamma_view[4], int_per_day)
-                gamma_y = discrete_time_approx(gamma_view[5], int_per_day)
-                gamma_h = discrete_time_approx(gamma_view[6], int_per_day)
-                eta = discrete_time_approx(eta, int_per_day)
-                mu = discrete_time_approx(mu, int_per_day)
-                # _tau = counts_view[n, a, r, 7, 0]
-                nu = nu_view[a]
-                pi = pi_view[r, a]
-                # _kappa = counts_view[n, a, r, 10, 0]
-                # _report_rate = counts_view[n, a, r, 11, 0]
-                rho_a = discrete_time_approx(rho_view[a, 4], int_per_day)
-                rho_y = discrete_time_approx(rho_view[a, 5], int_per_day)
-                # TODO: reimplement
-                # _deterministic = counts_view[n, a, r, 13, 0]
-
                 # -----------   Expand compartment counts  -------------
 
                 # 'S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia', 'Py2Iy', 'Iy2Ih', 'H2D'
@@ -234,16 +212,26 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
                             (omega_pa_2 * Pa_2) + \
                             (omega_py_2 * Py_2)))
 
+                # --------------   Expand epi parameters  --------------
+
+                gamma_a = discrete_time_approx(gamma_view[4], int_per_day)
+                gamma_y = discrete_time_approx(gamma_view[5], int_per_day)
+                gamma_h = discrete_time_approx(gamma_view[6], int_per_day)
+                nu = nu_view[a]
+                pi = pi_view[r, a]
+                rho_a = discrete_time_approx(rho_view[a, 4], int_per_day)
+                rho_y = discrete_time_approx(rho_view[a, 5], int_per_day)
+
                 # ----------------   Get other deltas  -----------------
 
-                rate_E2P = sigma * E
+                rate_E2P = discrete_time_approx(sigma, int_per_day) * E
                 rate_Pa2Ia = rho_a * Pa
                 rate_Py2Iy = rho_y * Py
                 rate_Ia2R = gamma_a * Ia
                 rate_Iy2R = (1 - pi) * gamma_y * Iy
                 rate_Ih2R = (1 - nu) * gamma_h * Ih
-                rate_Iy2Ih = pi * eta * Iy
-                rate_Ih2D = nu * mu * Ih
+                rate_Iy2Ih = pi * discrete_time_approx(eta, int_per_day) * Iy
+                rate_Ih2D = nu * discrete_time_approx(mu, int_per_day) * Ih
 
                 # --------------   Sample from Poisson  ----------------
 
