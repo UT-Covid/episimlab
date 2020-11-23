@@ -20,19 +20,7 @@ class BruteForceCython(BaseSEIR):
     TODO: discrete time approximation
     """
 
-    # beta = xs.foreign(BaseFOI, 'beta', intent='in')
-    # omega = xs.foreign(BaseFOI, 'omega', intent='in')
-    # phi_t = xs.foreign(InitPhi, 'phi_t', intent='in')
-    # phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
-
     foi = xs.foreign(BaseFOI, 'foi', intent='in')
-
-    counts_delta_seir = xs.variable(
-        groups=['counts_delta'],
-        dims=BaseSEIR.COUNTS_DIMS,
-        static=False,
-        intent='out'
-    )
 
     @xs.runtime(args='step_delta')
     def run_step(self, step_delta):

@@ -28,6 +28,13 @@ class BaseSEIR:
     pi = xs.variable(dims=('risk_group', 'age_group'))
     rho = xs.variable(dims=('age_group', 'compartment'))
 
+    counts_delta_seir = xs.variable(
+        groups=['counts_delta'],
+        dims=COUNTS_DIMS,
+        static=False,
+        intent='out'
+    )
+
     def get_int_per_day(self, step_delta) -> float:
         """
         """

@@ -19,25 +19,9 @@ from ..cy_utils.cy_utils import discrete_time_approx_wrapper as cy_dta
 class BruteForceSEIR(BaseSEIR):
     """Calculate change in `counts` due to SEIR transmission. Brute force
     algorithm for testing purposes.
-
-    TODO: discrete time approximation
     """
-    COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
 
-    counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
     foi = xs.foreign(BaseFOI, 'foi', intent='in')
-    seed_state = xs.foreign(SeedGenerator, 'seed_state', intent='in')
-    stochastic = xs.foreign(InitStochasticFromToggle, 'stochastic', intent='in')
-
-    # age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
-    # risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
-
-    counts_delta_seir = xs.variable(
-        groups=['counts_delta'],
-        dims=COUNTS_DIMS,
-        static=False,
-        intent='out'
-    )
 
     def get_rng(self):
         return np.random.default_rng(seed=self.seed_state)
