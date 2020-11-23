@@ -273,7 +273,8 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                 d_Iy = rate_Py2Iy - rate_Iy2R - rate_Iy2Ih
                 new_Iy = Iy + d_Iy
                 if new_Iy < 0:
-                    rate_Iy2R = (Iy + rate_Py2Iy) * rate_Iy2R / (rate_Iy2R + rate_Iy2Ih)
+                    rate_Iy2R = (Iy + rate_Py2Iy) * rate_Iy2R / \
+                        (rate_Iy2R + rate_Iy2Ih)
                     rate_Iy2Ih = Iy + rate_Py2Iy - rate_Iy2R
                     new_Iy = 0
 
@@ -284,7 +285,8 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                 d_Ih = rate_Iy2Ih - rate_Ih2R - rate_Ih2D
                 new_Ih = Ih + d_Ih
                 if new_Ih < 0:
-                    rate_Ih2R = (Ih + rate_Iy2Ih) * rate_Ih2R / (rate_Ih2R + rate_Ih2D)
+                    rate_Ih2R = (Ih + rate_Iy2Ih) * rate_Ih2R / \
+                        (rate_Ih2R + rate_Ih2D)
                     rate_Ih2D = Ih + rate_Iy2Ih - rate_Ih2R
                     new_Ih = 0
 

@@ -207,7 +207,8 @@ class BruteForceSEIR(BaseSEIR):
                 d_Iy = rate_Py2Iy - rate_Iy2R - rate_Iy2Ih
                 new_Iy = cts('Iy') + d_Iy
                 if new_Iy < 0:
-                    rate_Iy2R = (cts('Iy') + rate_Py2Iy) * rate_Iy2R / (rate_Iy2R + rate_Iy2Ih)
+                    rate_Iy2R = (cts('Iy') + rate_Py2Iy) * rate_Iy2R / \
+                        (rate_Iy2R + rate_Iy2Ih)
                     rate_Iy2Ih = cts('Iy') + rate_Py2Iy - rate_Iy2R
                     new_Iy = 0
 
@@ -218,7 +219,8 @@ class BruteForceSEIR(BaseSEIR):
                 d_Ih = rate_Iy2Ih - rate_Ih2R - rate_Ih2D
                 new_Ih = cts('Ih') + d_Ih
                 if new_Ih < 0:
-                    rate_Ih2R = (cts('Ih') + rate_Iy2Ih) * rate_Ih2R / (rate_Ih2R + rate_Ih2D)
+                    rate_Ih2R = (cts('Ih') + rate_Iy2Ih) * rate_Ih2R / \
+                        (rate_Ih2R + rate_Ih2D)
                     rate_Ih2D = cts('Ih') + rate_Iy2Ih - rate_Ih2R
                     new_Ih = 0
 
