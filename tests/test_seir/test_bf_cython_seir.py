@@ -1,11 +1,11 @@
 import pytest
 import logging
 import xarray as xr
-from episimlab.seir.bf_cython import BruteForceCython
+from episimlab.seir.bf_cython import BruteForceCythonSEIR
 from episimlab.seir.brute_force import BruteForceSEIR
 
 
-class TestBruteForceCython:
+class TestBruteForceCythonSEIR:
 
     def test_can_run_step(self, foi, seed_entropy, stochastic, counts_basic,
                           step_delta, epis):
@@ -16,7 +16,7 @@ class TestBruteForceCython:
             'stochastic': stochastic,
         }
         inputs.update(epis)
-        proc = BruteForceCython(**inputs)
+        proc = BruteForceCythonSEIR(**inputs)
         proc.run_step(step_delta)
 
         proc.finalize_step()
@@ -42,7 +42,7 @@ class TestBruteForceCython:
         inputs.update(epis)
 
         # run in cython
-        cy_proc = BruteForceCython(**inputs)
+        cy_proc = BruteForceCythonSEIR(**inputs)
         # cy_proc.initialize()
         cy_proc.run_step(step_delta)
         cy_proc.finalize_step()

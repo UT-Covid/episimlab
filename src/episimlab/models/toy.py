@@ -15,7 +15,7 @@ from ..seir import (
     bf_cython_w_foi
 )
 from .. import apply_counts_delta
-from ..graph import cython
+from ..network import cython_explicit_travel
 
 
 def minimum_viable():
@@ -68,7 +68,7 @@ def cy_adj():
         init_adj=adj.InitToyAdj,
         init_adj_grp_mapping=adj.InitAdjGrpMapping,
         # Use adjacency matrix to simulate travel between vertices in cython
-        travel=cython.CythonGraph,
+        travel=cython_explicit_travel.CythonExplicitTravel,
     ))
 
 def cy_adj_slow_seir():
@@ -78,7 +78,7 @@ def cy_adj_slow_seir():
         init_adj=adj.InitToyAdj,
         init_adj_grp_mapping=adj.InitAdjGrpMapping,
         # Use adjacency matrix to simulate travel between vertices in cython
-        travel=cython.CythonGraph,
+        travel=cython_explicit_travel.CythonExplicitTravel,
     ))
 
 def slow_seir_cy_foi():
@@ -92,5 +92,5 @@ def cy_seir_cy_foi():
     model = slow_seir()
     return model.update_processes(dict(
         foi=bf_cython_foi.BruteForceCythonFOI,
-        seir=bf_cython_seir.BruteForceCython
+        seir=bf_cython_seir.BruteForceCythonSEIR
     ))

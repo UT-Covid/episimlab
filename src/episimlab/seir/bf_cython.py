@@ -13,7 +13,7 @@ from .bf_cython_engine import brute_force_SEIR
 
 
 @xs.process
-class BruteForceCython(BaseSEIR):
+class BruteForceCythonSEIR(BaseSEIR):
     """Calculate change in `counts` due to SEIR transmission. Brute force
     algorithm for testing purposes.
     """

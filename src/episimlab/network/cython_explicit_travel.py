@@ -7,10 +7,10 @@ from numbers import Number
 from ..apply_counts_delta import ApplyCountsDelta
 from ..setup.coords import InitDefaultCoords
 from ..setup.adj import InitAdjGrpMapping, InitToyAdj
-from . import cy_engine
+from . import cython_explicit_travel_engine
 
 @xs.process
-class CythonGraph:
+class CythonExplicitTravel:
     """Calculate change in `counts` due to travel between nodes.
     """
 
@@ -53,7 +53,7 @@ class CythonGraph:
         assert isinstance(self.counts, xr.DataArray)
         assert isinstance(self.adj_grp_mapping, xr.DataArray)
 
-        self.counts_delta_gph_arr = cy_engine.graph_high_gran(
+        self.counts_delta_gph_arr = cython_explicit_travel_engine.graph_high_gran(
             self.counts.values, self.adj_t.values, self.adj_grp_mapping.values)
 
     def finalize_step(self):
