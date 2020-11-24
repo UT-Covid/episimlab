@@ -19,7 +19,6 @@ class TestInitPhi:
         proc = InitPhi(**inputs)
         proc.initialize()
         proc.run_step(step=0)
-        proc._toy_finalize_step()
         result = proc.phi
         assert isinstance(result, xr.DataArray)
         # logging.debug(f"result: {result}")

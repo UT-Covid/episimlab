@@ -3,9 +3,9 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 import itertools
-from collections.abc import Iterable
 
 from ..setup.coords import InitDefaultCoords
+from ..utils import ravel_to_midx, unravel_encoded_midx
 
 
 @xs.process
@@ -29,7 +29,7 @@ class InitAdjGrpMapping:
             k: getattr(self, k) for k in self.MAP_DIMS
         }
 
-        encoded_midx = get_encoded_midx(coords=self.MAP_COORDS)
+        encoded_midx = ravel_to_midx(dims=self.MAP_DIMS, coords=self.MAP_COORDS)
         self.adj_grp1 = encoded_midx
         self.adj_grp2 = encoded_midx
         self.day_of_week = np.arange(7)
@@ -52,7 +52,6 @@ class InitToyAdj:
     """
     ADJ_DIMS = ('day_of_week', 'adj_grp1', 'adj_grp2')
     MAP_DIMS = ('age_group', 'risk_group', 'vertex', 'compartment')
-
 
     age_group = xs.foreign(InitAdjGrpMapping, 'age_group', intent='in')
     risk_group = xs.foreign(InitAdjGrpMapping, 'risk_group', intent='in')
@@ -88,96 +87,3 @@ class InitToyAdj:
         day_idx = step % self.day_of_week.size
         self.adj_t = self.adj[day_idx]
         # print(step, self.day_of_week.size, day_idx)
-
-    def _toy_finalize_step(self):
-        """Toy behavior of how the graph model would access this array
-
-        TODO: a version of this with matrix multiplication
-        """
-
-        # Iterate over every pair of age-risk pairs
-        for a1, r1, v1, c1, a2, r2, v2, c2 in itertools.product(
-                *[getattr(self, dim) for dim in self.MAP_DIMS] * 2):
-
-            # Get the indices in adj_grp1/adj_grp2
-            i = self.adj_grp_mapping.loc[(a1, r1)].values
-            j = self.adj_grp_mapping.loc[(a2, r2)].values
-            # print(i, j)
-
-            # ...then index the symmetrical array using
-            # the derived i j indices
-            self.adj_t[i, j] += 1
-
-        # Validate that this encoded index actually works
-        # print(self._validate_midx())
-
-    def _validate_midx(self):
-        # Validate that this is actually the correct index in adj_grp1
-        return ravel_encoded_midx(
-            midx=self.adj_grp1,
-            coords=dict(
-                age_group=self.age_group,
-                risk_group=self.risk_group
-            )
-        )
-
-
-def get_encoded_midx(coords):
-    """TODO: pass dims so we dont rely on coords.keys() order
-    """
-    # Type checking
-    assert isinstance(coords, dict)
-    c = coords.copy()
-    for k, v in c.items():
-        # Since we're using the `size` attr...
-        if isinstance(v, np.ndarray):
-            pass
-        elif isinstance(v, Iterable):
-            c[k] = np.array(v)
-        else:
-            raise TypeError()
-
-    # Generate pandas MultiIndex
-    shape = [_c.size for _c in c.values()]
-    midx = pd.MultiIndex.from_product(c.values(), names=c.keys())
-    return np.ravel_multi_index(midx.codes, shape)
-
-# USAGE
-# encoded_midx = get_encoded_midx(dict(
-    # ag=np.array(['0-4', '5-17', '18-49', '50-64', '65+']),
-    # rg=np.array(['low', 'high'])
-# ))
-# encoded_midx
-
-def ravel_encoded_midx(midx, coords):
-    """TODO: pass dims so we dont rely on coords.keys() order
-    """
-    # Type checking
-    assert isinstance(midx, np.ndarray)
-    assert isinstance(coords, dict)
-    c = coords.copy()
-    for k, v in c.items():
-        # Since we're using the `size` attr...
-        if isinstance(v, np.ndarray):
-            pass
-        elif isinstance(v, Iterable):
-            c[k] = np.array(v)
-        else:
-            raise TypeError()
-
-    # Decode to a MultiIndex
-    shape = [_c.size for _c in c.values()]
-    indices = np.unravel_index(midx, shape)
-    arrays = [c[dim][index] for dim, index in zip(c.keys(), indices)]
-    return pd.MultiIndex.from_arrays(arrays)
-
-
-# USAGE
-# decoded_midx = ravel_encoded_midx(
-    # midx=encoded_midx,
-    # coords=dict(
-        # ag=np.array(['0-4', '5-17', '18-49', '50-64', '65+']),
-        # rg=np.array(['low', 'high'])
-    # )
-# )
-# decoded_midx
