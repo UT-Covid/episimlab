@@ -105,8 +105,7 @@ cdef np.ndarray _graph_high_gran(double [:, :, :, :] counts_view,
                         # Handle stochasticity if specified
                         if stochastic == 1:
                             if c2_to_c < 0:
-                                c2_to_c = gsl_ran_poisson(rng, -c2_to_c)
-                                c2_to_c = -c2_to_c
+                                c2_to_c = -gsl_ran_poisson(rng, -c2_to_c)
                             else:
                                 c2_to_c = gsl_ran_poisson(rng, c2_to_c)
 
