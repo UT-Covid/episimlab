@@ -11,13 +11,15 @@ class TestCythonExplicitTravel:
 
     @profiler()
     def test_can_run_step(self, omega, counts_basic, counts_coords,
-                          adj_grp_mapping, adj_t):
+                          adj_grp_mapping, adj_t, stochastic, seed_entropy):
         """
         """
         inputs = {
             'counts': counts_basic,
             'adj_t': adj_t,
-            'adj_grp_mapping': adj_grp_mapping
+            'adj_grp_mapping': adj_grp_mapping,
+            'stochastic': stochastic,
+            'seed_state': seed_entropy
         }
         inputs.update({
             k: counts_coords[k] for k in
@@ -38,4 +40,3 @@ class TestCythonExplicitTravel:
 
         # logging.debug(f"result.shape: {result.shape}")
         # logging.debug(f"result: {result}")
-

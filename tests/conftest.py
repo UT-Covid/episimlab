@@ -209,7 +209,7 @@ def tau():
 @pytest.fixture(params=[
     -1,
     # TODO
-    # 0,
+    0,
     # 5,
     # 20
 ])

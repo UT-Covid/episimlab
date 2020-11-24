@@ -4,10 +4,11 @@ import logging
 from itertools import product
 from numbers import Number
 
+from ..seir.base import BaseSEIR
 from ..apply_counts_delta import ApplyCountsDelta
 from ..setup.coords import InitDefaultCoords
 from ..setup.adj import InitAdjGrpMapping, InitToyAdj
-from . import cython_explicit_travel_engine
+from .cython_explicit_travel_engine import graph_high_gran
 
 @xs.process
 class CythonExplicitTravel:
@@ -20,6 +21,10 @@ class CythonExplicitTravel:
     risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
     vertex = xs.foreign(InitDefaultCoords, 'vertex', intent='in')
     compartment = xs.foreign(InitDefaultCoords, 'compartment', intent='in')
+
+    # TODO: switch to globals
+    stochastic = xs.foreign(BaseSEIR, 'stochastic', intent='in')
+    seed_state = xs.foreign(BaseSEIR, 'seed_state', intent='in')
 
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
     counts_delta_gph = xs.variable(
@@ -53,8 +58,13 @@ class CythonExplicitTravel:
         assert isinstance(self.counts, xr.DataArray)
         assert isinstance(self.adj_grp_mapping, xr.DataArray)
 
-        self.counts_delta_gph_arr = cython_explicit_travel_engine.graph_high_gran(
-            self.counts.values, self.adj_t.values, self.adj_grp_mapping.values)
+        self.counts_delta_gph_arr = graph_high_gran(
+            counts=self.counts.values,
+            adj_t=self.adj_t.values,
+            adj_grp_mapping=self.adj_grp_mapping.values,
+            stochastic=self.stochastic,
+            int_seed=self.seed_state
+        )
 
     def finalize_step(self):
         self.counts_delta_gph = xr.DataArray(
