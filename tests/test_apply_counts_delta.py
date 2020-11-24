@@ -13,8 +13,7 @@ class TestApplyCountsDelta:
             'counts_delta': [counts_basic] * 4
         }
         proc = ApplyCountsDelta(**inputs)
+        # proc.initialize()
         proc.finalize_step()
         result = proc.counts
         assert isinstance(result, xr.DataArray)
-        # logging.debug(f"result: {result}")
-

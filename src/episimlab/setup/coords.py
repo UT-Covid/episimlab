@@ -20,5 +20,3 @@ class InitDefaultCoords:
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
                             'Py2Iy', 'Iy2Ih', 'H2D']
         self.vertex = range(3)
-
-

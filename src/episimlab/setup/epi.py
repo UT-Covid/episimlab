@@ -3,15 +3,18 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..seir import base
+from ..seir.base import BaseSEIR
 from ..foi.base import BaseFOI
 from ..setup.coords import InitDefaultCoords
+from ..apply_counts_delta import ApplyCountsDelta
 
 
 @xs.process
 class InitDefaultEpis:
     """A workaround that ingests np.ndarrays and converts
     """
+    COUNTS_DIMS = ApplyCountsDelta.COUNTS_DIMS
+
     age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
     risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
     vertex = xs.foreign(InitDefaultCoords, 'vertex', intent='in')
@@ -20,19 +23,18 @@ class InitDefaultEpis:
     beta = xs.foreign(BaseFOI, 'beta', intent='out')
     omega = xs.foreign(BaseFOI, 'omega', intent='out')
 
-    rho = xs.foreign(base.BaseSEIR, 'rho', intent='out')
-    gamma = xs.foreign(base.BaseSEIR, 'gamma', intent='out')
-    sigma = xs.foreign(base.BaseSEIR, 'sigma', intent='out')
-    pi = xs.foreign(base.BaseSEIR, 'pi', intent='out')
-    eta = xs.foreign(base.BaseSEIR, 'eta', intent='out')
-    nu = xs.foreign(base.BaseSEIR, 'nu', intent='out')
-    mu = xs.foreign(base.BaseSEIR, 'mu', intent='out')
-    tau = xs.foreign(base.BaseSEIR, 'tau', intent='out')
+    rho = xs.foreign(BaseSEIR, 'rho', intent='out')
+    gamma = xs.foreign(BaseSEIR, 'gamma', intent='out')
+    sigma = xs.foreign(BaseSEIR, 'sigma', intent='out')
+    pi = xs.foreign(BaseSEIR, 'pi', intent='out')
+    eta = xs.foreign(BaseSEIR, 'eta', intent='out')
+    nu = xs.foreign(BaseSEIR, 'nu', intent='out')
+    mu = xs.foreign(BaseSEIR, 'mu', intent='out')
+    tau = xs.foreign(BaseSEIR, 'tau', intent='out')
 
     def initialize(self):
         self.COUNTS_COORDS = {
-            dim: getattr(self, dim) for dim in
-            ('vertex', 'age_group', 'risk_group', 'compartment')
+            dim: getattr(self, dim) for dim in self.COUNTS_DIMS
         }
         for var_name in ('beta', 'omega', 'rho', 'gamma', 'sigma', 'pi',
                          'eta', 'nu', 'mu', 'tau'):

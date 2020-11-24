@@ -21,7 +21,6 @@ class BruteForceSEIR(BaseSEIR):
     """Calculate change in `counts` due to SEIR transmission. Brute force
     algorithm for testing purposes.
     """
-    COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
 
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
     foi = xs.foreign(BaseFOI, 'foi', intent='in')
@@ -33,7 +32,7 @@ class BruteForceSEIR(BaseSEIR):
 
     counts_delta_seir = xs.variable(
         groups=['counts_delta'],
-        dims=COUNTS_DIMS,
+        dims=BaseSEIR.COUNTS_DIMS,
         static=False,
         intent='out'
     )

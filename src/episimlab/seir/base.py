@@ -13,7 +13,9 @@ from ..setup.coords import InitDefaultCoords
 class BaseSEIR:
     """
     """
-    COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
+    # COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
+    COUNTS_DIMS = ApplyCountsDelta.COUNTS_DIMS
+
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
 
     stochastic = xs.variable(intent='in')

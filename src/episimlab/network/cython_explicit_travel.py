@@ -10,12 +10,14 @@ from ..setup.coords import InitDefaultCoords
 from ..setup.adj import InitAdjGrpMapping, InitToyAdj
 from .cython_explicit_travel_engine import graph_high_gran
 
+
 @xs.process
 class CythonExplicitTravel:
     """Calculate change in `counts` due to travel between nodes.
     """
 
-    COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
+    # COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
+    COUNTS_DIMS = ApplyCountsDelta.COUNTS_DIMS
 
     age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
     risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')

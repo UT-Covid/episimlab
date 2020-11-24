@@ -7,7 +7,8 @@ from ..apply_counts_delta import ApplyCountsDelta
 @xs.process
 class InitDefaultCounts:
 
-    COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
+    # COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
+    COUNTS_DIMS = ApplyCountsDelta.COUNTS_DIMS
 
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='out')
     age_group = xs.foreign(InitDefaultCoords, 'age_group')
