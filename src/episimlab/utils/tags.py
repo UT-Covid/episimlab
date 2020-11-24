@@ -1,7 +1,11 @@
 from collections.abc import Iterable
 
+"""
+Work in progress
+"""
 
 def _add_tags(obj, tags):
+    raise NotImplementedError()
     assert isinstance(obj, (
         # class,
         # function
