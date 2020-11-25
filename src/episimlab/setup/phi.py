@@ -80,6 +80,9 @@ class InitPhi:
 
     @xs.runtime(args='step')
     def run_step(self, step):
+        """
+        TODO
+        """
 
         # Get the index on `day_of_week`
         day_idx = step % self.day_of_week.size
