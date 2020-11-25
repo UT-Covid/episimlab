@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..seir.base import BaseSEIR
+from ...seir.base import BaseSEIR
 from .base import BaseSetupEpi
 
 

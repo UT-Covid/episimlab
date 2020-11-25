@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..foi.base import BaseFOI
+from ...foi.base import BaseFOI
 from .base import BaseSetupEpi
 
 
@@ -27,9 +27,10 @@ class SetupDefaultOmega(BaseSetupEpi):
                          [0.91117513, 0.91117513, 0.92460653, 0.95798887, 0.98451149],
                          [1.36676269, 1.36676269, 1.3869098 , 1.43698331, 1.47676724]])
 
+        dims = ['age_group', 'compartment']
         da = xr.DataArray(
             data=0.,
-            dims=['age_group', 'compartment'],
+            dims=dims,
             coords={k: self.counts_coords[k] for k in dims}
         )
         da.loc[dict(compartment=['Ia', 'Iy', 'Pa', 'Py'])] = data.T

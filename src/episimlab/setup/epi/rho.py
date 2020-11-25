@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..seir.base import BaseSEIR
+from ...seir.base import BaseSEIR
 from .base import BaseSetupEpi
 
 
@@ -18,8 +18,9 @@ class SetupDefaultRho(BaseSetupEpi):
         self.rho = self.get_rho()
 
     def get_rho(self):
+        dims = ['age_group', 'compartment']
         return xr.DataArray(
             data=0.43478261,
-            dims=('age_group', 'compartment'),
+            dims=dims,
             coords={k: self.counts_coords[k] for k in dims}
         )

@@ -3,8 +3,8 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..setup.coords import InitDefaultCoords
-from ..apply_counts_delta import ApplyCountsDelta
+from ..coords import InitDefaultCoords
+from ...apply_counts_delta import ApplyCountsDelta
 
 
 @xs.process

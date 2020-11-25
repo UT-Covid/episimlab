@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..seir.base import BaseSEIR
+from ...seir.base import BaseSEIR
 from .base import BaseSetupEpi
 
 
@@ -18,8 +18,9 @@ class SetupDefaultNu(BaseSetupEpi):
 
     def get_nu(self):
         data = [0.02878229, 0.09120554, 0.02241002, 0.07886779, 0.17651128]
+        dims = ['age_group']
         return xr.DataArray(
             data=data,
-            dims=['age_group'],
-            coords={k: self.COUNTS_COORDS[k] for k in dims}
+            dims=dims,
+            coords={k: self.counts_coords[k] for k in dims}
         )

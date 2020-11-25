@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..seir.base import BaseSEIR
+from ...seir.base import BaseSEIR
 from .base import BaseSetupEpi
 
 
@@ -21,6 +21,6 @@ class SetupDefaultPi(BaseSetupEpi):
             [5.92915812e-04, 4.55900959e-04, 2.78247788e-02, 5.95202276e-02, 7.03344654e-02],
             [5.91898663e-03, 4.55299354e-03, 2.57483139e-01, 5.07631836e-01, 5.84245731e-01]
         ])
-        dims = ('risk_group', 'age_group')
-        coords = {k: self.COUNTS_COORDS[k] for k in dims}
+        dims = ['risk_group', 'age_group']
+        coords = {k: self.counts_coords[k] for k in dims}
         return xr.DataArray(data=data, dims=dims, coords=coords)

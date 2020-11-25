@@ -24,10 +24,22 @@ def minimum_viable():
         rng=seed.SeedGenerator,
         sto=sto.InitStochasticFromToggle,
 
-        # Instantiate coords, counts array, default parameters
-        init_epi=epi.InitDefaultEpis,
+        # Instantiate coords and counts array
         init_counts=counts.InitDefaultCounts,
         init_coords=coords.InitDefaultCoords,
+
+        # Instantiate epidemiological parameters
+        setup_base=epi.BaseSetupEpi,
+        setup_beta=epi.SetupDefaultBeta,
+        setup_eta=epi.SetupDefaultEta,
+        setup_gamma=epi.SetupDefaultGamma,
+        setup_mu=epi.SetupDefaultMu,
+        setup_nu=epi.SetupDefaultNu,
+        setup_omega=epi.SetupDefaultOmega,
+        setup_pi=epi.SetupDefaultPi,
+        setup_rho=epi.SetupDefaultRho,
+        setup_sigma=epi.SetupDefaultSigma,
+        setup_tau=epi.SetupDefaultTau,
 
         # no SEIR engine, these are just placeholders
         foi=bf_foi.BaseFOI,
