@@ -37,33 +37,16 @@ class CythonExplicitTravel:
     )
 
     adj_t = xs.foreign(InitToyAdj, 'adj_t', intent='in')
-    adj_grp_mapping = xs.foreign(InitAdjGrpMapping, 'adj_grp_mapping', intent='in')
-
-    def initialize(self):
-        # Ensure that coords for counts and adj_grp_mapping are the same
-        for k, counts_coords in self.counts.coords.items():
-            xr.testing.assert_equal(counts_coords, self.adj_grp_mapping.coords[k])
-
-        # Same for dims, also must be in same order
-        for i, expected in enumerate(self.COUNTS_DIMS):
-            assert self.counts.dims[i] == expected, \
-                f"expected '{expected}' but got '{self.counts.dims[i]}'"
-            assert self.adj_grp_mapping.dims[i] == expected, \
-                f"expected '{expected}' but got '{self.adj_grp_mapping.dims[i]}'"
-
-        # xr.testing.assert_equal(self.counts.coords, self.adj_grp_mapping.coords)
 
     def run_step(self):
         """
         """
         assert isinstance(self.adj_t, xr.DataArray)
         assert isinstance(self.counts, xr.DataArray)
-        assert isinstance(self.adj_grp_mapping, xr.DataArray)
 
         self.counts_delta_gph_arr = graph_high_gran(
             counts=self.counts.values,
             adj_t=self.adj_t.values,
-            adj_grp_mapping=self.adj_grp_mapping.values,
             stochastic=self.stochastic,
             int_seed=self.seed_state
         )

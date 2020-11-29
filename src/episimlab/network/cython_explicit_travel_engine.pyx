@@ -38,7 +38,6 @@ cdef extern from "gsl/gsl_randist.h" nogil:
 
 def graph_high_gran(np.ndarray counts,
                     np.ndarray adj_t,
-                    np.ndarray adj_grp_mapping,
                     unsigned int stochastic,
                     unsigned int int_seed
                     ):
@@ -46,17 +45,15 @@ def graph_high_gran(np.ndarray counts,
     """
     cdef:
         double [:, :, :, :] counts_view = counts
-        double [:, :] adj_view = adj_t
-        long [:, :, :, :] mapping_view = adj_grp_mapping
+        double [:, :, :, :, :] adj_view = adj_t
         # GSL random number generator
         gsl_rng *rng = get_seeded_rng(int_seed)
 
-    return _graph_high_gran(counts_view, adj_view, mapping_view, stochastic, rng)
+    return _graph_high_gran(counts_view, adj_view, stochastic, rng)
 
 
 cdef np.ndarray _graph_high_gran(double [:, :, :, :] counts_view,
-                                 double [:, :] adj_view,
-                                 long [:, :, :, :] mapping_view,
+                                 double [:, :, :, :, :] adj_view,
                                  unsigned int stochastic,
                                  gsl_rng *rng,
                                  ):
@@ -75,7 +72,7 @@ cdef np.ndarray _graph_high_gran(double [:, :, :, :] counts_view,
         np.ndarray delta = np.zeros(
             (node_len, age_len, risk_len, compt_len), dtype=DTYPE_FLOAT)
         # counters
-        Py_ssize_t c, c2, a, r, ct, idx1, idx2
+        Py_ssize_t c, c2, a, r, ct
         double c2_to_c
         double [:, :, :, :] d_view = delta
 
@@ -94,13 +91,9 @@ cdef np.ndarray _graph_high_gran(double [:, :, :, :] counts_view,
             for a in range(age_len):
                 for r in range(risk_len):
                     for ct in range(compt_len):
-                        # Get adj indices from the adj_grp_mapping
-                        idx1 = mapping_view[c, a, r, ct]
-                        idx2 = mapping_view[c2, a, r, ct]
-
                         # For this compartment, net migration from c2 to c1
-                        c2_to_c = (counts_view[c2, a, r, ct] * adj_view[idx1, idx2]) - \
-                            (counts_view[c, a, r, ct] * adj_view[idx2, idx1])
+                        c2_to_c = (counts_view[c2, a, r, ct] * adj_view[c, c2, a, r, ct]) - \
+                            (counts_view[c, a, r, ct] * adj_view[c, c2, a, r, ct])
 
                         # Handle stochasticity if specified
                         if stochastic == 1:

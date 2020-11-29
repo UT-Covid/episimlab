@@ -97,17 +97,21 @@ def phi_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
 
 
 @pytest.fixture()
-def adj_t(counts_coords):
-    dims = ('adj_grp1', 'adj_grp2')
+def adj_t(counts_coords) -> xr.DataArray:
+    dims = ('vertex1', 'vertex2', 'age_group', 'risk_group', 'compartment')
     # we assume that all the dimensions in counts are also dimensions
     # on the adjacency matrix
-    idx_size = np.product([
-        len(coord) for coord in counts_coords.values()
-    ])
+    coords = {
+        'vertex1': counts_coords['vertex'],
+        'vertex2': counts_coords['vertex']
+    }
+    coords.update({
+        dim: counts_coords[dim] for dim in ('age_group', 'risk_group', 'compartment')
+    })
     return xr.DataArray(
         data=0.1,
         dims=dims,
-        coords={dim: range(idx_size) for dim in dims}
+        coords=coords
     )
 
 

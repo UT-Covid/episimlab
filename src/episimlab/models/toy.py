@@ -78,7 +78,6 @@ def cy_adj():
     return model.update_processes(dict(
         # Initialize adjacency matrix
         init_adj=adj.InitToyAdj,
-        init_adj_grp_mapping=adj.InitAdjGrpMapping,
         # Use adjacency matrix to simulate travel between vertices in cython
         travel=cython_explicit_travel.CythonExplicitTravel,
     ))
@@ -88,7 +87,6 @@ def cy_adj_slow_seir():
     return model.update_processes(dict(
         # Initialize adjacency matrix
         init_adj=adj.InitToyAdj,
-        init_adj_grp_mapping=adj.InitAdjGrpMapping,
         # Use adjacency matrix to simulate travel between vertices in cython
         travel=cython_explicit_travel.CythonExplicitTravel,
     ))
