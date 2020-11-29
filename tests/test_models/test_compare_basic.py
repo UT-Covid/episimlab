@@ -52,7 +52,20 @@ class TestCompareBasicModels:
         # Cython SEIR with Cython FOI
         (foi_bf_cython.BruteForceCythonFOI, seir_bf_cython.BruteForceCythonSEIR),
     ])
-    def test_seir_foi_combos(self, input_vars, step_clock, foi1, seir1, foi2, seir2):
+    def test_seir_foi_combos_deterministic(self, input_vars, step_clock, foi1,
+                                           seir1, foi2, seir2):
+        """Check that, at model scope, different implementations of a basic
+        SEIR model produce consistent results. For instance, a FOI implemented
+        in Python should produce the same results as FOI implemented in Cython
+        at all timepoints.
+
+        NOTE: some of these tests are not expected to pass. For instance,
+        Python and Cython implementations of stochastic SEIR dynamics use
+        different random number generators (RNGs), and are expected not to
+        produce the same output given the same inputs (including RNG seed).
+        There is logic below to catch these expected failures implicitly, so
+        that this test should always pass.
+        """
         # load default model
         model = episimlab.models.toy.slow_seir()
 
@@ -83,27 +96,16 @@ class TestCompareBasicModels:
         assert isinstance(result1, xr.DataArray)
         assert isinstance(result2, xr.DataArray)
 
-        # DEBUG
-        try:
+        # Expect failure if the point of comparison SEIR engine has a Python
+        # RNG, and if stochasticity is enabled for this simulation
+        failure_expected = bool(
+            seir1 is seir_bf.BruteForceSEIR and
+            input_vars['sto__sto_toggle'] >= 0
+        )
+        # implicitly account for results that are not expected to be the same
+        # e.g. Python vs. Cython SEIR with different RNGs
+        if failure_expected:
+            logging.debug("Skipping pytest due to expected discrepancy " +
+                          "between Python and Cython RNG")
+        else:
             xr.testing.assert_allclose(result1, result2)
-        except AssertionError:
-            # DEBUG
-            diff = result1 - result2
-            # 1 if different above threshold
-            dw = xr.where(diff <= 1e-5, 1, 0)
-
-            def view(x):
-                return x.loc[dict(vertex=1)].sum(
-                    ['age_group', 'risk_group']
-                )[dict(compartment=slice(None, -7))]
-            v1 = view(result1)
-            v2 = view(result2)
-            compt_labels = diff.coords['compartment']
-
-            if VERBOSE:
-                # iterate over coords
-                for dim in diff.dims:
-                    for c in diff.coords[dim].values:
-                        n_diff = dw.loc[{dim: c}].sum().values
-                        logging.debug(f"number of different at {dim} == {c}?: {n_diff}")
-            raise
