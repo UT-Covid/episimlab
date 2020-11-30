@@ -36,9 +36,9 @@ class SetupStaticMuFromHtoD(SetupDefaultMu):
         """
         if self.stochastic is True:
             rng = get_rng(seed=self.seed_state)
-            return rng.triangular(*self.tri_h2d)
+            return 1 / rng.triangular(*self.tri_h2d)
         else:
-            return np.mean(self.tri_h2d)
+            return 1 / np.mean(self.tri_h2d)
 
 
 @xs.process
