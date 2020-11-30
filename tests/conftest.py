@@ -211,8 +211,9 @@ def tau():
 
 
 @pytest.fixture(params=[
+    # deterministic at all steps
     -1,
-    # TODO
+    # stochastic at all steps
     0,
     # 5,
     # 20
@@ -256,8 +257,7 @@ def stochastic(request):
 
 @pytest.fixture(params=[
     # int_per_day == 1
-    # TODO
-    # '24H',
+    '24H',
     # int_per_day == 2
     '12H'
 ])
@@ -271,8 +271,7 @@ def step_clock(request):
 
 @pytest.fixture(params=[
     # int_per_day == 1
-    # TODO
-    # 24,
+    24,
     # int_per_day == 2
     12
 ])
