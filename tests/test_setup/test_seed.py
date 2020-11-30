@@ -21,9 +21,9 @@ class TestSeedEntropy:
 class TestSeedGenerator:
 
     @pytest.mark.parametrize('step, expected', [
-        (1, 959183449),
-        (10, 1693324600),
-        (100, 685568896),
+        (1, 1457248422),
+        (10, 3322450338),
+        (100, 3734984104),
     ])
     def test_can_run_step(self, step, expected):
         inputs = {

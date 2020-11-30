@@ -20,7 +20,10 @@ class SeedEntropy:
 
 @xs.process
 class SeedGenerator:
-    """
+    """Handles the `seed_state` variable, which is a pseudo-randomly generated
+    integer seed that changes at every step of the simulation. Generation is
+    handled by a numpy SeedSequence, which itself is seeded by an input integer
+    seed `seed_entropy`.
     """
     seed_entropy = xs.variable(static=True, intent='in')
     seed_state = xs.foreign(BaseSEIR, 'seed_state', intent='out')
@@ -28,6 +31,7 @@ class SeedGenerator:
     def initialize(self):
         # instantiate a SeedSequence
         self.seed_seq = np.random.SeedSequence(entropy=(self.seed_entropy))
+        self.seed_state = self.spawn_next(self.seed_seq)
 
     def spawn_next(self, seed_seq):
         # spawn a child SeedSequence

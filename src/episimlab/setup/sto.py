@@ -16,6 +16,10 @@ class InitStochasticFromToggle:
     sto_toggle = xs.variable(static=True, intent='in')
     stochastic = xs.foreign(BaseSEIR, 'stochastic', intent='out')
 
+    def initialize(self):
+        """Ensures that stochastic is set during initialization"""
+        self.run_step(step=0)
+
     @xs.runtime(args="step")
     def run_step(self, step):
         if self.sto_toggle == -1:

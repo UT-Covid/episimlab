@@ -12,7 +12,7 @@ from .base import BaseSEIR
 from ..foi.base import BaseFOI
 from ..setup.seed import SeedGenerator
 from ..setup.sto import InitStochasticFromToggle
-from ..utils import discrete_time_approx as py_dta
+from ..utils import discrete_time_approx as py_dta, rng
 from ..cy_utils.cy_utils import discrete_time_approx_wrapper as cy_dta
 
 
@@ -38,7 +38,7 @@ class BruteForceSEIR(BaseSEIR):
     )
 
     def get_rng(self):
-        return np.random.default_rng(seed=self.seed_state)
+        return rng.get_rng(seed=self.seed_state)
 
     def _old_discrete_time_approx(self, rate):
         """

@@ -247,6 +247,10 @@ def seed_entropy():
     return 12345
 
 
+@pytest.fixture()
+def seed_state(seed_entropy):
+    return seed_entropy
+
 @pytest.fixture(params=[
     True,
     False
@@ -257,7 +261,8 @@ def stochastic(request):
 
 @pytest.fixture(params=[
     # int_per_day == 1
-    '24H',
+    # TODO
+    # '24H',
     # int_per_day == 2
     '12H'
 ])
@@ -271,7 +276,8 @@ def step_clock(request):
 
 @pytest.fixture(params=[
     # int_per_day == 1
-    24,
+    # TODO
+    # 24,
     # int_per_day == 2
     12
 ])
