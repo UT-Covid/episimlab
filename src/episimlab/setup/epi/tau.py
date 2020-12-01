@@ -11,7 +11,6 @@ from .base import BaseSetupEpi
 class SetupDefaultTau(BaseSetupEpi):
     """Return a default value for tau.
     """
-
     tau = xs.foreign(BaseSEIR, 'tau', intent='out')
 
     def initialize(self):
@@ -25,7 +24,6 @@ class SetupDefaultTau(BaseSetupEpi):
 class SetupTauFromAsympRate(SetupDefaultTau):
     """Given a static scalar input asymptomatic ratio, calculate tau.
     """
-
     asymp_rate = xs.variable(dims=(), static=True, intent='in')
 
     def get_tau(self):

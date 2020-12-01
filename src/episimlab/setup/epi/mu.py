@@ -31,7 +31,7 @@ class SetupStaticMuFromHtoD(SetupDefaultMu):
     seed_state = xs.foreign(BaseSEIR, 'seed_state', intent='in')
 
     def get_mu(self):
-        """Sample from triangular distribution of stochastic, or return the
+        """Sample from triangular distribution if stochastic, or return the
         mean if deterministic.
         """
         if self.stochastic is True:
