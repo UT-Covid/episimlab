@@ -36,8 +36,6 @@ class SetupStaticPi(SetupDefaultPi):
                                      'symp_h_ratio_w_risk', intent='in')
     gamma = xs.foreign(BaseSEIR, 'gamma', intent='in')
     eta = xs.foreign(BaseSEIR, 'eta', intent='in')
-    stochastic = xs.foreign(BaseSEIR, 'stochastic', intent='in')
-    seed_state = xs.foreign(BaseSEIR, 'seed_state', intent='in')
 
     def get_pi(self) -> xr.DataArray:
         dims = ['risk_group', 'age_group']
