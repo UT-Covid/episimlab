@@ -46,7 +46,8 @@ class InitAdjGrpMapping:
 
 @xs.process
 class InitToyAdj:
-    """
+    """TODO: Separate the adj_t slicing and adj
+    instantiation into separate processes
     """
     ADJ_DIMS = ('day_of_week', 'vertex1', 'vertex2',
                 'age_group', 'risk_group', 'compartment')

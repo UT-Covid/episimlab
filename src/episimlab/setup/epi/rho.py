@@ -33,10 +33,8 @@ class SetupStaticRhoFromTri(SetupDefaultRho):
     after sampling once from this triangular distibution, at the beginning of
     the simulation.
     """
-    tri_pa_to_ia = xs.variable(dims=('value'), static=True, intent='in')
-    tri_py_to_iy = xs.variable(dims=('value'), static=True, intent='in')
-    stochastic = xs.foreign(BaseSEIR, 'stochastic', intent='in')
-    seed_state = xs.foreign(BaseSEIR, 'seed_state', intent='in')
+    tri_pa_to_ia = xs.variable(dims=(), static=True, intent='in')
+    tri_py_to_iy = xs.variable(dims=(), static=True, intent='in')
 
     def get_rho(self) -> xr.DataArray:
         dims = ["compartment"]
@@ -52,24 +50,10 @@ class SetupStaticRhoFromTri(SetupDefaultRho):
         return da
 
     def get_rho_y(self) -> float:
-        """Sample from triangular distributions if stochastic, or return the
-        mean if deterministic.
-        """
-        if self.stochastic is True:
-            rng = get_rng(seed=self.seed_state)
-            return 1 / rng.triangular(*self.tri_py_to_iy)
-        else:
-            return 1 / np.mean(self.tri_py_to_iy)
+        return 1 / self.tri_py_to_iy
 
     def get_rho_a(self) -> float:
-        """Sample from triangular distributions if stochastic, or return the
-        mean if deterministic.
-        """
-        if self.stochastic is True:
-            rng = get_rng(seed=self.seed_state)
-            return 1 / rng.triangular(*self.tri_pa_to_ia)
-        else:
-            return 1 / np.mean(self.tri_pa_to_ia)
+        return 1 / self.tri_pa_to_ia
 
 
 @xs.process
