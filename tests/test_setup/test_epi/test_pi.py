@@ -15,21 +15,6 @@ DETERMINISTIC_EXPECTED = 1 / np.array(
      [168.94830933,  219.63632927,    3.88375753,    1.96993433, 1.71161056]])
 
 
-@pytest.fixture()
-def symp_h_ratio_w_risk(counts_coords):
-    data = [
-        [4.02053589e-04, 3.09130781e-04,
-         1.90348188e-02, 4.11412733e-02, 4.87894688e-02],
-        [4.02053589e-03, 3.09130781e-03,
-         1.90348188e-01, 4.11412733e-01, 4.87894688e-01]
-    ]
-    dims = ['risk_group', 'age_group']
-    return xr.DataArray(
-        data=data,
-        dims=dims,
-        coords={dim: counts_coords[dim] for dim in dims}
-    )
-
 
 class TestSetupPi:
 

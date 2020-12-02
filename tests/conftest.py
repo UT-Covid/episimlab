@@ -287,3 +287,30 @@ def step_delta(request):
     except ValueError:
         logging.debug(f"type(request.param): {type(request.param)}")
         raise
+
+
+@pytest.fixture()
+def symp_h_ratio_w_risk(counts_coords):
+    data = [
+        [4.02053589e-04, 3.09130781e-04,
+         1.90348188e-02, 4.11412733e-02, 4.87894688e-02],
+        [4.02053589e-03, 3.09130781e-03,
+         1.90348188e-01, 4.11412733e-01, 4.87894688e-01]
+    ]
+    dims = ['risk_group', 'age_group']
+    return xr.DataArray(
+        data=data,
+        dims=dims,
+        coords={dim: counts_coords[dim] for dim in dims}
+    )
+
+
+@pytest.fixture()
+def symp_h_ratio(counts_coords):
+    data = [0.00070175, 0.00070175, 0.04735258, 0.16329827, 0.25541833]
+    dims = ['age_group']
+    return xr.DataArray(
+        data=data,
+        dims=dims,
+        coords={dim: counts_coords[dim] for dim in dims}
+    )
