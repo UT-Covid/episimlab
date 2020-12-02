@@ -104,3 +104,13 @@ def cy_seir_cy_foi():
         foi=bf_cython_foi.BruteForceCythonFOI,
         seir=bf_cython_seir.BruteForceCythonSEIR
     ))
+
+
+def cy_seir_cy_foi_cy_adj():
+    model = cy_seir_cy_foi()
+    return model.update_processes(dict(
+        # Initialize adjacency matrix
+        init_adj=adj.InitToyAdj,
+        # Use adjacency matrix to simulate travel between vertices in cython
+        travel=cython_explicit_travel.CythonExplicitTravel,
+    ))
