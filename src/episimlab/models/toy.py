@@ -25,21 +25,27 @@ def minimum_viable():
         sto=sto.InitStochasticFromToggle,
 
         # Instantiate coords and counts array
-        init_counts=counts.InitDefaultCounts,
-        init_coords=coords.InitDefaultCoords,
+        setup_counts=counts.InitDefaultCounts,
+        setup_coords=coords.InitDefaultCoords,
+
+        # Instantiate params that inform epi params
+        setup_asymp_infect=epi.asymp_infect.SetupDefaultAsympInfect,
+        setup_hosp_f_ratio=epi.hosp_f_ratio.SetupDefaultHospFRatio,
+        setup_prop_trans=epi.prop_trans.SetupDefaultPropTransP,
+        setup_symp_h_ratio=epi.symp_h_ratio.SetupDefaultSympHRatio,
+        setup_symp_h_ratio_w_risk=epi.symp_h_ratio.SetupDefaultSympHRatioWithRisk,
 
         # Instantiate epidemiological parameters
-        setup_base=epi.BaseSetupEpi,
         setup_beta=epi.SetupDefaultBeta,
-        setup_eta=epi.SetupDefaultEta,
-        setup_gamma=epi.SetupDefaultGamma,
-        setup_mu=epi.SetupDefaultMu,
-        setup_nu=epi.SetupDefaultNu,
-        setup_omega=epi.SetupDefaultOmega,
-        setup_pi=epi.SetupDefaultPi,
-        setup_rho=epi.SetupDefaultRho,
-        setup_sigma=epi.SetupDefaultSigma,
-        setup_tau=epi.SetupDefaultTau,
+        setup_eta=epi.SetupEtaFromAsympRate,
+        setup_gamma=epi.SetupStaticGamma,
+        setup_mu=epi.SetupStaticMuFromHtoD,
+        setup_nu=epi.SetupStaticNu,
+        setup_omega=epi.SetupStaticOmega,
+        setup_pi=epi.SetupStaticPi,
+        setup_rho=epi.SetupStaticRhoFromTri,
+        setup_sigma=epi.SetupStaticSigmaFromExposedPara,
+        setup_tau=epi.SetupTauFromAsympRate,
 
         # no SEIR engine, these are just placeholders
         foi=bf_foi.BaseFOI,
@@ -49,47 +55,52 @@ def minimum_viable():
         apply_counts_delta=apply_counts_delta.ApplyCountsDelta
     ))
 
+
 def slow_seir():
     """Python FOI and SEIR with 11 compartments.
     """
     model = minimum_viable()
     return model.update_processes(dict(
         # Instantiate phi array
-        init_phi=phi.InitPhi,
-        init_phi_grp_mapping=phi.InitPhiGrpMapping,
+        setup_phi=phi.InitPhi,
+        setup_phi_grp_mapping=phi.InitPhiGrpMapping,
         # Force of infection calculation in python
         foi=bf_foi.BruteForceFOI,
         # SEIR engine in python
         seir=bf_seir.BruteForceSEIR,
     ))
 
+
 def cy_seir_w_foi():
     model = minimum_viable()
     return model.update_processes(dict(
         # Instantiate phi array
-        init_phi=phi.InitPhi,
-        init_phi_grp_mapping=phi.InitPhiGrpMapping,
+        setup_phi=phi.InitPhi,
+        setup_phi_grp_mapping=phi.InitPhiGrpMapping,
         # cython SEIR engine, also calculates FOI
         seir=bf_cython_w_foi.BruteForceCythonWFOI,
     ))
+
 
 def cy_adj():
     model = minimum_viable()
     return model.update_processes(dict(
         # Initialize adjacency matrix
-        init_adj=adj.InitToyAdj,
+        setup_adj=adj.InitToyAdj,
         # Use adjacency matrix to simulate travel between vertices in cython
         travel=cython_explicit_travel.CythonExplicitTravel,
     ))
+
 
 def cy_adj_slow_seir():
     model = slow_seir()
     return model.update_processes(dict(
         # Initialize adjacency matrix
-        init_adj=adj.InitToyAdj,
+        setup_adj=adj.InitToyAdj,
         # Use adjacency matrix to simulate travel between vertices in cython
         travel=cython_explicit_travel.CythonExplicitTravel,
     ))
+
 
 def slow_seir_cy_foi():
     model = slow_seir()
@@ -110,7 +121,7 @@ def cy_seir_cy_foi_cy_adj():
     model = cy_seir_cy_foi()
     return model.update_processes(dict(
         # Initialize adjacency matrix
-        init_adj=adj.InitToyAdj,
+        setup_adj=adj.InitToyAdj,
         # Use adjacency matrix to simulate travel between vertices in cython
         travel=cython_explicit_travel.CythonExplicitTravel,
     ))

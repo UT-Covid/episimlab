@@ -5,7 +5,6 @@ import logging
 
 from ...seir.base import BaseSEIR
 from .base import BaseSetupEpi
-from .symp_h_ratio import SetupDefaultSympHRatioWithRisk
 
 
 @xs.process
@@ -32,8 +31,8 @@ class SetupStaticPi(SetupDefaultPi):
     """Calculate pi after sampling once from this triangular distibution,
     at the beginning of the simulation.
     """
-    symp_h_ratio_w_risk = xs.foreign(SetupDefaultSympHRatioWithRisk,
-                                     'symp_h_ratio_w_risk', intent='in')
+    symp_h_ratio_w_risk = xs.variable(dims=('age_group', 'risk_group'),
+                                      static=True, intent='in')
     gamma = xs.foreign(BaseSEIR, 'gamma', intent='in')
     eta = xs.foreign(BaseSEIR, 'eta', intent='in')
 

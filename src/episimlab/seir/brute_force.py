@@ -118,11 +118,9 @@ class BruteForceSEIR(BaseSEIR):
                 }]
                 rate_E2P = self.discrete_time_approx(self.sigma) * cts('E')
                 rate_Pa2Ia = self.discrete_time_approx(self.rho.loc[{
-                    'age_group': a,
                     'compartment': 'Ia'
                 }]) * cts('Pa')
                 rate_Py2Iy = self.discrete_time_approx(self.rho.loc[{
-                    'age_group': a,
                     'compartment': 'Iy'
                 }]) * cts('Py')
                 rate_Ia2R = self.discrete_time_approx(self.gamma.loc[{

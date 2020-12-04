@@ -33,8 +33,8 @@ class SetupStaticRhoFromTri(SetupDefaultRho):
     after sampling once from this triangular distibution, at the beginning of
     the simulation.
     """
-    tri_pa_to_ia = xs.variable(dims=(), static=True, intent='in')
-    tri_py_to_iy = xs.variable(dims=(), static=True, intent='in')
+    tri_pa2ia = xs.variable(dims=(), static=True, intent='in')
+    tri_py2iy = xs.variable(dims=(), static=True, intent='in')
 
     def get_rho(self) -> xr.DataArray:
         dims = ["compartment"]
@@ -50,10 +50,10 @@ class SetupStaticRhoFromTri(SetupDefaultRho):
         return da
 
     def get_rho_y(self) -> float:
-        return 1 / self.tri_py_to_iy
+        return 1 / self.tri_py2iy
 
     def get_rho_a(self) -> float:
-        return 1 / self.tri_pa_to_ia
+        return 1 / self.tri_pa2ia
 
 
 @xs.process

@@ -18,11 +18,23 @@ def output_vars():
 
 
 @pytest.fixture
-def input_vars(seed_entropy, sto_toggle, counts_basic):
+def input_vars(seed_entropy, sto_toggle, counts_basic, tri_h2r, symp_h_ratio,
+               tri_exposed_para, prop_trans_in_p, hosp_f_ratio,
+               symp_h_ratio_w_risk, tri_pa2ia, asymp_relative_infect,
+               asymp_rate, tri_h2d, t_onset_to_h, tri_y2r_para, tri_py2iy):
     return {
-        # 'apply_counts_delta__counts': counts_basic,
         'rng__seed_entropy': seed_entropy,
-        'sto__sto_toggle': sto_toggle
+        'sto__sto_toggle': sto_toggle,
+        'setup_eta__t_onset_to_h': t_onset_to_h,
+        'setup_gamma__tri_h2r': tri_h2r,
+        'setup_mu__tri_h2d': tri_h2d,
+        'setup_gamma__tri_y2r_para': tri_y2r_para,
+        'setup_rho__tri_py2iy': tri_py2iy,
+
+        'setup_sigma__tri_exposed_para': tri_exposed_para,
+        'setup_rho__tri_pa2ia': tri_pa2ia,
+        # 'setup_omega__asymp_relative_infect': asymp_relative_infect,
+        'setup_tau__asymp_rate': asymp_rate,
     }
 
 

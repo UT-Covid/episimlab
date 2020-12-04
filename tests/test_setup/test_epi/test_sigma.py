@@ -9,12 +9,6 @@ from episimlab.setup.epi import (
 )
 
 
-@pytest.fixture()
-def tri_exposed_para():
-    """example_meyers_demo.yaml from SEIRcity v2"""
-    return [1.9, 2.9, 3.9]
-
-
 class TestSetupSigma:
 
     @pytest.mark.parametrize('stochastic, expected', (

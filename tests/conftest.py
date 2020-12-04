@@ -291,13 +291,26 @@ def step_delta(request):
 
 @pytest.fixture()
 def symp_h_ratio_w_risk(counts_coords):
-    data = [
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    data = np.array([
         [4.02053589e-04, 3.09130781e-04,
          1.90348188e-02, 4.11412733e-02, 4.87894688e-02],
         [4.02053589e-03, 3.09130781e-03,
          1.90348188e-01, 4.11412733e-01, 4.87894688e-01]
-    ]
-    dims = ['risk_group', 'age_group']
+    ])
+    dims = ['age_group', 'risk_group']
+    return xr.DataArray(
+        data=data.T,
+        dims=dims,
+        coords={dim: counts_coords[dim] for dim in dims}
+    )
+
+
+@pytest.fixture()
+def symp_h_ratio(counts_coords):
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    data = [0.00070175, 0.00070175, 0.04735258, 0.16329827, 0.25541833]
+    dims = ['age_group']
     return xr.DataArray(
         data=data,
         dims=dims,
@@ -306,11 +319,78 @@ def symp_h_ratio_w_risk(counts_coords):
 
 
 @pytest.fixture()
-def symp_h_ratio(counts_coords):
-    data = [0.00070175, 0.00070175, 0.04735258, 0.16329827, 0.25541833]
+def prop_trans_in_p():
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    return 0.44
+
+
+@pytest.fixture()
+def hosp_f_ratio(counts_coords) -> xr.DataArray:
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    data = [0.04, 0.12365475, 0.03122403, 0.10744644, 0.23157691]
     dims = ['age_group']
     return xr.DataArray(
         data=data,
         dims=dims,
         coords={dim: counts_coords[dim] for dim in dims}
     )
+
+
+@pytest.fixture()
+def asymp_relative_infect():
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    return 0.666666666
+
+
+@pytest.fixture()
+def tri_h2d():
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    return [5.2, 8.1, 10.1]
+
+
+@pytest.fixture()
+def tri_h2r():
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    return [9.4, 10.7, 12.8]
+
+
+@pytest.fixture()
+def tri_exposed_para():
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    return [1.9, 2.9, 3.9]
+
+
+@pytest.fixture()
+def tri_pa2ia():
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    return 2.3
+
+
+@pytest.fixture()
+def tri_py2iy():
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    return 2.3
+
+
+@pytest.fixture()
+def asymp_rate():
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    return 0.43
+
+
+@pytest.fixture()
+def t_onset_to_h():
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    return 5.9
+
+
+@pytest.fixture()
+def tri_h2r():
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    return [9.4, 10.7, 12.8]
+
+
+@pytest.fixture()
+def tri_y2r_para():
+    """example_meyers_demo.yaml from SEIRcity v2"""
+    return [3.0, 4.0, 5.0]

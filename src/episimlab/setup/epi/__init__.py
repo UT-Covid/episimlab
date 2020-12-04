@@ -9,4 +9,6 @@ from .pi import *
 from .rho import *
 from .sigma import *
 from .tau import *
-from .symp_h_ratio import *
+from . import (
+    asymp_infect, hosp_f_ratio, symp_h_ratio, prop_trans
+)

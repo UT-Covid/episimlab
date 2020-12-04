@@ -6,9 +6,6 @@ import logging
 from ...foi.base import BaseFOI
 from ...seir.base import BaseSEIR
 from .base import BaseSetupEpi
-from .symp_h_ratio import SetupDefaultSympHRatio
-from .prop_trans import SetupDefaultPropTransP
-from .asymp_infect import SetupDefaultAsympInfect
 
 
 @xs.process
@@ -46,12 +43,9 @@ class SetupDefaultOmega(BaseSetupEpi):
 class SetupStaticOmega(SetupDefaultOmega):
     """Calculate omega once at the beginning of the simulation.
     """
-    prop_trans_in_p = xs.foreign(SetupDefaultPropTransP,
-                                 'prop_trans_in_p', intent='in')
-    symp_h_ratio = xs.foreign(SetupDefaultSympHRatio,
-                              'symp_h_ratio', intent='in')
-    asymp_relative_infect = xs.foreign(SetupDefaultAsympInfect,
-                                       'asymp_relative_infect', intent='in')
+    prop_trans_in_p = xs.variable(dims=(), static=True, intent='in')
+    symp_h_ratio = xs.variable(dims=('age_group'), static=True, intent='in')
+    asymp_relative_infect = xs.variable(dims=(), static=True, intent='in')
     gamma = xs.foreign(BaseSEIR, 'gamma', intent='in')
     eta = xs.foreign(BaseSEIR, 'eta', intent='in')
     rho = xs.foreign(BaseSEIR, 'rho', intent='in')

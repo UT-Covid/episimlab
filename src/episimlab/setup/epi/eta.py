@@ -27,4 +27,4 @@ class SetupEtaFromAsympRate(SetupDefaultEta):
     t_onset_to_h = xs.variable(dims=(), static=True, intent='in')
 
     def get_eta(self):
-        return 1 - self.t_onset_to_h
+        return 1 / self.t_onset_to_h
