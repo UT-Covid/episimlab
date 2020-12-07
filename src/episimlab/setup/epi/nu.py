@@ -7,6 +7,11 @@ from ...seir.base import BaseSEIR
 from .base import BaseSetupEpi
 
 
+def convert_to_da(var):
+    assert 0
+    return xr.DataArray(var)
+
+
 @xs.process
 class SetupDefaultNu(BaseSetupEpi):
     """
@@ -31,7 +36,9 @@ class SetupStaticNu(SetupDefaultNu):
     """Calculate nu after sampling once from this triangular distibution,
     at the beginning of the simulation.
     """
-    hosp_f_ratio = xs.variable(dims=('age_group'), static=True, intent='in')
+    hosp_f_ratio = xs.variable(dims=('age_group'),
+                               converter=convert_to_da,
+                               static=True, intent='in')
     gamma = xs.foreign(BaseSEIR, 'gamma', intent='in')
     mu = xs.foreign(BaseSEIR, 'mu', intent='in')
 

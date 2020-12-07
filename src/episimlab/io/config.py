@@ -2,6 +2,7 @@ import xsimlab as xs
 import xarray as xr
 import numpy as np
 import yaml
+from collections.abc import Iterable
 
 from ..setup import seed, epi, sto
 
@@ -23,20 +24,38 @@ class ReadV1Config:
     tri_h2d = xs.foreign(epi.SetupStaticMuFromHtoD, 'tri_h2d', intent='out')
     tri_y2r_para = xs.foreign(epi.SetupStaticGamma,
                               'tri_y2r_para', intent='out')
-    tri_py2iy = xs.foreign(epi.SetupStaticRhoFromTri, 'tri_py2iy', intent='out')
+    tri_py2iy = xs.foreign(epi.SetupStaticRhoFromTri,
+                           'tri_py2iy', intent='out')
     tri_exposed_para = xs.foreign(epi.SetupStaticSigmaFromExposedPara,
                                   'tri_exposed_para', intent='out')
-    tri_pa2ia = xs.foreign(epi.SetupStaticRhoFromTri, 'tri_pa2ia', intent='out')
+    tri_pa2ia = xs.foreign(epi.SetupStaticRhoFromTri,
+                           'tri_pa2ia', intent='out')
     asymp_relative_infect = xs.foreign(
         epi.SetupStaticOmega, 'asymp_relative_infect', intent='out')
     asymp_rate = xs.foreign(epi.SetupTauFromAsympRate,
                             'asymp_rate', intent='out')
+    hosp_f_ratio = xs.foreign(epi.SetupStaticNu, 'hosp_f_ratio', intent='out')
+    prop_trans_in_p = xs.foreign(
+        epi.SetupStaticOmega, 'prop_trans_in_p', intent='out')
+    symp_h_ratio = xs.foreign(epi.SetupStaticOmega,
+                              'symp_h_ratio', intent='out')
+    symp_h_ratio_w_risk = xs.foreign(
+        epi.SetupStaticPi, 'symp_h_ratio_w_risk', intent='out')
 
     def initialize(self):
         config = self.get_config()
         for var in config:
-            setattr(self, var, config[var])
+            setattr(self, var, convert_iter(config[var]))
 
     def get_config(self) -> dict:
         with open(self.config_fp, 'r') as f:
             return yaml.load(f, Loader=yaml.FullLoader)
+
+
+def convert_iter(var):
+    if isinstance(var, str):
+        return var
+    elif isinstance(var, Iterable):
+        return np.array(var)
+    else:
+        return var

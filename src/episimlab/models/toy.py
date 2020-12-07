@@ -1,6 +1,7 @@
 import xsimlab as xs
 import xarray as xr
 import attr
+from collections.abc import Sequence
 
 from ..setup import seed, sto, epi, counts, coords, adj, phi
 from ..foi import (
@@ -14,7 +15,7 @@ from ..seir import (
     bf_cython as bf_cython_seir,
     bf_cython_w_foi
 )
-from .. import apply_counts_delta
+from .. import apply_counts_delta, io
 from ..network import cython_explicit_travel
 
 
@@ -29,11 +30,12 @@ def minimum_viable():
         setup_coords=coords.InitDefaultCoords,
 
         # Instantiate params that inform epi params
-        setup_asymp_infect=epi.asymp_infect.SetupDefaultAsympInfect,
-        setup_hosp_f_ratio=epi.hosp_f_ratio.SetupDefaultHospFRatio,
-        setup_prop_trans=epi.prop_trans.SetupDefaultPropTransP,
-        setup_symp_h_ratio=epi.symp_h_ratio.SetupDefaultSympHRatio,
-        setup_symp_h_ratio_w_risk=epi.symp_h_ratio.SetupDefaultSympHRatioWithRisk,
+        # setup_asymp_infect=epi.asymp_infect.SetupDefaultAsympInfect,
+        # setup_hosp_f_ratio=epi.hosp_f_ratio.SetupDefaultHospFRatio,
+        # setup_prop_trans=epi.prop_trans.SetupDefaultPropTransP,
+        # setup_symp_h_ratio=epi.symp_h_ratio.SetupDefaultSympHRatio,
+        # setup_symp_h_ratio_w_risk=epi.symp_h_ratio.SetupDefaultSympHRatioWithRisk,
+        read_config=io.config.ReadV1Config,
 
         # Instantiate epidemiological parameters
         setup_beta=epi.SetupDefaultBeta,

@@ -5,10 +5,6 @@ import xarray as xr
 from episimlab.io import config
 
 
-@pytest.fixture
-def config_fp():
-    return './tests/data/config/example_v1.yaml'
-
 
 class TestReadV1Config:
 

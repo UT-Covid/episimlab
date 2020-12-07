@@ -394,3 +394,8 @@ def tri_h2r():
 def tri_y2r_para():
     """example_meyers_demo.yaml from SEIRcity v2"""
     return [3.0, 4.0, 5.0]
+
+
+@pytest.fixture
+def config_fp():
+    return './tests/data/config/example_v1.yaml'
