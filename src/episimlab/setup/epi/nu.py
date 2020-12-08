@@ -8,7 +8,6 @@ from .base import BaseSetupEpi
 
 
 def convert_to_da(var):
-    assert 0
     return xr.DataArray(var)
 
 
