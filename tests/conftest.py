@@ -1,3 +1,5 @@
+import os
+import yaml
 import pytest
 import numpy as np
 import pandas as pd
@@ -289,33 +291,42 @@ def step_delta(request):
         raise
 
 
+@pytest.fixture
+def config_fp_static():
+    return './tests/data/config/example_v1.yaml'
+
+
+@pytest.fixture
+def config_fp(tmpdir):
+    """Fixture factory that writes a dictionary to a YAML file and
+    provides the file path.
+    """
+    fp = tmpdir.mkdir("config").join("config.yaml")
+
+    def _config_fp(config_dict):
+        assert not os.path.isfile(fp)
+        with open(fp, 'w') as f:
+            yaml.dump(config_dict, f)
+        assert os.path.isfile(fp)
+        return str(fp)
+
+    return _config_fp
+
+
 @pytest.fixture()
 def symp_h_ratio_w_risk(counts_coords):
     """example_meyers_demo.yaml from SEIRcity v2"""
-    data = np.array([
-        [4.02053589e-04, 3.09130781e-04,
-         1.90348188e-02, 4.11412733e-02, 4.87894688e-02],
-        [4.02053589e-03, 3.09130781e-03,
-         1.90348188e-01, 4.11412733e-01, 4.87894688e-01]
-    ])
-    dims = ['age_group', 'risk_group']
-    return xr.DataArray(
-        data=data.T,
-        dims=dims,
-        coords={dim: counts_coords[dim] for dim in dims}
-    )
+    return [[0.00040205, 0.00402054],
+            [0.00030913, 0.00309131],
+            [0.01903482, 0.19034819],
+            [0.04114127, 0.41141273],
+            [0.04878947, 0.48789469]]
 
 
 @pytest.fixture()
 def symp_h_ratio(counts_coords):
     """example_meyers_demo.yaml from SEIRcity v2"""
-    data = [0.00070175, 0.00070175, 0.04735258, 0.16329827, 0.25541833]
-    dims = ['age_group']
-    return xr.DataArray(
-        data=data,
-        dims=dims,
-        coords={dim: counts_coords[dim] for dim in dims}
-    )
+    return [0.00070175, 0.00070175, 0.04735258, 0.16329827, 0.25541833]
 
 
 @pytest.fixture()
@@ -327,13 +338,7 @@ def prop_trans_in_p():
 @pytest.fixture()
 def hosp_f_ratio(counts_coords) -> xr.DataArray:
     """example_meyers_demo.yaml from SEIRcity v2"""
-    data = [0.04, 0.12365475, 0.03122403, 0.10744644, 0.23157691]
-    dims = ['age_group']
-    return xr.DataArray(
-        data=data,
-        dims=dims,
-        coords={dim: counts_coords[dim] for dim in dims}
-    )
+    return [0.04, 0.12365475, 0.03122403, 0.10744644, 0.23157691]
 
 
 @pytest.fixture()
@@ -394,8 +399,3 @@ def tri_h2r():
 def tri_y2r_para():
     """example_meyers_demo.yaml from SEIRcity v2"""
     return [3.0, 4.0, 5.0]
-
-
-@pytest.fixture
-def config_fp():
-    return './tests/data/config/example_v1.yaml'
