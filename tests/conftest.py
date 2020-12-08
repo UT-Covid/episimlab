@@ -146,7 +146,7 @@ def epis(rho, gamma, sigma, pi, eta, nu, mu, tau):
 @pytest.fixture()
 def rho(counts_coords):
     data = 0.43478261
-    dims = ('age_group', 'compartment')
+    dims = ['compartment']
     coords = {k: counts_coords[k] for k in dims}
     return xr.DataArray(data=data, dims=dims, coords=coords)
 

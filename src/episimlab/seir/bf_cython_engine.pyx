@@ -58,7 +58,7 @@ def brute_force_SEIR(np.ndarray counts,
     """
     cdef:
         double [:, :, :, :] counts_view = counts
-        double [:, :] rho_view = rho
+        double [:] rho_view = rho
         double [:] gamma_view = gamma
         double [:, :] pi_view = pi
         double [:] nu_view = nu
@@ -89,7 +89,7 @@ def brute_force_SEIR(np.ndarray counts,
 
 cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                                   double [:, :, :] foi_view,
-                                  double [:, :] rho_view,
+                                  double [:] rho_view,
                                   double [:] gamma_view,
                                   # risk, age
                                   double [:, :] pi_view,
@@ -185,8 +185,8 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
 
                 rate_S2E = foi_view[n, a, r]
                 rate_E2P = E * discrete_time_approx(sigma, int_per_day)
-                rate_Pa2Ia = Pa * discrete_time_approx(rho_view[a, 4], int_per_day)
-                rate_Py2Iy = Py * discrete_time_approx(rho_view[a, 5], int_per_day)
+                rate_Pa2Ia = Pa * discrete_time_approx(rho_view[4], int_per_day)
+                rate_Py2Iy = Py * discrete_time_approx(rho_view[5], int_per_day)
                 rate_Ia2R = Ia * gamma_a
                 rate_Iy2R = (1 - pi) * gamma_y * Iy
                 rate_Ih2R = (1 - nu) * gamma_h * Ih

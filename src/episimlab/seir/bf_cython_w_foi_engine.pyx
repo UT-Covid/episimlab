@@ -61,7 +61,7 @@ def brute_force_SEIR(np.ndarray phi_grp_mapping,
         long [:, :] phi_grp_view = phi_grp_mapping
         double [:, :, :, :] counts_view = counts
         double [:, :] phi_view = phi_t
-        double [:, :] rho_view = rho
+        double [:] rho_view = rho
         double [:] gamma_view = gamma
         double [:, :] pi_view = pi
         double [:] nu_view = nu
@@ -96,7 +96,7 @@ def brute_force_SEIR(np.ndarray phi_grp_mapping,
 cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
                                   double [:, :, :, :] counts_view,
                                   double [:, :] phi_view,
-                                  double [:, :] rho_view,
+                                  double [:] rho_view,
                                   double [:] gamma_view,
                                   # risk, age
                                   double [:, :] pi_view,
@@ -222,8 +222,8 @@ cdef np.ndarray _brute_force_SEIR(long [:, :] phi_grp_view,
                 gamma_h = discrete_time_approx(gamma_view[6], int_per_day)
                 nu = nu_view[a]
                 pi = pi_view[r, a]
-                rho_a = discrete_time_approx(rho_view[a, 4], int_per_day)
-                rho_y = discrete_time_approx(rho_view[a, 5], int_per_day)
+                rho_a = discrete_time_approx(rho_view[4], int_per_day)
+                rho_y = discrete_time_approx(rho_view[5], int_per_day)
 
                 # ----------------   Get other deltas  -----------------
 

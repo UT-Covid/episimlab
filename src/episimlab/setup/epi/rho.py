@@ -19,7 +19,7 @@ class SetupDefaultRho(BaseSetupEpi):
         self.rho = self.get_rho()
 
     def get_rho(self):
-        dims = ['age_group', 'compartment']
+        dims = ['compartment']
         return xr.DataArray(
             data=0.43478261,
             dims=dims,
