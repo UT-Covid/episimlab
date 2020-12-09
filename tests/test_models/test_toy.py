@@ -36,8 +36,7 @@ class TestToyModels:
             input_vars=input_vars,
             output_vars=output_vars
         )
-        return input_ds.xsimlab.run(model=model,
-                                    decoding=dict(mask_and_scale=False))
+        return input_ds.xsimlab.run(model=model)
 
     @profiler()
     @pytest.mark.parametrize('model', (
