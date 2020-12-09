@@ -11,6 +11,21 @@ from episimlab.setup.epi import (
 )
 
 
+@pytest.fixture
+def symp_h_ratio_w_risk(counts_coords):
+    data = np.array([[0.00040205, 0.00402054],
+            [0.00030913, 0.00309131],
+            [0.01903482, 0.19034819],
+            [0.04114127, 0.41141273],
+            [0.04878947, 0.48789469]])
+    dims = ['age_group', 'risk_group']
+    return xr.DataArray(
+        data=data,
+        dims=dims,
+        coords={dim: counts_coords[dim] for dim in dims}
+    )
+
+
 @pytest.fixture()
 def expected():
     return 1 / np.array(
