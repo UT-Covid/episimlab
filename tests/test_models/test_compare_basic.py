@@ -22,32 +22,11 @@ VERBOSE = False
 
 
 @pytest.fixture
-def config_dict(seed_entropy, sto_toggle, counts_basic, tri_h2r, symp_h_ratio,
-               tri_exposed_para, prop_trans_in_p, hosp_f_ratio,
-               symp_h_ratio_w_risk, tri_pa2ia, asymp_relative_infect,
-               asymp_rate, tri_h2d, t_onset_to_h, tri_y2r_para, tri_py2iy):
+def input_vars(seed_entropy, sto_toggle):
     return {
-        'seed_entropy': seed_entropy,
-        'sto_toggle': sto_toggle,
-        'tri_h2r': tri_h2r,
-        'symp_h_ratio': symp_h_ratio,
-        'tri_exposed_para': tri_exposed_para,
-        'prop_trans_in_p': prop_trans_in_p,
-        'hosp_f_ratio': hosp_f_ratio,
-        'symp_h_ratio_w_risk': symp_h_ratio_w_risk,
-        'tri_pa2ia': tri_pa2ia,
-        'asymp_relative_infect': asymp_relative_infect,
-        'asymp_rate': asymp_rate,
-        'tri_h2d': tri_h2d,
-        't_onset_to_h': t_onset_to_h,
-        'tri_y2r_para': tri_y2r_para,
-        'tri_py2iy': tri_py2iy
+        'rng__seed_entropy': seed_entropy,
+        'sto__sto_toggle': sto_toggle
     }
-
-
-@pytest.fixture
-def input_vars(config_fp, config_dict):
-    return dict(read_config__config_fp=config_fp(config_dict))
 
 
 class TestCompareBasicModels:
@@ -69,12 +48,12 @@ class TestCompareBasicModels:
         # Python SEIR and FOI
         # (foi_bf.BruteForceFOI, seir_bf.BruteForceSEIR),
         # Cython SEIR with FOI
-        (foi_base.BaseFOI, seir_bf_cython_w_foi.BruteForceCythonWFOI),
+        # (foi_base.BaseFOI, seir_bf_cython_w_foi.BruteForceCythonWFOI),
         # Cython SEIR with Cython FOI
-        # (foi_bf_cython.BruteForceCythonFOI, seir_bf_cython.BruteForceCythonSEIR),
+        (foi_bf_cython.BruteForceCythonFOI, seir_bf_cython.BruteForceCythonSEIR),
     ])
-    def test_seir_foi_combos_deterministic(self, step_clock, foi1, config_fp,
-                                           config_dict, seir1, foi2, seir2):
+    def test_seir_foi_combos_deterministic(self, input_vars, step_clock, foi1,
+                                           seir1, foi2, seir2):
         """Check that, at model scope, different implementations of a basic
         SEIR model produce consistent results. For instance, a FOI implemented
         in Python should produce the same results as FOI implemented in Cython
@@ -87,9 +66,6 @@ class TestCompareBasicModels:
         There is logic below to catch these expected failures implicitly, so
         that this test should always pass.
         """
-        # generate input variables
-        input_vars = dict(read_config__config_fp=config_fp(config_dict))
-
         # load default model
         model = episimlab.models.toy.slow_seir()
 
@@ -124,7 +100,7 @@ class TestCompareBasicModels:
         # RNG, and if stochasticity is enabled for this simulation
         failure_expected = bool(
             seir1 is seir_bf.BruteForceSEIR and
-            config_dict['sto_toggle'] >= 0
+            input_vars['sto__sto_toggle'] >= 0
         )
         # implicitly account for results that are not expected to be the same
         # e.g. Python vs. Cython SEIR with different RNGs
@@ -132,4 +108,4 @@ class TestCompareBasicModels:
             logging.debug("Skipping pytest due to expected discrepancy " +
                           "between Python and Cython RNG")
         else:
-            xr.testing.assert_allclose(result1, result2, rtol=1e-3)
+            xr.testing.assert_allclose(result1, result2)
