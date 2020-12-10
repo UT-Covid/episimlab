@@ -142,8 +142,8 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
             new_D, new_E2P, new_E2Py, new_P2I, new_Pa2Ia, new_Py2Iy, \
             new_Iy2Ih, new_H2D
         # rates between compartments
-        double rate_S2E, rate_E2I, rate_E2P, rate_Pa2Ia, rate_Py2Iy, rate_Ia2R, \
-            rate_Iy2R, rate_Ih2R, rate_Iy2Ih, rate_Ih2D,
+        double rate_S2E, rate_E2P, rate_Pa2Ia, rate_Py2Iy, rate_Ia2R, \
+            rate_Iy2R, rate_Ih2R, rate_Iy2Ih, rate_Ih2D
 
     # Iterate over node, age, and risk
     for n in prange(node_len, nogil=True):
@@ -197,7 +197,9 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
 
                 if stochastic == 1:
                     rate_S2E = gsl_ran_poisson(rng, rate_S2E)
-                    rate_E2I = gsl_ran_poisson(rng, rate_E2I)
+                    rate_E2P = gsl_ran_poisson(rng, rate_E2P)
+                    rate_Py2Iy = gsl_ran_poisson(rng, rate_Py2Iy)
+                    rate_Pa2Ia = gsl_ran_poisson(rng, rate_Pa2Ia)
                     rate_Ia2R = gsl_ran_poisson(rng, rate_Ia2R)
                     rate_Iy2R = gsl_ran_poisson(rng, rate_Iy2R)
                     rate_Ih2R = gsl_ran_poisson(rng, rate_Ih2R)
@@ -206,8 +208,12 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
 
                 if isinf(rate_S2E):
                     rate_S2E = 0
-                if isinf(rate_E2I):
-                    rate_E2I = 0
+                if isinf(rate_E2P):
+                    rate_E2P = 0
+                if isinf(rate_Py2Iy):
+                    rate_Py2Iy = 0
+                if isinf(rate_Pa2Ia):
+                    rate_Pa2Ia = 0
                 if isinf(rate_Ia2R):
                     rate_Ia2R = 0
                 if isinf(rate_Iy2R):

@@ -147,8 +147,11 @@ class BruteForceSEIR(BaseSEIR):
 
                 # ------------------- Apply stochasticity ---------------------
 
-                if self.stochastic:
+                if self.stochastic is True:
                     rate_S2E = self.rng.poisson(rate_S2E)
+                    rate_E2P = self.rng.poisson(rate_E2P)
+                    rate_Py2Iy = self.rng.poisson(rate_Py2Iy)
+                    rate_Pa2Ia = self.rng.poisson(rate_Pa2Ia)
                     rate_Ia2R = self.rng.poisson(rate_Ia2R)
                     rate_Iy2R = self.rng.poisson(rate_Iy2R)
                     rate_Ih2R = self.rng.poisson(rate_Ih2R)
@@ -158,7 +161,11 @@ class BruteForceSEIR(BaseSEIR):
                 if isinf(rate_S2E):
                     rate_S2E = 0
                 if isinf(rate_E2P):
-                    rate_E2I = 0
+                    rate_E2P = 0
+                if isinf(rate_Py2Iy):
+                    rate_Py2Iy = 0
+                if isinf(rate_Pa2Ia):
+                    rate_Pa2Ia = 0
                 if isinf(rate_Ia2R):
                     rate_Ia2R = 0
                 if isinf(rate_Iy2R):
