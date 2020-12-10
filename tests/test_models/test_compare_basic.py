@@ -98,8 +98,10 @@ class TestCompareBasicModels:
         )
 
         # run both models
-        result1 = in_ds.xsimlab.run(model=model1)[out_var_key]
-        result2 = in_ds.xsimlab.run(model=model2)[out_var_key]
+        result1 = in_ds.xsimlab.run(
+            model=model1, decoding=dict(mask_and_scale=False))[out_var_key]
+        result2 = in_ds.xsimlab.run(
+            model=model2, decoding=dict(mask_and_scale=False))[out_var_key]
 
         # check typing and equality
         assert isinstance(result1, xr.DataArray)
