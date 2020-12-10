@@ -9,21 +9,12 @@ from episimlab.pytest_utils import profiler
 
 @pytest.fixture
 def output_vars():
-    return {
-        'apply_counts_delta__counts': 'step',
-        # 'seir__counts_delta_seir': 'step',
-        # 'foi__foi': 'step',
-        # 'foi__omega': 'step',
-    }
+    return {'apply_counts_delta__counts': 'step'}
 
 
 @pytest.fixture
-def input_vars(config_fp_static):
-    return {
-        # 'rng__seed_entropy': seed_entropy,
-        # 'sto__sto_toggle': sto_toggle
-        'read_config__config_fp': config_fp_static
-    }
+def input_vars(config_dict, config_fp):
+    return dict(read_config__config_fp=config_fp(config_dict))
 
 
 class TestToyModels:

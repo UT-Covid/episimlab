@@ -21,23 +21,6 @@ from episimlab.pytest_utils import plotter
 VERBOSE = False
 
 
-@pytest.fixture
-def input_vars_old(seed_entropy, sto_toggle):
-    return {
-        'rng__seed_entropy': seed_entropy,
-        'sto__sto_toggle': sto_toggle
-    }
-
-
-@pytest.fixture
-def input_vars(config_fp_static):
-    return {
-        # 'rng__seed_entropy': seed_entropy,
-        # 'sto__sto_toggle': sto_toggle
-        'read_config__config_fp': config_fp_static
-    }
-
-
 class TestCompareBasicModels:
 
     # @plotter(flavor='mpl', plotter_kwargs=dict())
@@ -61,8 +44,8 @@ class TestCompareBasicModels:
         # Cython SEIR with Cython FOI
         (foi_bf_cython.BruteForceCythonFOI, seir_bf_cython.BruteForceCythonSEIR),
     ])
-    def test_seir_foi_combos_deterministic(self, input_vars, step_clock, foi1,
-                                           seir1, foi2, seir2):
+    def test_seir_foi_combos_deterministic(self, step_clock, foi1, config_fp,
+                                           config_dict, seir1, foi2, seir2):
         """Check that, at model scope, different implementations of a basic
         SEIR model produce consistent results. For instance, a FOI implemented
         in Python should produce the same results as FOI implemented in Cython
@@ -75,6 +58,9 @@ class TestCompareBasicModels:
         There is logic below to catch these expected failures implicitly, so
         that this test should always pass.
         """
+        # generate input variables
+        input_vars = dict(read_config__config_fp=config_fp(config_dict))
+
         # load default model
         model = episimlab.models.toy.slow_seir()
 
@@ -111,9 +97,7 @@ class TestCompareBasicModels:
         # RNG, and if stochasticity is enabled for this simulation
         failure_expected = bool(
             seir1 is seir_bf.BruteForceSEIR and
-            # input_vars['sto__sto_toggle'] >= 0
-            # DEBUG
-            False
+            config_dict['sto_toggle'] >= 0
         )
         # implicitly account for results that are not expected to be the same
         # e.g. Python vs. Cython SEIR with different RNGs

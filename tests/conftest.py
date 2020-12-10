@@ -316,11 +316,8 @@ def config_fp(tmpdir):
 @pytest.fixture()
 def symp_h_ratio_w_risk(counts_coords):
     """example_meyers_demo.yaml from SEIRcity v2"""
-    return [[0.00040205, 0.00402054],
-            [0.00030913, 0.00309131],
-            [0.01903482, 0.19034819],
-            [0.04114127, 0.41141273],
-            [0.04878947, 0.48789469]]
+    return [[4.02050e-04, 3.09130e-04, 1.90348e-02, 4.11413e-02, 4.87895e-02],
+            [4.02054e-03, 3.09131e-03, 1.90348e-01, 4.11413e-01, 4.87895e-01]]
 
 
 @pytest.fixture()
@@ -399,3 +396,27 @@ def tri_h2r():
 def tri_y2r_para():
     """example_meyers_demo.yaml from SEIRcity v2"""
     return [3.0, 4.0, 5.0]
+
+
+@pytest.fixture
+def config_dict(seed_entropy, sto_toggle, counts_basic, tri_h2r, symp_h_ratio,
+                tri_exposed_para, prop_trans_in_p, hosp_f_ratio,
+                symp_h_ratio_w_risk, tri_pa2ia, asymp_relative_infect,
+                asymp_rate, tri_h2d, t_onset_to_h, tri_y2r_para, tri_py2iy):
+    return {
+        'seed_entropy': seed_entropy,
+        'sto_toggle': sto_toggle,
+        'tri_h2r': tri_h2r,
+        'symp_h_ratio': symp_h_ratio,
+        'tri_exposed_para': tri_exposed_para,
+        'prop_trans_in_p': prop_trans_in_p,
+        'hosp_f_ratio': hosp_f_ratio,
+        'symp_h_ratio_w_risk': symp_h_ratio_w_risk,
+        'tri_pa2ia': tri_pa2ia,
+        'asymp_relative_infect': asymp_relative_infect,
+        'asymp_rate': asymp_rate,
+        'tri_h2d': tri_h2d,
+        't_onset_to_h': t_onset_to_h,
+        'tri_y2r_para': tri_y2r_para,
+        'tri_py2iy': tri_py2iy
+    }
