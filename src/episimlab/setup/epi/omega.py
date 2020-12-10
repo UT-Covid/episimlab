@@ -52,17 +52,17 @@ class SetupStaticOmega(SetupDefaultOmega):
     tau = xs.foreign(BaseSEIR, 'tau', intent='in')
 
     def get_omega(self) -> xr.DataArray:
-        dims = ['compartment', 'age_group']
+        dims = ['age_group', 'compartment']
         da = xr.DataArray(
             data=0.,
             dims=dims,
             coords={k: self.counts_coords[k] for k in dims}
         )
-        da.loc[dict(compartment=['Ia'])] = self.get_omega_a()
-        da.loc[dict(compartment=['Iy'])] = self.get_omega_y()
+        da.loc[dict(compartment='Ia')] = self.get_omega_a()
+        da.loc[dict(compartment='Iy')] = self.get_omega_y()
         _ = self.get_omega_p()
-        da.loc[dict(compartment=['Pa'])] = self.get_omega_pa()
-        da.loc[dict(compartment=['Py'])] = self.get_omega_py()
+        da.loc[dict(compartment='Pa')] = self.get_omega_pa()
+        da.loc[dict(compartment='Py')] = self.get_omega_py()
         return da
 
     def get_omega_a(self) -> xr.DataArray:
