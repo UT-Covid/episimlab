@@ -28,7 +28,7 @@ class BaseSEIR:
     gamma = xs.variable(dims=('compartment'))
     nu = xs.variable(dims=('age_group'))
     pi = xs.variable(dims=('risk_group', 'age_group'))
-    rho = xs.variable(dims=('age_group', 'compartment'))
+    rho = xs.variable(dims=('compartment'))
 
     def get_int_per_day(self, step_delta) -> float:
         """

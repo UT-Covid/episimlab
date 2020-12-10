@@ -9,16 +9,6 @@ from ..seir.base import BaseSEIR
 
 
 @xs.process
-class SeedEntropy:
-    """Sets seed entropy for testing purposes
-    """
-    seed_entropy = xs.variable(static=True, intent='out')
-
-    def initialize(self):
-        self.seed_entropy = 12345
-
-
-@xs.process
 class SeedGenerator:
     """Handles the `seed_state` variable, which is a pseudo-randomly generated
     integer seed that changes at every step of the simulation. Generation is
@@ -48,3 +38,13 @@ class SeedGenerator:
 
     def run_step(self):
         self.seed_state = self.spawn_next(self.seed_seq)
+
+
+@xs.process
+class SeedEntropy:
+    """Sets seed entropy for testing purposes
+    """
+    seed_entropy = xs.foreign(SeedGenerator, 'seed_entropy', intent='out')
+
+    def initialize(self):
+        self.seed_entropy = 12345

@@ -18,11 +18,11 @@ def output_vars():
 
 
 @pytest.fixture
-def input_vars(seed_entropy, sto_toggle, counts_basic):
+def input_vars(config_fp_static):
     return {
-        # 'apply_counts_delta__counts': counts_basic,
-        'rng__seed_entropy': seed_entropy,
-        'sto__sto_toggle': sto_toggle
+        # 'rng__seed_entropy': seed_entropy,
+        # 'sto__sto_toggle': sto_toggle
+        'read_config__config_fp': config_fp_static
     }
 
 

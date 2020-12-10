@@ -26,5 +26,14 @@ class ApplyCountsDelta:
     # def initialize(self):
     #     self.counts_dims = self.COUNTS_DIMS
 
+    def aggregate_delta(self, delta_gen):
+        try:
+            return xr.concat(delta_gen, dim='_delta').sum(dim='_delta')
+        except ValueError:
+            if len(tuple(delta_gen)) == 0:
+                return 0
+            else:
+                raise
+
     def finalize_step(self):
-        self.counts += xr.concat(self.counts_delta, dim='_delta').sum(dim='_delta')
+        self.counts += self.aggregate_delta(self.counts_delta)

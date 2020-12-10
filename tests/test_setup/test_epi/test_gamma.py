@@ -11,18 +11,6 @@ from episimlab.setup.epi import (
 )
 
 
-@pytest.fixture()
-def tri_h2r():
-    """example_meyers_demo.yaml from SEIRcity v2"""
-    return [9.4, 10.7, 12.8]
-
-
-@pytest.fixture()
-def tri_y2r_para():
-    """example_meyers_demo.yaml from SEIRcity v2"""
-    return [3.0, 4.0, 5.0]
-
-
 class TestSetupGamma:
 
     @pytest.mark.parametrize('stochastic, expected', (
