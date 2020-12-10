@@ -293,7 +293,7 @@ def step_delta(request):
 
 @pytest.fixture
 def config_fp_static():
-    return './tests/data/config/example_v1.yaml'
+    return './tests/config/example_v1.yaml'
 
 
 @pytest.fixture

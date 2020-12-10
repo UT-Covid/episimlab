@@ -17,8 +17,8 @@ def symp_h_ratio_w_risk(counts_coords):
             [0.00030913, 0.00309131],
             [0.01903482, 0.19034819],
             [0.04114127, 0.41141273],
-            [0.04878947, 0.48789469]])
-    dims = ['age_group', 'risk_group']
+            [0.04878947, 0.48789469]]).T
+    dims = ['risk_group', 'age_group']
     return xr.DataArray(
         data=data,
         dims=dims,
@@ -30,7 +30,7 @@ def symp_h_ratio_w_risk(counts_coords):
 def expected():
     return 1 / np.array(
         [[1686.58480529, 2193.46500471,   35.93928726,   16.80105527, 14.21781764],
-         [ 168.94830933,  219.63632927,    3.88375753,    1.96993433, 1.71161056]]).T
+         [ 168.94830933,  219.63632927,    3.88375753,    1.96993433, 1.71161056]])
 
 
 class TestSetupPi:

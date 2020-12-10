@@ -26,43 +26,6 @@ def input_vars(config_fp_static):
     }
 
 
-class TestMinimumViable:
-
-    def run_model(self, model, step_clock, input_vars, output_vars):
-        input_ds = xs.create_setup(
-            model=model,
-            clocks=step_clock,
-            input_vars=input_vars,
-            output_vars=output_vars
-        )
-        return input_ds.xsimlab.run(model=model)
-
-    def test_can_report_epis(self, step_clock, input_vars, counts_basic):
-        output_vars = {
-            # 'apply_counts_delta__counts': 'step',
-            'sto__stochastic': 'step',
-            'setup_beta__beta': 'step',
-            'setup_eta__eta': 'step',
-            'setup_gamma__gamma': 'step',
-            'setup_mu__mu': 'step',
-            'setup_nu__nu': 'step',
-            'setup_tau__tau': 'step',
-            'setup_rho__rho': 'step',
-            'setup_omega__omega': 'step',
-            'setup_pi__pi': 'step',
-            'setup_sigma__sigma': 'step',
-        }
-        model = toy.minimum_viable()
-        result = self.run_model(model, step_clock, input_vars, output_vars)
-        assert isinstance(result, xr.Dataset)
-
-        stochastic = result['sto__stochastic']
-        logging.debug(f"stochastic: {stochastic}")
-        assert stochastic.dtype == bool
-
-        assert 0
-
-
 class TestToyModels:
     """
     TODO: cache model results
