@@ -36,7 +36,6 @@ class TestToyModels:
         toy.slow_seir(),
         toy.slow_seir_cy_foi(),
         toy.cy_seir_cy_foi(),
-        toy.cy_seir_w_foi(),
         toy.cy_adj_slow_seir(),
         # Travel only does not change net S compt
         # toy.cy_adj()
@@ -59,7 +58,6 @@ class TestToyModels:
         toy.slow_seir_cy_foi(),
         toy.cy_seir_cy_foi(),
         # These Cython implementations do not report FOI
-        # toy.cy_seir_w_foi(),
         # toy.cy_adj_slow_seir(),
         # toy.cy_adj()
     ))
@@ -79,7 +77,6 @@ class TestToyModels:
         toy.slow_seir(),
         toy.slow_seir_cy_foi(),
         toy.cy_seir_cy_foi(),
-        toy.cy_seir_w_foi(),
         toy.cy_adj_slow_seir(),
         toy.cy_adj()
     ))
@@ -99,7 +96,6 @@ class TestToyModels:
         toy.slow_seir(),
         toy.slow_seir_cy_foi(),
         toy.cy_seir_cy_foi(),
-        toy.cy_seir_w_foi(),
         toy.cy_adj_slow_seir(),
         toy.cy_adj()
     ))

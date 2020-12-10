@@ -11,8 +11,7 @@ from ..foi import (
 from ..seir import (
     base as base_seir,
     brute_force as bf_seir,
-    bf_cython as bf_cython_seir,
-    bf_cython_w_foi
+    bf_cython as bf_cython_seir
 )
 from .. import apply_counts_delta, io
 from ..network import cython_explicit_travel
@@ -69,17 +68,6 @@ def slow_seir():
         foi=bf_foi.BruteForceFOI,
         # SEIR engine in python
         seir=bf_seir.BruteForceSEIR,
-    ))
-
-
-def cy_seir_w_foi():
-    model = minimum_viable()
-    return model.update_processes(dict(
-        # Instantiate phi array
-        setup_phi=phi.InitPhi,
-        setup_phi_grp_mapping=phi.InitPhiGrpMapping,
-        # cython SEIR engine, also calculates FOI
-        seir=bf_cython_w_foi.BruteForceCythonWFOI,
     ))
 
 

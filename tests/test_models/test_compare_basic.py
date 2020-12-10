@@ -8,8 +8,7 @@ import episimlab
 from episimlab.seir import (
     base as seir_base,
     brute_force as seir_bf,
-    bf_cython as seir_bf_cython,
-    bf_cython_w_foi as seir_bf_cython_w_foi
+    bf_cython as seir_bf_cython
 )
 from episimlab.foi import (
     base as foi_base,
@@ -33,14 +32,10 @@ class TestCompareBasicModels:
         (foi_bf_cython.BruteForceCythonFOI, seir_bf_cython.BruteForceCythonSEIR),
         # Python SEIR with Cython FOI
         (foi_bf_cython.BruteForceCythonFOI, seir_bf.BruteForceSEIR),
-        # Cython SEIR with FOI
-        (foi_base.BaseFOI, seir_bf_cython_w_foi.BruteForceCythonWFOI),
     ])
     @pytest.mark.parametrize('foi2, seir2', [
         # Python SEIR and FOI
         # (foi_bf.BruteForceFOI, seir_bf.BruteForceSEIR),
-        # Cython SEIR with FOI
-        # (foi_base.BaseFOI, seir_bf_cython_w_foi.BruteForceCythonWFOI),
         # Cython SEIR with Cython FOI
         (foi_bf_cython.BruteForceCythonFOI, seir_bf_cython.BruteForceCythonSEIR),
     ])
@@ -110,10 +105,10 @@ class TestCompareBasicModels:
             except AssertionError:
                 diff = result2 - result1
                 # maximum difference between results
-                max_diff = float(diff.max())
+                max_diff = float(abs(diff).max())
                 logging.debug(f"max_diff: {max_diff}")
                 # where is the max diff
-                where_max_diff = diff.where(diff >= max_diff / 2., drop=True)
+                where_max_diff = diff.where(abs(diff) >= max_diff / 2., drop=True)
                 logging.debug(f"where_max_diff: {where_max_diff}")
 
                 raise
