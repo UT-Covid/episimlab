@@ -13,9 +13,9 @@ def coords_grp_dict(counts_coords):
 
 class TestReadV1Config:
 
-    def test_can_read_yaml(self, config_fp, counts_coords):
+    def test_can_read_yaml(self, config_fp_static, counts_coords):
         inputs = dict(
-            config_fp=config_fp,
+            config_fp=config_fp_static,
             age_group=counts_coords['age_group'],
             risk_group=counts_coords['risk_group'],
         )
@@ -23,9 +23,9 @@ class TestReadV1Config:
         result_dict = proc.get_config()
         assert isinstance(result_dict, dict), type(result_dict)
 
-    def test_can_initialize(self, config_fp, counts_coords):
+    def test_can_initialize(self, config_fp_static, counts_coords):
         inputs = dict(
-            config_fp=config_fp,
+            config_fp=config_fp_static,
             age_group=counts_coords['age_group'],
             risk_group=counts_coords['risk_group'],
         )

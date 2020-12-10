@@ -1,7 +1,6 @@
 import xsimlab as xs
 import xarray as xr
 import attr
-from collections.abc import Sequence
 
 from ..setup import seed, sto, epi, counts, coords, adj, phi
 from ..foi import (

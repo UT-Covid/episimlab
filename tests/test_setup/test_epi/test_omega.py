@@ -11,13 +11,24 @@ from episimlab.setup.epi import (
 )
 
 
+@pytest.fixture
+def symp_h_ratio(counts_coords):
+    data = np.array([0.00070175, 0.00070175, 0.04735258, 0.16329827, 0.25541833])
+    dims = ['age_group']
+    return xr.DataArray(
+        data=data,
+        dims=dims,
+        coords={dim: counts_coords[dim] for dim in dims}
+    )
+
+
 @pytest.fixture()
 def expected():
     return np.array(
         [[0.666667, 0.666667, 0.666667, 0.666667, 0.666667],
          [1.      , 1.      , 1.      , 1.      , 1.      ],
          [0.523926, 0.523926, 0.531649, 0.550843, 0.566094],
-         [0.785889, 0.785889, 0.797473, 0.826265, 0.849141]])
+         [0.785889, 0.785889, 0.797473, 0.826265, 0.849141]]).T
 
 
 @pytest.fixture()
