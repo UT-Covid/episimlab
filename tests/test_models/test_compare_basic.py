@@ -22,10 +22,19 @@ VERBOSE = False
 
 
 @pytest.fixture
-def input_vars(seed_entropy, sto_toggle):
+def input_vars_old(seed_entropy, sto_toggle):
     return {
         'rng__seed_entropy': seed_entropy,
         'sto__sto_toggle': sto_toggle
+    }
+
+
+@pytest.fixture
+def input_vars(config_fp_static):
+    return {
+        # 'rng__seed_entropy': seed_entropy,
+        # 'sto__sto_toggle': sto_toggle
+        'read_config__config_fp': config_fp_static
     }
 
 
@@ -100,7 +109,9 @@ class TestCompareBasicModels:
         # RNG, and if stochasticity is enabled for this simulation
         failure_expected = bool(
             seir1 is seir_bf.BruteForceSEIR and
-            input_vars['sto__sto_toggle'] >= 0
+            # input_vars['sto__sto_toggle'] >= 0
+            # DEBUG
+            False
         )
         # implicitly account for results that are not expected to be the same
         # e.g. Python vs. Cython SEIR with different RNGs
@@ -108,4 +119,15 @@ class TestCompareBasicModels:
             logging.debug("Skipping pytest due to expected discrepancy " +
                           "between Python and Cython RNG")
         else:
-            xr.testing.assert_allclose(result1, result2)
+            try:
+                xr.testing.assert_allclose(result1, result2)
+            except AssertionError:
+                diff = result2 - result1
+                # maximum difference between results
+                max_diff = float(diff.max())
+                logging.debug(f"max_diff: {max_diff}")
+                # where is the max diff
+                where_max_diff = diff.where(diff >= max_diff / 2., drop=True)
+                logging.debug(f"where_max_diff: {where_max_diff}")
+
+                raise
