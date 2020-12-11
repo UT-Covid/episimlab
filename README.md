@@ -120,9 +120,9 @@ _Work in progress_
 
 ## Testing
 
-1. Follow the above installation instructions
+1. Follow the above [installation instructions](#installation)
 2. Install test dependencies with `pip install pytest pytest-xdist`
-3. From the root of the repository, `make pytest`
+3. From the root of the repository: `make pytest`
 4. Alternatively invoke pytest directly: `python -m pytest ./tests`
 
 [1]: https://www.gnu.org/software/gsl/
