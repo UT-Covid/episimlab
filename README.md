@@ -24,10 +24,10 @@ my_model = xsimlab.Model({
 })
 ```
 
-* Fully integrated with the [`xarray-simlab`](https://xarray-simlab.readthedocs.io/) package. Episimlab provides a library of [`xsimlab.process` ]() classes ("processes"), as well as a handful of commonly-used [`xsimlab.model`]()s ("models").
-* Users can quickly and easily develop their own process classes, either from scratch or based on an `episimlab` process, and include them in their models.
-* Any variable can be high-dimensional. Want constant `beta` for all time points? Use the `ConstantBeta` process. Want `beta` with age and risk group structure? Use `AgeRiskBeta`. Want to add your own custom structure and read it from a CSV file? Quickly write your own process, and it will integrate with processes provided by `episimlab`. Better yet, push your new process in a [Pull Request](CONTRIBUTING.md) so that others can use it!
-* Good performance under the hood. Frequently used processes - such as force of infection (FOI) calculation, SEIR disease progression, and travel between spatially separated nodes - are written in C-accelerated Python (Cython) with OpenMP support. This results in 100-1000X speed-up compared to the equivalent process written in pure Python.
+* **Fully integrated with the [`xarray-simlab`](https://xarray-simlab.readthedocs.io/) package -** Episimlab provides a library of [`xsimlab.process` ]() classes ("processes"), as well as a handful of commonly-used [`xsimlab.model`]()s ("models").
+* **Extensible -** Users can quickly and easily develop their own process classes, either from scratch or based on an `episimlab` process, and include them in their models.
+* **Any variable can be high-dimensional -** Want constant `beta` for all time points? Use the `ConstantBeta` process. Want `beta` with age and risk group structure? Use `AgeRiskBeta`. Want to add your own custom structure and read it from a CSV file? Quickly write your own process, and it will integrate with processes provided by `episimlab`. Better yet, push your new process in a [Pull Request](CONTRIBUTING.md) so that others can use it!
+* **Good performance under the hood -** Frequently used processes - such as force of infection (FOI) calculation, SEIR disease progression, and travel between spatially separated nodes - are written in C-accelerated Python (Cython) with OpenMP support. This results in 100-1000X speed-up compared to the equivalent process written in pure Python.
 
 ## Installation
 
@@ -37,6 +37,7 @@ my_model = xsimlab.Model({
 2. Install python dependencies:
 ```bash
 pip install -r requirements.txt
+pip install "dask[distributed]" "dask[dataframe]"
 ```
 3. Install [GNU GSL](#install-gnu-gsl), which is necessary to run the C-accelerated model engine.
 4. Install the Episimlab package using pip:
@@ -52,7 +53,7 @@ python setup.py install
 1. You might already have GSL installed on your system. To check, run `gsl-config` in the shell.
 2. Install GSL
     * To install GSL on Mac OS X:
-    ```[bash](bash)
+    ```bash
     # Install using HomeBrew
     brew install gsl
 
@@ -113,8 +114,15 @@ python setup.py install
 
 _Work in progress_
 
-## [Docker](https://www.docker.com/) Image
+### [Docker](https://www.docker.com/) Image
 
 _Work in progress_
+
+## Testing
+
+1. Follow the above installation instructions
+2. Install test dependencies with `pip install pytest pytest-xdist`
+3. From the root of the repository, `make pytest`
+4. Alternatively invoke pytest directly: `python -m pytest ./tests`
 
 [1]: https://www.gnu.org/software/gsl/

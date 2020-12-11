@@ -1,8 +1,6 @@
 numpy
+cython
 scipy
 xarray
 dask
-dask[dataframe]
-dask[distributed]
-toolz
-xsimlab
+-e git+https://github.com/benbovy/xarray-simlab.git@84cabf69f5eb4cc872b496b2f1b04584a7e2b2bd#egg=xarray_simlab
