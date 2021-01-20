@@ -33,7 +33,7 @@ def minimum_viable():
         # setup_prop_trans=epi.prop_trans.SetupDefaultPropTransP,
         # setup_symp_h_ratio=epi.symp_h_ratio.SetupDefaultSympHRatio,
         # setup_symp_h_ratio_w_risk=epi.symp_h_ratio.SetupDefaultSympHRatioWithRisk,
-        read_config=io.config.ReadV1Config,
+        read_config=io.ReadV1Config,
 
         # Instantiate epidemiological parameters
         setup_beta=epi.SetupDefaultBeta,
