@@ -13,7 +13,8 @@ from ..seir import (
     brute_force as bf_seir,
     bf_cython as bf_cython_seir
 )
-from .. import apply_counts_delta, io
+from .. import apply_counts_delta
+from ..io.config import ReadV1Config
 from ..network import cython_explicit_travel
 
 
@@ -33,7 +34,7 @@ def minimum_viable():
         # setup_prop_trans=epi.prop_trans.SetupDefaultPropTransP,
         # setup_symp_h_ratio=epi.symp_h_ratio.SetupDefaultSympHRatio,
         # setup_symp_h_ratio_w_risk=epi.symp_h_ratio.SetupDefaultSympHRatioWithRisk,
-        read_config=io.config.ReadV1Config,
+        read_config=ReadV1Config,
 
         # Instantiate epidemiological parameters
         setup_beta=epi.SetupDefaultBeta,
