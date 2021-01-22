@@ -107,3 +107,4 @@ venv.bak/
 !*.gitkeep
 *.DS_Store
 data
+src/**/*.html
