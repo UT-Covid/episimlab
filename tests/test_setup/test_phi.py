@@ -12,7 +12,6 @@ class TestInitPhi:
             'phi_grp1': np.arange(10),
             'phi_grp2': np.arange(10),
             'phi_grp_mapping': phi_grp_mapping,
-            'day_of_week': np.arange(7)
         }
         proc = InitPhi(**inputs)
         proc.initialize()
