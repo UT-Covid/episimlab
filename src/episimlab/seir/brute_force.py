@@ -26,10 +26,6 @@ class BruteForceSEIR(BaseSEIR):
     foi = xs.foreign(BaseFOI, 'foi', intent='in')
     seed_state = xs.foreign(SeedGenerator, 'seed_state', intent='in')
     stochastic = xs.foreign(InitStochasticFromToggle, 'stochastic', intent='in')
-
-    # age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
-    # risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
-
     counts_delta_seir = xs.variable(
         groups=['counts_delta'],
         dims=BaseSEIR.COUNTS_DIMS,
@@ -90,7 +86,7 @@ class BruteForceSEIR(BaseSEIR):
         self.counts_delta_seir = np.nan * xr.zeros_like(self.counts)
 
         # Iterate over each vertex
-        for v in range(self.counts.coords['vertex'].size):
+        for v in self.counts.coords['vertex'].values:
             # Iterate over every pair of age-risk categories
             for a, r in product(self.counts.coords['age_group'].values,
                                 self.counts.coords['risk_group'].values):

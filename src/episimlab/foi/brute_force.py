@@ -93,7 +93,7 @@ class BruteForceFOI(BaseFOI):
 
 
 def get_foi_numpy(compt_ia, compt_iy, compt_pa, compt_py, compt_s, phi_, beta, kappa,
-            omega_a, omega_y, omega_pa, omega_py, age_pop, n_age, n_risk):
+                  omega_a, omega_y, omega_pa, omega_py, age_pop, n_age, n_risk):
     """From SEIR-city v1.4 d0902c0af796a6ac3a15ec833ae24dcfa81d9f2b"""
 
     # reshape phi

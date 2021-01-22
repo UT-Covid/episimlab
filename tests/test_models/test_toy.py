@@ -36,7 +36,7 @@ class TestToyModels:
         toy.slow_seir(),
         toy.slow_seir_cy_foi(),
         toy.cy_seir_cy_foi(),
-        toy.cy_adj_slow_seir(),
+        # toy.cy_adj_slow_seir(),
         # Travel only does not change net S compt
         # toy.cy_adj()
     ))
@@ -77,8 +77,8 @@ class TestToyModels:
         toy.slow_seir(),
         toy.slow_seir_cy_foi(),
         toy.cy_seir_cy_foi(),
-        toy.cy_adj_slow_seir(),
-        toy.cy_adj()
+        # toy.cy_adj_slow_seir(),
+        # toy.cy_adj()
     ))
     def test_constant_pop(self, epis, model, input_vars, counts_basic,
                            output_vars, step_clock):
@@ -96,8 +96,8 @@ class TestToyModels:
         toy.slow_seir(),
         toy.slow_seir_cy_foi(),
         toy.cy_seir_cy_foi(),
-        toy.cy_adj_slow_seir(),
-        toy.cy_adj()
+        # toy.cy_adj_slow_seir(),
+        # toy.cy_adj()
     ))
     def test_non_null_coords(self, epis, model, input_vars, counts_basic,
                              output_vars, step_clock):
