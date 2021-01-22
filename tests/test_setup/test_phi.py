@@ -12,8 +12,6 @@ class TestInitPhi:
             'phi_grp1': np.arange(10),
             'phi_grp2': np.arange(10),
             'phi_grp_mapping': phi_grp_mapping,
-            'age_group': counts_coords['age_group'],
-            'risk_group': counts_coords['risk_group'],
             'day_of_week': np.arange(7)
         }
         proc = InitPhi(**inputs)

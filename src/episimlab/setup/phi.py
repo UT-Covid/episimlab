@@ -11,6 +11,7 @@ from ..utils import ravel_to_midx, unravel_encoded_midx
 @xs.process
 class InitPhiGrpMapping:
     """
+    TODO: mimic InitAdjGrpMapping
     """
 
     age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
@@ -51,13 +52,12 @@ class InitPhiGrpMapping:
 @xs.process
 class InitPhi:
     """
+    TODO: mimic InitAdj
     """
 
     phi_grp1 = xs.foreign(InitPhiGrpMapping, 'phi_grp1', intent='in')
     phi_grp2 = xs.foreign(InitPhiGrpMapping, 'phi_grp2', intent='in')
     phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
-    age_group = xs.foreign(InitPhiGrpMapping, 'age_group', intent='in')
-    risk_group = xs.foreign(InitPhiGrpMapping, 'risk_group', intent='in')
     day_of_week = xs.foreign(InitPhiGrpMapping, 'day_of_week', intent='in')
     phi = xs.variable(
         dims=('day_of_week', 'phi_grp1', 'phi_grp2'),
@@ -81,7 +81,7 @@ class InitPhi:
     @xs.runtime(args='step')
     def run_step(self, step):
         """
-        TODO
+        TODO: use the clock to determine day of week (day_idx)
         """
 
         # Get the index on `day_of_week`
