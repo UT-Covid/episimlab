@@ -13,6 +13,8 @@ from .base import BaseFOI
 @xs.process
 class BruteForceFOI(BaseFOI):
     """A readable, brute force algorithm for calculating force of infection (FOI).
+    TODO: sample FOI from Poisson if specified
+    TODO: check math with Kelly
     """
 
     phi_t = xs.foreign(InitPhi, 'phi_t', intent='in')

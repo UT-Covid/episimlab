@@ -6,6 +6,7 @@ from numbers import Number
 
 from ..setup.coords import InitDefaultCoords
 
+
 @xs.process
 class BaseFOI:
     """
