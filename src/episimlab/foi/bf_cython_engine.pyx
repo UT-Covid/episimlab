@@ -35,7 +35,7 @@ def brute_force_FOI(np.ndarray phi_grp_mapping,
     """
     """
     cdef:
-        long [:, :] phi_grp_view = phi_grp_mapping
+        long [:, :, :] phi_grp_view = phi_grp_mapping
         double [:, :, :, :] counts_view = counts
         double [:, :] phi_view = phi_t
         # double [:, :] rho_view = rho
@@ -66,7 +66,7 @@ def brute_force_FOI(np.ndarray phi_grp_mapping,
     )
 
 
-cdef np.ndarray _brute_force_FOI(long [:, :] phi_grp_view,
+cdef np.ndarray _brute_force_FOI(long [:, :, :] phi_grp_view,
                                 double [:, :, :, :] counts_view,
                                 double [:, :] phi_view,
                                 # double [:, :] rho_view,
@@ -92,15 +92,15 @@ cdef np.ndarray _brute_force_FOI(long [:, :] phi_grp_view,
         Py_ssize_t age_len = counts_view.shape[1]
         Py_ssize_t risk_len = counts_view.shape[2]
         Py_ssize_t compt_len = counts_view.shape[3]
-        Py_ssize_t n, a, r, a_2, r_2
+        Py_ssize_t n, a, r, n_2, a_2, r_2
 
         np.ndarray foi = np.nan * np.empty(
             (node_len, age_len, risk_len), dtype=DTYPE_FLOAT)
         double [:, :, :] foi_view = foi
         # node population is the sum of all compartments for a given
         # node, age, risk, compartment
-        np.ndarray node_pop_arr = np.sum(counts_view[:, :, :, :], axis=(2, -1))
-        double [:, :] node_pop = node_pop_arr
+        np.ndarray total_pop_arr = np.sum(counts_view[:, :, :, :], axis=(-1))
+        double [:, :, :] total_pop = total_pop_arr
         # epi params
         double gamma_a, gamma_y, gamma_h, nu, pi, \
             kappa, report_rate, rho_a, rho_y
@@ -128,37 +128,36 @@ cdef np.ndarray _brute_force_FOI(long [:, :] phi_grp_view,
             for r in range(risk_len):
                 rate_S2E = 0.
                 S = counts_view[n, a, r, 0]
-                for a_2 in range(age_len):
-                    for r_2 in range(risk_len):
-                        # Skip if same
-                        if a == a_2 and r == r_2:
-                            continue
+                for n_2 in range(node_len):
+                    for a_2 in range(age_len):
+                        for r_2 in range(risk_len):
+                            # Ignore case where node population is zero or negative
+                            if total_pop[n_2, a_2, r_2] <= 0:
+                                continue
 
-                        # Ignore case where node population is zero or negative
-                        if node_pop[n, a_2] <= 0:
-                            continue
+                            # Get phi
+                            phi_1_2 = phi_view[
+                                phi_grp_view[n, a, r],
+                                phi_grp_view[n_2, a_2, r_2]]
 
-                        # Get phi
-                        phi_1_2 = phi_view[phi_grp_view[a, r], phi_grp_view[a_2, r_2]]
+                            # Enumerate omega
+                            omega_a_2 = omega_view[a_2, 4]
+                            omega_y_2 = omega_view[a_2, 5]
+                            omega_pa_2 = omega_view[a_2, 2]
+                            omega_py_2 = omega_view[a_2, 3]
 
-                        # Enumerate omega
-                        omega_a_2 = omega_view[a_2, 4]
-                        omega_y_2 = omega_view[a_2, 5]
-                        omega_pa_2 = omega_view[a_2, 2]
-                        omega_py_2 = omega_view[a_2, 3]
+                            # Get compartments for a_2, r_2
+                            Pa_2 = counts_view[n_2, a_2, r_2, 2]
+                            Py_2 = counts_view[n_2, a_2, r_2, 3]
+                            Ia_2 = counts_view[n_2, a_2, r_2, 4]
+                            Iy_2 = counts_view[n_2, a_2, r_2, 5]
 
-                        # Get compartments for a_2, r_2
-                        Pa_2 = counts_view[n, a_2, r_2, 2]
-                        Py_2 = counts_view[n, a_2, r_2, 3]
-                        Ia_2 = counts_view[n, a_2, r_2, 4]
-                        Iy_2 = counts_view[n, a_2, r_2, 5]
-
-                        # calculate force of infection
-                        common_term = beta * phi_1_2 * S / node_pop[n, a_2]
-                        rate_S2E = rate_S2E + (common_term * (
-                            (omega_a_2 * Ia_2) + \
-                            (omega_y_2 * Iy_2) + \
-                            (omega_pa_2 * Pa_2) + \
-                            (omega_py_2 * Py_2)))
-                foi_view[n, a, r] = rate_S2E
+                            # calculate force of infection
+                            common_term = beta * phi_1_2 * S / total_pop[n_2, a_2, r_2]
+                            rate_S2E = rate_S2E + (common_term * (
+                                (omega_a_2 * Ia_2) + \
+                                (omega_y_2 * Iy_2) + \
+                                (omega_pa_2 * Pa_2) + \
+                                (omega_py_2 * Py_2)))
+                    foi_view[n, a, r] = rate_S2E
     return foi
