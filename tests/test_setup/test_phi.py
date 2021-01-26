@@ -25,6 +25,7 @@ class TestInitPhiGrpMapping:
 
     def test_can_init(self, counts_coords):
         inputs = {
+            'vertex': counts_coords['vertex'],
             'age_group': counts_coords['age_group'],
             'risk_group': counts_coords['risk_group'],
         }
