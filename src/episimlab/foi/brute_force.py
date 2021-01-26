@@ -31,67 +31,54 @@ class BruteForceFOI(BaseFOI):
             coords={dim: getattr(self, dim) for dim in self.FOI_DIMS}
         )
 
-        # Iterate over each vertex
-        for v in range(self.counts.coords['vertex'].size):
-            # Iterate over every pair of age-risk categories
-            for a1, r1, a2, r2 in product(*[self.age_group, self.risk_group] * 2):
-                if a1 == a2 and r1 == r2:
-                    continue
+        # Iterate over every pair of unique vertex-age-risk combinations
+        for v1, a1, r1, v2, a2, r2 in product(*[self.vertex, self.age_group,
+                                                self.risk_group] * 2):
+            age_pop = self.counts.loc[dict(
+                vertex=v1, age_group=a2, # risk_group=r2
+            )].sum(dim=['compartment', 'risk_group'])
 
-                age_pop = self.counts.loc[dict(
-                    vertex=v, age_group=a2, # risk_group=r2
-                )].sum(dim=['compartment', 'risk_group'])
+            # Get the phi_grp indices
+            phi_grp1 = self.phi_grp_mapping.loc[dict(
+                vertex=v1, age_group=a1, risk_group=r1
+            )]
+            phi_grp2 = self.phi_grp_mapping.loc[dict(
+                vertex=v2, age_group=a2, risk_group=r2
+            )]
 
-                # Get the phi_grp indices
-                phi_grp1 = self.phi_grp_mapping.loc[dict(
-                    age_group=a1, risk_group=r1
-                )]
-                phi_grp2 = self.phi_grp_mapping.loc[dict(
-                    age_group=a2, risk_group=r2
-                )]
+            # Get the value of phi
+            phi = self.phi_t.loc[dict(
+                phi_grp1=phi_grp1, phi_grp2=phi_grp2
+            )].values
 
-                # Get the value of phi
-                phi = self.phi_t.loc[dict(
-                    phi_grp1=phi_grp1, phi_grp2=phi_grp2
-                )].values
+            # Get S compt
+            counts_S = self.counts.loc[{
+                'vertex': v1,
+                'age_group': a1,
+                'risk_group': r1,
+                'compartment': 'S'
+            }].values
 
-                # Get S compt
-                counts_S = self.counts.loc[{
-                    'vertex': v,
-                    'age_group': a2,
-                    'risk_group': r2,
-                    'compartment': 'S'
-                }].values
+            # Get value of beta
+            beta = self.beta
+            assert isinstance(beta, Number)
 
-                # Get value of beta
-                # beta = self.beta.loc[{
-                    # 'vertex': v,
-                    # 'age_group': a2,
-                    # 'risk_group': r2,
-                    # 'compartment': 'S'
-                # }]
-                beta = self.beta
-                assert isinstance(beta, Number)
+            # Get infectious compartments
+            compt_I = ['Ia', 'Iy', 'Pa', 'Py']
+            counts_I = self.counts.loc[{
+                'vertex': v2,
+                'age_group': a2,
+                'risk_group': r2,
+                'compartment': compt_I
+            }]
 
-                # Get infectious compartments
-                compt_I = ['Ia', 'Iy', 'Pa', 'Py']
-                counts_I = self.counts.loc[{
-                    'vertex': v,
-                    'age_group': a2,
-                    'risk_group': r2,
-                    'compartment': compt_I
-                }]
+            # Get value of omega for these infectious compartments
+            omega_I = self.omega.loc[{'age_group': a2, 'compartment': compt_I}]
 
-                # Get value of omega for these infectious compartments
-                omega_I = self.omega.loc[{'age_group': a2, 'compartment': compt_I}]
-
-                # Calculate force of infection
-                common_term = beta * phi * counts_S / age_pop
-                # DEBUG
-                # if v == 1:
-                #     breakpoint()
-                _sum = (common_term * omega_I * counts_I).sum(dim='compartment').values
-                self.foi.loc[dict(vertex=v, age_group=a1, risk_group=r1)] += _sum
+            # Calculate force of infection
+            common_term = beta * phi * counts_S / age_pop
+            _sum = (common_term * omega_I * counts_I).sum(dim='compartment').values
+            self.foi.loc[dict(vertex=v1, age_group=a1, risk_group=r1)] += _sum
 
 
 def get_foi_numpy(compt_ia, compt_iy, compt_pa, compt_py, compt_s, phi_, beta, kappa,
