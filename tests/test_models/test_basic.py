@@ -3,7 +3,7 @@ import xarray as xr
 import xsimlab as xs
 import numpy as np
 import logging
-from episimlab.models import toy
+from episimlab.models import basic
 from episimlab.pytest_utils import profiler
 
 
@@ -30,9 +30,9 @@ class TestToyModels:
 
     @profiler()
     @pytest.mark.parametrize('model', (
-        toy.slow_seir(),
-        toy.slow_seir_cy_foi(),
-        toy.cy_seir_cy_foi(),
+        basic.slow_seir(),
+        basic.slow_seir_cy_foi(),
+        basic.cy_seir_cy_foi(),
     ))
     def test_sanity(self, epis, model, input_vars, counts_basic, output_vars,
                     step_clock):

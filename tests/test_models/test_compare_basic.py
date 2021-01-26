@@ -57,7 +57,7 @@ class TestCompareBasicModels:
         input_vars = dict(read_config__config_fp=config_fp(config_dict))
 
         # load default model
-        model = episimlab.models.toy.slow_seir()
+        model = episimlab.models.basic.slow_seir()
 
         # construct models
         model1 = model.update_processes(dict(
