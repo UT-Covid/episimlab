@@ -34,9 +34,9 @@ class BruteForceFOI(BaseFOI):
         # Iterate over every pair of unique vertex-age-risk combinations
         for v1, a1, r1, v2, a2, r2 in product(*[self.vertex, self.age_group,
                                                 self.risk_group] * 2):
-            age_pop = self.counts.loc[dict(
-                vertex=v1, age_group=a2, # risk_group=r2
-            )].sum(dim=['compartment', 'risk_group'])
+            total_pop = self.counts.loc[dict(
+                vertex=v2, age_group=a2, risk_group=r2
+            )].sum(dim=['compartment'])
 
             # Get the phi_grp indices
             phi_grp1 = self.phi_grp_mapping.loc[dict(
@@ -76,7 +76,7 @@ class BruteForceFOI(BaseFOI):
             omega_I = self.omega.loc[{'age_group': a2, 'compartment': compt_I}]
 
             # Calculate force of infection
-            common_term = beta * phi * counts_S / age_pop
+            common_term = beta * phi * counts_S / total_pop
             _sum = (common_term * omega_I * counts_I).sum(dim='compartment').values
             self.foi.loc[dict(vertex=v1, age_group=a1, risk_group=r1)] += _sum
 
