@@ -58,5 +58,6 @@ class TestToyModels:
 
         # NOTE: will break if no FOI is reported
         # ensure non-zero force of infection at first timepoint
-        foi_init = result['foi__foi'][dict(step=1)].sum()
-        assert foi_init > 1e-8
+        if 'foi__foi' in result:
+            foi_init = result['foi__foi'][dict(step=1)].sum()
+            assert foi_init > 1e-8
