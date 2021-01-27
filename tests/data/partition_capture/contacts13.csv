@@ -1,0 +1,5 @@
+,age1,age2,daily_per_capita_contacts
+0,old,old,0.0
+1,old,young,0.0
+2,young,old,0.0
+3,young,young,10.236283859611031
