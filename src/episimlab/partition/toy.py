@@ -2,6 +2,7 @@ import xarray as xr
 import xsimlab as xs
 import pandas as pd
 import numpy as np
+from itertools import product
 
 from ..setup.coords import InitDefaultCoords
 from .implicit_node import (
@@ -47,9 +48,7 @@ class WithMethods(NaiveMigration):
         self.phi_ndarray = self.phi.values
 
     def partition_contacts(self, travel, contacts, daily_timesteps):
-
         tr_partitions = probabilistic_partition(travel, daily_timesteps)
-
         tc = pd.merge(tr_partitions, contacts, how='outer', left_on=['age_i', 'age_j'], right_on=['age1', 'age2'])
         tc['interval_per_capita_contacts'] = tc['daily_per_capita_contacts'] / daily_timesteps
         tc['partitioned_per_capita_contacts'] = tc['pr_contact_ij'] * tc['interval_per_capita_contacts']
@@ -71,8 +70,11 @@ class WithMethods(NaiveMigration):
         for j in destinations:
             nodes.append(j)
         nodes = sorted(list(set(nodes)))
+        # nodes = sorted(list(set(nodes)))
 
-        new_arr = np.zeros([len(nodes), len(nodes), len(ages), len(ages)])
+        # nodes = self.vertex
+        # ages = self.age_group
+
         coords = {
             'vertex1': nodes,
             'vertex2': nodes,
@@ -85,25 +87,23 @@ class WithMethods(NaiveMigration):
             coords=coords
         )
 
-        for i, n1 in enumerate(nodes):
-            for j, n2 in enumerate(nodes):
-                for k, a1 in enumerate(ages):
-                    for l, a2 in enumerate(ages):
-                        subset = contact_df[(contact_df['i'] == n1) \
-                            & (contact_df['j'] == n2) \
-                            & (contact_df['age_i'] == a1) \
-                            & (contact_df['age_j'] == a2)]
-                        if subset.empty:
-                            val = 0
-                        else:
-                            val = subset['partitioned_per_capita_contacts'].item()
-                        new_arr[i, j, k, l] = val
-                        new_da.loc[{
-                            'vertex1': n1,
-                            'vertex2': n2,
-                            'age_group1': a1,
-                            'age_group2': a2,
-                        }] = val
-                        # breakpoint()
-
+        # for n1 in nodes:
+        #     for n2 in nodes:
+        #         for a1 in ages:
+        #             for a2 in ages:
+        for n1, a1, n2, a2 in product(*[nodes, ages] * 2):
+            subset = contact_df[(contact_df['i'] == n1) \
+                & (contact_df['j'] == n2) \
+                & (contact_df['age_i'] == a1) \
+                & (contact_df['age_j'] == a2)]
+            if subset.empty:
+                val = 0
+            else:
+                val = subset['partitioned_per_capita_contacts'].item()
+            new_da.loc[{
+                'vertex1': n1,
+                'vertex2': n2,
+                'age_group1': a1,
+                'age_group2': a2,
+            }] = val
         return new_da

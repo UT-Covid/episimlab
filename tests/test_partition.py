@@ -6,6 +6,18 @@ import numpy as np
 from episimlab.partition import toy
 
 
+@pytest.fixture
+def counts_coords_simple(request):
+    return {
+        'vertex': ['A', 'B', 'C'],
+        'age_group': ['young', 'old'],
+        'risk_group': ['low', 'high'],
+        'compartment': ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
+                        'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
+                        'Py2Iy', 'Iy2Ih', 'H2D']
+    }
+
+
 @pytest.fixture(params=range(8))
 def legacy_results(request):
     base_dir = os.path.join('tests', 'data', 'partition_capture')
@@ -32,12 +44,12 @@ class TestToyPartitioning:
         pd.testing.assert_frame_equal(proc.tc_final, tc_final)
         np.testing.assert_array_almost_equal(proc.phi_ndarray, phi)
 
-    def test_with_methods(self, legacy_results, counts_coords):
+    def test_with_methods(self, legacy_results, counts_coords_simple):
         inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
-            'age_group': counts_coords['age_group'],
-            'risk_group': counts_coords['risk_group'],
-            'vertex': counts_coords['vertex']
+            'age_group': counts_coords_simple['age_group'],
+            'risk_group': counts_coords_simple['risk_group'],
+            'vertex': counts_coords_simple['vertex']
         })
         proc = toy.WithMethods(**inputs)
         proc.initialize()
