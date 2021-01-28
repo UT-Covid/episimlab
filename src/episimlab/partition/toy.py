@@ -59,15 +59,8 @@ class WithMethods(NaiveMigration):
         return tc_final
 
     def contact_matrix(self, contact_df):
-        sources = contact_df['i'].unique()
-        destinations = contact_df['j'].unique()
-        ages = ['old', 'young']
-        nodes = []
-        for i in sources:
-            nodes.append(i)
-        for j in destinations:
-            nodes.append(j)
-        nodes = list(set(nodes))
+        ages = np.unique(contact_df[['age_i', 'age_j']])
+        nodes = np.unique(contact_df[['i', 'j']])
 
         coords = {
             'vertex1': nodes,
