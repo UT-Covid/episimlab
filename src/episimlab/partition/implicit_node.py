@@ -164,13 +164,13 @@ def contact_matrix(contact_df):
 
     new_arr = np.zeros([len(nodes), len(nodes), len(ages), len(ages)])
     coords = {
-        'vertex1': ['A', 'B', 'C'],
-        'vertex2': ['A', 'B', 'C'],
-        'age_group1': ['young', 'old'],
-        'age_group2': ['young', 'old']
+        'vertex1': nodes,
+        'vertex2': nodes,
+        'age_group1': ages,
+        'age_group2': ages
     }
     new_da = xr.DataArray(
-        data=0,
+        data=0.,
         dims=('vertex1', 'vertex2', 'age_group1', 'age_group2'),
         coords=coords
     )
@@ -194,8 +194,9 @@ def contact_matrix(contact_df):
                         'age_group1': a1,
                         'age_group2': a2,
                     }] = val
+                    # breakpoint()
 
-    return new_arr
+    return new_da
 
 def main():
 

@@ -21,18 +21,8 @@ class NaiveMigration:
         # Call functions from SEIR_Example
         self.tc_final = partition_contacts(self.travel, self.contacts,
                                            daily_timesteps=daily_timesteps)
-        self.phi_ndarray = contact_matrix(self.tc_final)
-        # self.phi = xr.DataArray(
-        #     data=self.phi_ndarray,
-        #     dims=['vertex1', 'vertex2', 'age_group1', 'age_group2'],
-        #     coords={
-        #         'vertex1': range(2),
-        #         'vertex2': range(2),
-        #         'age_group1': ['young', 'old'],
-        #         'age_group2': ['young', 'old']
-        #     }
-        # )
-        # breakpoint()
+        self.phi = contact_matrix(self.tc_final)
+        self.phi_ndarray = self.phi.values
 
 
 @xs.process
