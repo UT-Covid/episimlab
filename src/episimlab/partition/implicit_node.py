@@ -15,6 +15,7 @@ Inputs needed
 3. contact rate in implied node (example: 5 daily contacts per person)
 """
 
+import xarray as xr
 import pandas as pd
 import numpy as np
 from collections import defaultdict
@@ -162,6 +163,17 @@ def contact_matrix(contact_df):
     nodes = sorted(list(set(nodes)))
 
     new_arr = np.zeros([len(nodes), len(nodes), len(ages), len(ages)])
+    coords = {
+        'vertex1': ['A', 'B', 'C'],
+        'vertex2': ['A', 'B', 'C'],
+        'age_group1': ['young', 'old'],
+        'age_group2': ['young', 'old']
+    }
+    new_da = xr.DataArray(
+        data=0,
+        dims=('vertex1', 'vertex2', 'age_group1', 'age_group2'),
+        coords=coords
+    )
 
     for i, n1 in enumerate(nodes):
         for j, n2 in enumerate(nodes):
@@ -176,6 +188,12 @@ def contact_matrix(contact_df):
                     else:
                         val = subset['partitioned_per_capita_contacts'].item()
                     new_arr[i, j, k, l] = val
+                    new_da.loc[{
+                        'vertex1': n1,
+                        'vertex2': n2,
+                        'age_group1': a1,
+                        'age_group2': a2,
+                    }] = val
 
     return new_arr
 
