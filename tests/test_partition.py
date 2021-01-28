@@ -20,16 +20,16 @@ def legacy_results(request):
 
 
 def test_toy_partitioning(legacy_results):
-    print(legacy_results)
-    print(toy)
     inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
     proc = toy.NaiveMigration(**inputs)
     proc.initialize()
     tc_final = pd.read_csv(legacy_results['tc_final_fp'], index_col=None)
     phi = np.load(legacy_results['phi_fp'])
 
+    # test against legacy
     pd.testing.assert_frame_equal(proc.tc_final, tc_final)
-    np.testing.assert_array_almost_equal(proc.phi, phi)
+    np.testing.assert_array_almost_equal(proc.phi_ndarray, phi)
+    # assert 0
 
 
 @pytest.mark.parametrize('expected', (

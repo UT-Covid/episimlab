@@ -151,14 +151,15 @@ def contact_matrix(contact_df):
 
     sources = contact_df['i'].unique()
     destinations = contact_df['j'].unique()
+    # ages = np.unique(contact_df[['age_i', 'age_j']].values)
+    ages = ['young', 'old']
+    # breakpoint()
     nodes = []
     for i in sources:
         nodes.append(i)
     for j in destinations:
         nodes.append(j)
     nodes = sorted(list(set(nodes)))
-
-    ages = ['young', 'old']
 
     new_arr = np.zeros([len(nodes), len(nodes), len(ages), len(ages)])
 

@@ -1,5 +1,7 @@
 import xsimlab as xs
 import pandas as pd
+
+from ..setup.coords import InitDefaultCoords
 from .implicit_node import partition_contacts, contact_matrix
 
 
@@ -18,4 +20,13 @@ class NaiveMigration:
         # Call functions from SEIR_Example
         self.tc_final = partition_contacts(self.travel, self.contacts,
                                            daily_timesteps=daily_timesteps)
-        self.phi = contact_matrix(self.tc_final)
+        self.phi_ndarray = contact_matrix(self.tc_final)
+        # self.phi =
+
+
+@xs.process
+class WithMethods(NaiveMigration):
+
+    age_group = xs.foreign(InitDefaultCoords, 'age_group')
+    risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
+    vertex = xs.foreign(InitDefaultCoords, 'vertex')
