@@ -1,19 +1,21 @@
 import pytest
 import os
+import pandas as pd
+import numpy as np
 
 from episimlab.partition import toy
 
 
-@pytest.fixture(params=range(14))
+@pytest.fixture(params=range(8))
 def legacy_results(request):
     base_dir = os.path.join('tests', 'data', 'partition_capture')
     idx = request.param
     return {
         'contacts_fp': os.path.join(base_dir, f'contacts{idx}.csv'),
         'travel_fp': os.path.join(base_dir, f'travel{idx}.csv'),
-        'tc_final': os.path.join(base_dir, f'tc_final{idx}.csv'),
-        'tr_parts': os.path.join(base_dir, f'tr_parts{idx}.csv'),
-        'phi': os.path.join(base_dir, f'phi{idx}.arr'),
+        'tc_final_fp': os.path.join(base_dir, f'tc_final{idx}.csv'),
+        'tr_parts_fp': os.path.join(base_dir, f'tr_parts{idx}.csv'),
+        'phi_fp': os.path.join(base_dir, f'phi{idx}.npy'),
     }
 
 
@@ -23,6 +25,11 @@ def test_toy_partitioning(legacy_results):
     inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
     proc = toy.NaiveMigration(**inputs)
     proc.initialize()
+    tc_final = pd.read_csv(legacy_results['tc_final_fp'], index_col=None)
+    phi = np.load(legacy_results['phi_fp'])
+
+    pd.testing.assert_frame_equal(proc.tc_final, tc_final)
+    np.testing.assert_array_almost_equal(proc.phi, phi)
 
 
 @pytest.mark.parametrize('expected', (

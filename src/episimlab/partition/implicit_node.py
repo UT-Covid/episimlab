@@ -144,7 +144,7 @@ def partition_contacts(travel, contacts, daily_timesteps):
 
     tc_final = tc[['i', 'j', 'age_i', 'age_j', 'partitioned_per_capita_contacts']]
 
-    breakpoint()
+    # breakpoint()
     return tc_final
 
 def contact_matrix(contact_df):
