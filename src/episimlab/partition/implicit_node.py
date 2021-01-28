@@ -198,6 +198,7 @@ def contact_matrix(contact_df):
 
     return new_da
 
+
 def main():
 
     travel = load_travel('../inputs/travel3.csv')
