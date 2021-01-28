@@ -59,22 +59,15 @@ class WithMethods(NaiveMigration):
         return tc_final
 
     def contact_matrix(self, contact_df):
-
         sources = contact_df['i'].unique()
         destinations = contact_df['j'].unique()
-        # ages = np.unique(contact_df[['age_i', 'age_j']].values)
-        # ages = ['young', 'old']
         ages = ['old', 'young']
         nodes = []
         for i in sources:
             nodes.append(i)
         for j in destinations:
             nodes.append(j)
-        nodes = sorted(list(set(nodes)))
-        # nodes = sorted(list(set(nodes)))
-
-        # nodes = self.vertex
-        # ages = self.age_group
+        nodes = list(set(nodes))
 
         coords = {
             'vertex1': nodes,
@@ -88,10 +81,6 @@ class WithMethods(NaiveMigration):
             coords=coords
         )
 
-        # for n1 in nodes:
-        #     for n2 in nodes:
-        #         for a1 in ages:
-        #             for a2 in ages:
         for n1, a1, n2, a2 in product(*[nodes, ages] * 2):
             subset = contact_df[(contact_df['i'] == n1) \
                 & (contact_df['j'] == n2) \
