@@ -1,9 +1,11 @@
 import xarray as xr
 import xsimlab as xs
 import pandas as pd
+import numpy as np
 
 from ..setup.coords import InitDefaultCoords
-from .implicit_node import partition_contacts, contact_matrix
+from .implicit_node import (
+    partition_contacts, contact_matrix, probabilistic_partition)
 
 
 @xs.process
@@ -31,3 +33,77 @@ class WithMethods(NaiveMigration):
     age_group = xs.foreign(InitDefaultCoords, 'age_group')
     risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
     vertex = xs.foreign(InitDefaultCoords, 'vertex')
+
+    def initialize(self):
+        # Load dataframes
+        self.travel = pd.read_csv(self.travel_fp)
+        self.contacts = pd.read_csv(self.contacts_fp)
+        daily_timesteps = 10
+
+        # Call functions from SEIR_Example
+        self.tc_final = self.partition_contacts(self.travel, self.contacts,
+                                                daily_timesteps=daily_timesteps)
+        self.phi = self.contact_matrix(self.tc_final)
+        self.phi_ndarray = self.phi.values
+
+    def partition_contacts(self, travel, contacts, daily_timesteps):
+
+        tr_partitions = probabilistic_partition(travel, daily_timesteps)
+
+        tc = pd.merge(tr_partitions, contacts, how='outer', left_on=['age_i', 'age_j'], right_on=['age1', 'age2'])
+        tc['interval_per_capita_contacts'] = tc['daily_per_capita_contacts'] / daily_timesteps
+        tc['partitioned_per_capita_contacts'] = tc['pr_contact_ij'] * tc['interval_per_capita_contacts']
+        recalc = tc.groupby(['age_i', 'age_j'])['partitioned_per_capita_contacts'].sum().reset_index()
+        recalc = pd.merge(recalc, contacts, how='outer', left_on=['age_i', 'age_j'], right_on=['age1', 'age2']).dropna()
+        tc = tc.dropna()
+        tc_final = tc[['i', 'j', 'age_i', 'age_j', 'partitioned_per_capita_contacts']]
+        return tc_final
+
+    def contact_matrix(self, contact_df):
+
+        sources = contact_df['i'].unique()
+        destinations = contact_df['j'].unique()
+        # ages = np.unique(contact_df[['age_i', 'age_j']].values)
+        ages = ['young', 'old']
+        nodes = []
+        for i in sources:
+            nodes.append(i)
+        for j in destinations:
+            nodes.append(j)
+        nodes = sorted(list(set(nodes)))
+
+        new_arr = np.zeros([len(nodes), len(nodes), len(ages), len(ages)])
+        coords = {
+            'vertex1': nodes,
+            'vertex2': nodes,
+            'age_group1': ages,
+            'age_group2': ages
+        }
+        new_da = xr.DataArray(
+            data=0.,
+            dims=('vertex1', 'vertex2', 'age_group1', 'age_group2'),
+            coords=coords
+        )
+
+        for i, n1 in enumerate(nodes):
+            for j, n2 in enumerate(nodes):
+                for k, a1 in enumerate(ages):
+                    for l, a2 in enumerate(ages):
+                        subset = contact_df[(contact_df['i'] == n1) \
+                            & (contact_df['j'] == n2) \
+                            & (contact_df['age_i'] == a1) \
+                            & (contact_df['age_j'] == a2)]
+                        if subset.empty:
+                            val = 0
+                        else:
+                            val = subset['partitioned_per_capita_contacts'].item()
+                        new_arr[i, j, k, l] = val
+                        new_da.loc[{
+                            'vertex1': n1,
+                            'vertex2': n2,
+                            'age_group1': a1,
+                            'age_group2': a2,
+                        }] = val
+                        # breakpoint()
+
+        return new_da

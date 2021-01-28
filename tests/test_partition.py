@@ -32,7 +32,6 @@ class TestToyPartitioning:
         pd.testing.assert_frame_equal(proc.tc_final, tc_final)
         np.testing.assert_array_almost_equal(proc.phi_ndarray, phi)
 
-
     def test_with_methods(self, legacy_results, counts_coords):
         inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
