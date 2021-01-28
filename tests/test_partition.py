@@ -2,8 +2,31 @@ import pytest
 import os
 import pandas as pd
 import numpy as np
+import xarray as xr
 
 from episimlab.partition import toy
+
+
+@pytest.fixture
+def to_phi_da():
+    def func(phi_fp):
+        nodes = ['A', 'B', 'C']
+        ages = ['young', 'old']
+        data = np.load(phi_fp)
+        shape = data.shape
+        coords = {
+            'vertex1': nodes[:shape[0]],
+            'vertex2': nodes[:shape[1]],
+            'age_group1': ages[:shape[2]],
+            'age_group2': ages[:shape[3]]
+        }
+        phi = xr.DataArray(
+            data=data,
+            dims=('vertex1', 'vertex2', 'age_group1', 'age_group2'),
+            coords=coords
+        )
+        return phi
+    return func
 
 
 @pytest.fixture
@@ -44,7 +67,7 @@ class TestToyPartitioning:
         pd.testing.assert_frame_equal(proc.tc_final, tc_final)
         np.testing.assert_array_almost_equal(proc.phi_ndarray, phi)
 
-    def test_with_methods(self, legacy_results, counts_coords_simple):
+    def test_with_methods(self, to_phi_da, legacy_results, counts_coords_simple):
         inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
             'age_group': counts_coords_simple['age_group'],
@@ -54,26 +77,17 @@ class TestToyPartitioning:
         proc = toy.WithMethods(**inputs)
         proc.initialize()
         tc_final = pd.read_csv(legacy_results['tc_final_fp'], index_col=None)
-        phi = np.load(legacy_results['phi_fp'])
+
+        # construct a DataArray from legacy phi
+        phi = to_phi_da(legacy_results['phi_fp'])
 
         # test against legacy
         pd.testing.assert_frame_equal(proc.tc_final, tc_final)
-        np.testing.assert_array_almost_equal(proc.phi_ndarray, phi)
 
-
-@pytest.mark.parametrize('expected', (
-    'foo'
-))
-def _can_setup_static(self, counts_coords, tri_h2d, stochastic,
-                      seed_state, expected):
-    inputs = counts_coords.copy()
-    inputs.update({
-        'tri_h2d': tri_h2d,
-        'stochastic': stochastic,
-        'seed_state': seed_state,
-    })
-
-    proc = SetupStaticMuFromHtoD(**inputs)
-    proc.initialize()
-    result = proc.mu
-    assert result == expected
+        # sort each coordinate
+        # this just changes assert_allclose to be agnostic to order of coords
+        def sort_coords(da):
+            for dim in da.dims:
+                da = da.sortby(dim)
+            return da
+        xr.testing.assert_allclose(sort_coords(proc.phi), sort_coords(phi))

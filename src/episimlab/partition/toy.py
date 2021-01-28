@@ -63,7 +63,8 @@ class WithMethods(NaiveMigration):
         sources = contact_df['i'].unique()
         destinations = contact_df['j'].unique()
         # ages = np.unique(contact_df[['age_i', 'age_j']].values)
-        ages = ['young', 'old']
+        # ages = ['young', 'old']
+        ages = ['old', 'young']
         nodes = []
         for i in sources:
             nodes.append(i)
