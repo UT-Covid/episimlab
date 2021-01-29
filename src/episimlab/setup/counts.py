@@ -4,6 +4,7 @@ from .coords import InitDefaultCoords
 
 from ..apply_counts_delta import ApplyCountsDelta
 
+
 @xs.process
 class InitDefaultCounts:
 
