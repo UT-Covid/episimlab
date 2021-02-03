@@ -10,6 +10,27 @@ from episimlab.models import basic
 
 
 @pytest.fixture
+def model():
+    """"""
+    starter_model = basic.cy_seir_cy_foi()
+    return starter_model.drop_processes([
+        # "setup_coords",
+        "setup_counts",
+        "read_config",
+        "setup_beta",
+        "setup_eta",
+        "setup_gamma",
+        "setup_mu",
+        "setup_nu",
+        "setup_omega",
+        "setup_pi",
+        "setup_rho",
+        "setup_sigma",
+        "setup_tau",
+    ])
+
+
+@pytest.fixture
 def to_phi_da():
     def func(phi_fp):
         nodes = ['A', 'B', 'C']
@@ -125,17 +146,12 @@ class TestSixteenComptToy:
         )
         return input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
 
-    # @profiler()
-    @pytest.mark.parametrize('model', (
-        # basic.slow_seir(),
-        # basic.slow_seir_cy_foi(),
-        basic.cy_seir_cy_foi(),
-    ))
     def test_can_run_model(self, epis, model, counts_basic,
                            step_clock, legacy_config):
         # TODO: replicate SEIR_Example config, e.g. via ReadToyPartitionConfig
         # TODO:
         output_vars = {'apply_counts_delta__counts': 'step'}
+        breakpoint()
         # result = self.run_model(model, step_clock, input_vars, output_vars)
         # assert isinstance(result, xr.Dataset)
         # counts = result['apply_counts_delta__counts']
