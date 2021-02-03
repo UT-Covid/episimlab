@@ -1,3 +1,4 @@
+import yaml
 import xarray as xr
 import xsimlab as xs
 import pandas as pd
@@ -97,30 +98,32 @@ class WithMethods(NaiveMigration):
 
 @xs.process
 class SetupCounts(counts.InitDefaultCounts):
+    START_POP_DIMS = ('vertex', 'age_group')
 
-    start_S = xs.variable(dims=('age_group'), intent='in')
-    start_E = xs.variable(dims=('age_group'), intent='in')
-    start_I = xs.variable(dims=('age_group'), intent='in')
-    start_R = xs.variable(dims=('age_group'), intent='in')
+    start_S = xs.variable(dims=START_POP_DIMS, intent='in')
+    start_E = xs.variable(dims=START_POP_DIMS, intent='in')
+    start_I = xs.variable(dims=START_POP_DIMS, intent='in')
+    start_R = xs.variable(dims=START_POP_DIMS, intent='in')
 
     def initialize(self):
         self.counts = self.uniform_counts_basic(value=0.)
         self.set_counts('start_S', 'S')
         self.set_counts('start_E', 'E')
-        self.set_counts('start_I', 'I')
+        self.set_counts('start_I', 'Ia')
         self.set_counts('start_R', 'R')
 
     def set_counts(self, attr_name, compt_name):
         val = getattr(self, attr_name)
-        self.counts.loc[{"compartment": compt_name}] = val
+        # TODO: unhardcode risk group specification
+        self.counts.loc[{"risk_group": 0, "compartment": compt_name}] = val
 
 
 @xs.process
 class InitCoords(coords.InitDefaultCoords):
-    age_group = xs.index(groups=['coords'], dims='age_group')
-    risk_group = xs.index(groups=['coords'], dims='risk_group')
-    compartment = xs.index(groups=['coords'], dims='compartment')
-    vertex = xs.index(groups=['coords'], dims='vertex')
+    age_group = xs.index(groups=['coords'], dims='age_group', global_name='age_group')
+    risk_group = xs.index(groups=['coords'], dims='risk_group', global_name='risk_group')
+    compartment = xs.index(groups=['coords'], dims='compartment', global_name='compartment')
+    vertex = xs.index(groups=['coords'], dims='vertex', global_name='vertex')
 
     n_age = xs.variable(dims=(), intent='in')
     n_nodes = xs.variable(dims=(), intent='in')
@@ -137,31 +140,25 @@ class InitCoords(coords.InitDefaultCoords):
 @xs.process
 class ReadToyPartitionConfig:
     KEYS_MAPPING = {
-        'seed_entropy': seed.SeedGenerator,
-        'sto_toggle': sto.InitStochasticFromToggle,
         'beta': foi.base.BaseFOI,
         'omega': foi.base.BaseFOI,
         'mu': seir.base.BaseSEIR,
         'sigma': seir.base.BaseSEIR,
-        'n_age': InitCoords,
-        'n_nodes': InitCoords,
         'start_S': SetupCounts,
         'start_E': SetupCounts,
         'start_I': SetupCounts,
         'start_R': SetupCounts,
     }
+    age_group = xs.global_ref('age_group')
+    risk_group = xs.global_ref('risk_group')
+    vertex = xs.global_ref('vertex')
+    compartment = xs.global_ref('compartment')
 
     config_fp = xs.variable(static=True, intent='in')
-    seed_entropy = xs.foreign(KEYS_MAPPING['seed_entropy'], 'seed_entropy',
-                              intent='out')
-    sto_toggle = xs.foreign(KEYS_MAPPING['sto_toggle'], 'sto_toggle',
-                            intent='out')
     beta = xs.foreign(KEYS_MAPPING['beta'], 'beta', intent='out')
     omega = xs.foreign(KEYS_MAPPING['omega'], 'omega', intent='out')
     mu = xs.foreign(KEYS_MAPPING['mu'], 'mu', intent='out')
     sigma = xs.foreign(KEYS_MAPPING['sigma'], 'sigma', intent='out')
-    n_age = xs.foreign(KEYS_MAPPING['n_age'], 'n_age', intent='out')
-    n_nodes = xs.foreign(KEYS_MAPPING['n_nodes'], 'n_nodes', intent='out')
     start_S = xs.foreign(KEYS_MAPPING['start_S'], 'start_S', intent='out')
     start_E = xs.foreign(KEYS_MAPPING['start_E'], 'start_E', intent='out')
     start_I = xs.foreign(KEYS_MAPPING['start_I'], 'start_I', intent='out')
@@ -169,9 +166,28 @@ class ReadToyPartitionConfig:
 
     def initialize(self):
         config = self.get_config()
-        for name, value in config.items():
+        for name in self.KEYS_MAPPING:
+            value = config.get(name, None)
+            assert value is not None, f"{name} is None"
             setattr(self, name, self.try_coerce_to_da(value=value, name=name))
 
     def get_config(self) -> dict:
         with open(self.config_fp, 'r') as f:
             return yaml.load(f, Loader=yaml.FullLoader)
+
+    def try_coerce_to_da(self, name, value):
+        """Given a variable with `name`, and `value` set from a config file,
+        retrieve the variable metadata and use it to coerce the `value` into
+        an `xarray.DataArray` with the correct dimensions and coordinates.
+        Returns `value` if variable is scalar (zero length dims attribute),
+        DataArray otherwise.
+        """
+        # get dims
+        dims = get_var_dims(self.KEYS_MAPPING[name], name)
+        if not dims:
+            return value
+        # get coords
+        coords = {dim: getattr(self, dim) for dim in dims if dim != 'value'}
+        da = xr.DataArray(data=value, dims=dims, coords=coords)
+        # da.loc[dict()] = value
+        return da

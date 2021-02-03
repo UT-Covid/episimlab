@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import yaml
 import xarray as xr
+import xsimlab as xs
 
 from episimlab.partition import toy
 from episimlab.models import basic
@@ -158,30 +159,20 @@ class TestSixteenComptToy:
         )
         return input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
 
+    @pytest.mark.parametrize('config_fp', [
+        'tests/data/partition_capture/test_config0.yaml'
+    ])
     def test_can_run_model(self, epis, model, counts_basic,
-                           step_clock, legacy_config):
+                           step_clock, config_fp):
         # TODO: replicate SEIR_Example config, e.g. via ReadToyPartitionConfig
+        # TODO: update step clock from config
+        input_vars = {
+            'read_config__config_fp': config_fp,
+            'rng__seed_entropy': 12345,
+            'sto__sto_toggle': -1,
+            'setup_coords__n_age': 2,
+            'setup_coords__n_nodes': 2
+        }
         output_vars = {'apply_counts_delta__counts': 'step'}
-        breakpoint()
-        # result = self.run_model(model, step_clock, input_vars, output_vars)
-        # assert isinstance(result, xr.Dataset)
-        # counts = result['applyrng
-        """
-            seed_entropy     [in]
-        sto
-            sto_toggle       [in]
-        setup_phi_grp_mapping
-        setup_phi
-        foi
-            beta             [in]
-            omega            [in] ('age_group', 'compartment')
-        seir
-            sigma            [in]
-            eta              [in]
-            mu               [in]
-            tau              [in]
-            gamma            [in] ('compartment',)
-            nu               [in] ('age_group',)
-            pi               [in] ('risk_group', 'age_group')
-            rho              [in] ('compartment',)_counts_delta__counts']
-        """
+        result = self.run_model(model, step_clock, input_vars, output_vars)
+        assert isinstance(result, xr.Dataset)
