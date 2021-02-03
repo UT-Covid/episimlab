@@ -22,7 +22,8 @@ class SetupDefaultPi(BaseSetupEpi):
             [5.91898663e-03, 4.55299354e-03, 2.57483139e-01, 5.07631836e-01, 5.84245731e-01]
         ])
         dims = ['risk_group', 'age_group']
-        coords = {k: self.counts_coords[k] for k in dims}
+        coords = [(k, self.counts_coords[k]) for k in dims]
+        data = self.trim_data_to_coords(data, coords)
         return xr.DataArray(data=data, dims=dims, coords=coords)
 
 
