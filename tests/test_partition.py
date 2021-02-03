@@ -13,7 +13,7 @@ from episimlab.setup import epi
 
 @pytest.fixture
 def model():
-    return basic.toy_partitioning()
+    return basic.toy_partition()
 
 
 @pytest.fixture
