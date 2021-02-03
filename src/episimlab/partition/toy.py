@@ -7,6 +7,9 @@ from itertools import product
 from ..setup.coords import InitDefaultCoords
 from .implicit_node import (
     partition_contacts, contact_matrix, probabilistic_partition)
+from ..utils import get_var_dims
+from .. import (foi, seir)
+from ..setup import (seed, counts, coords, sto)
 
 
 @xs.process
@@ -90,3 +93,85 @@ class WithMethods(NaiveMigration):
                 'age_group2': a2,
             }] = val
         return new_da
+
+
+@xs.process
+class SetupCounts(counts.InitDefaultCounts):
+
+    start_S = xs.variable(dims=('age_group'), intent='in')
+    start_E = xs.variable(dims=('age_group'), intent='in')
+    start_I = xs.variable(dims=('age_group'), intent='in')
+    start_R = xs.variable(dims=('age_group'), intent='in')
+
+    def initialize(self):
+        self.counts = self.uniform_counts_basic(value=0.)
+        self.set_counts('start_S', 'S')
+        self.set_counts('start_E', 'E')
+        self.set_counts('start_I', 'I')
+        self.set_counts('start_R', 'R')
+
+    def set_counts(self, attr_name, compt_name):
+        val = getattr(self, attr_name)
+        self.counts.loc[{"compartment": compt_name}] = val
+
+
+@xs.process
+class InitCoords(coords.InitDefaultCoords):
+    age_group = xs.index(groups=['coords'], dims='age_group')
+    risk_group = xs.index(groups=['coords'], dims='risk_group')
+    compartment = xs.index(groups=['coords'], dims='compartment')
+    vertex = xs.index(groups=['coords'], dims='vertex')
+
+    n_age = xs.variable(dims=(), intent='in')
+    n_nodes = xs.variable(dims=(), intent='in')
+
+    def initialize(self):
+        self.age_group = range(self.n_age)
+        self.risk_group = [0]
+        self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
+                            'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
+                            'Py2Iy', 'Iy2Ih', 'H2D']
+        self.vertex = range(self.n_nodes)
+
+
+@xs.process
+class ReadToyPartitionConfig:
+    KEYS_MAPPING = {
+        'seed_entropy': seed.SeedGenerator,
+        'sto_toggle': sto.InitStochasticFromToggle,
+        'beta': foi.base.BaseFOI,
+        'omega': foi.base.BaseFOI,
+        'mu': seir.base.BaseSEIR,
+        'sigma': seir.base.BaseSEIR,
+        'n_age': InitCoords,
+        'n_nodes': InitCoords,
+        'start_S': SetupCounts,
+        'start_E': SetupCounts,
+        'start_I': SetupCounts,
+        'start_R': SetupCounts,
+    }
+
+    config_fp = xs.variable(static=True, intent='in')
+    seed_entropy = xs.foreign(KEYS_MAPPING['seed_entropy'], 'seed_entropy',
+                              intent='out')
+    sto_toggle = xs.foreign(KEYS_MAPPING['sto_toggle'], 'sto_toggle',
+                            intent='out')
+    beta = xs.foreign(KEYS_MAPPING['beta'], 'beta', intent='out')
+    omega = xs.foreign(KEYS_MAPPING['omega'], 'omega', intent='out')
+    mu = xs.foreign(KEYS_MAPPING['mu'], 'mu', intent='out')
+    sigma = xs.foreign(KEYS_MAPPING['sigma'], 'sigma', intent='out')
+    n_age = xs.foreign(KEYS_MAPPING['n_age'], 'n_age', intent='out')
+    n_nodes = xs.foreign(KEYS_MAPPING['n_nodes'], 'n_nodes', intent='out')
+    start_S = xs.foreign(KEYS_MAPPING['start_S'], 'start_S', intent='out')
+    start_E = xs.foreign(KEYS_MAPPING['start_E'], 'start_E', intent='out')
+    start_I = xs.foreign(KEYS_MAPPING['start_I'], 'start_I', intent='out')
+    start_R = xs.foreign(KEYS_MAPPING['start_R'], 'start_R', intent='out')
+
+    def initialize(self):
+        config = self.get_config()
+        for name, value in config.items():
+            setattr(self, name, self.try_coerce_to_da(value=value, name=name))
+
+    def get_config(self) -> dict:
+        with open(self.config_fp, 'r') as f:
+            return yaml.load(f, Loader=yaml.FullLoader)

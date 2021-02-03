@@ -7,13 +7,14 @@ import xarray as xr
 
 from episimlab.partition import toy
 from episimlab.models import basic
+from episimlab.setup import epi
 
 
 @pytest.fixture
 def model():
     """"""
     starter_model = basic.cy_seir_cy_foi()
-    return starter_model.drop_processes([
+    model = starter_model.drop_processes([
         # "setup_coords",
         "setup_counts",
         "read_config",
@@ -28,6 +29,17 @@ def model():
         "setup_sigma",
         "setup_tau",
     ])
+    return model.update_processes({
+        "setup_counts": toy.SetupCounts,
+        "setup_coords": toy.InitCoords,
+        "read_config": toy.ReadToyPartitionConfig,
+        "setup_eta": epi.SetupDefaultEta,
+        "setup_tau": epi.SetupDefaultTau,
+        "setup_nu": epi.SetupDefaultNu,
+        "setup_pi": epi.SetupDefaultPi,
+        "setup_rho": epi.SetupDefaultRho,
+        "setup_gamma": epi.SetupDefaultGamma,
+    })
 
 
 @pytest.fixture
@@ -153,4 +165,23 @@ class TestSixteenComptToy:
         breakpoint()
         # result = self.run_model(model, step_clock, input_vars, output_vars)
         # assert isinstance(result, xr.Dataset)
-        # counts = result['apply_counts_delta__counts']
+        # counts = result['applyrng
+        """
+            seed_entropy     [in]
+        sto
+            sto_toggle       [in]
+        setup_phi_grp_mapping
+        setup_phi
+        foi
+            beta             [in]
+            omega            [in] ('age_group', 'compartment')
+        seir
+            sigma            [in]
+            eta              [in]
+            mu               [in]
+            tau              [in]
+            gamma            [in] ('compartment',)
+            nu               [in] ('age_group',)
+            pi               [in] ('risk_group', 'age_group')
+            rho              [in] ('compartment',)_counts_delta__counts']
+        """
