@@ -18,12 +18,11 @@ class InitDefaultCounts:
     vertex = xs.foreign(InitDefaultCoords, 'vertex')
 
     def initialize(self):
-        # self.counts = self.ones_counts_basic()
         self.counts = self.realistic_counts_basic()
 
-    def ones_counts_basic(self):
+    def uniform_counts_basic(self, value=0.):
         return xr.DataArray(
-            data=1.,
+            data=value,
             dims=self.COUNTS_DIMS,
             coords={dim: getattr(self, dim) for dim in self.COUNTS_DIMS}
         )
