@@ -2,7 +2,7 @@ import pytest
 import os
 import pandas as pd
 import numpy as np
-import pickle
+import yaml
 import xarray as xr
 
 from episimlab.partition import toy
@@ -65,11 +65,11 @@ def counts_coords_simple(request):
 
 
 @pytest.fixture(params=[
-    'tests/data/partition_capture/test_config0.pckl'
+    'tests/data/partition_capture/test_config0.yaml'
 ])
 def legacy_config(request):
-    with open(request.param, 'rb') as f:
-        d = pickle.load(f)
+    with open(request.param, 'r') as f:
+        d = yaml.safe_load(f)
     return d
 
 
@@ -149,7 +149,6 @@ class TestSixteenComptToy:
     def test_can_run_model(self, epis, model, counts_basic,
                            step_clock, legacy_config):
         # TODO: replicate SEIR_Example config, e.g. via ReadToyPartitionConfig
-        # TODO:
         output_vars = {'apply_counts_delta__counts': 'step'}
         breakpoint()
         # result = self.run_model(model, step_clock, input_vars, output_vars)
