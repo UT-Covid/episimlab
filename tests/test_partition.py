@@ -2,9 +2,11 @@ import pytest
 import os
 import pandas as pd
 import numpy as np
+import pickle
 import xarray as xr
 
 from episimlab.partition import toy
+from episimlab.models import basic
 
 
 @pytest.fixture
@@ -41,6 +43,15 @@ def counts_coords_simple(request):
     }
 
 
+@pytest.fixture(params=[
+    'tests/data/partition_capture/test_config0.pckl'
+])
+def legacy_config(request):
+    with open(request.param, 'rb') as f:
+        d = pickle.load(f)
+    return d
+
+
 @pytest.fixture(params=range(8))
 def legacy_results(request):
     base_dir = os.path.join('tests', 'data', 'partition_capture')
@@ -55,6 +66,9 @@ def legacy_results(request):
 
 
 class TestToyPartitioning:
+    """Can we migrate KP toy contact partitioning into episimlab processes?
+    Do the migrated processes produce the same results as SEIR_Example?
+    """
 
     def test_toy_partitioning(self, legacy_results):
         inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
@@ -91,3 +105,37 @@ class TestToyPartitioning:
                 da = da.sortby(dim)
             return da
         xr.testing.assert_allclose(sort_coords(proc.phi), sort_coords(phi))
+
+
+class TestSixteenComptToy:
+    """Can we take the toy partitioning pipeline tested above, and have
+    it pass phi parameter to the 'production' 16-compartment models
+    in episimlab?
+
+    TODO: recapitulate KP model sanity checks (partitioning contacts in
+    different ways produces same result)
+    """
+
+    def run_model(self, model, step_clock, input_vars, output_vars):
+        input_ds = xs.create_setup(
+            model=model,
+            clocks=step_clock,
+            input_vars=input_vars,
+            output_vars=output_vars
+        )
+        return input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
+
+    # @profiler()
+    @pytest.mark.parametrize('model', (
+        # basic.slow_seir(),
+        # basic.slow_seir_cy_foi(),
+        basic.cy_seir_cy_foi(),
+    ))
+    def test_can_run_model(self, epis, model, counts_basic,
+                           step_clock, legacy_config):
+        # TODO: replicate SEIR_Example config, e.g. via ReadToyPartitionConfig
+        # TODO:
+        output_vars = {'apply_counts_delta__counts': 'step'}
+        # result = self.run_model(model, step_clock, input_vars, output_vars)
+        # assert isinstance(result, xr.Dataset)
+        # counts = result['apply_counts_delta__counts']
