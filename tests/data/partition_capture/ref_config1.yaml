@@ -1,0 +1,30 @@
+beta: 0.1
+days: 30
+gamma: 0.2
+interval_per_day: 10
+mu: 0.0
+n_age: 2
+n_nodes: 1
+n_sims: 1
+omega: 0.1
+outpath: outputs/single_node
+phi:
+- - - 1.023628385961103
+    - 0
+  - - 0
+    - 0
+sigma: 0.5
+sim_idx: 0
+start_E:
+- 0
+- 0
+start_I:
+- 2
+- 0
+start_R:
+- 0
+- 0
+start_S:
+- 73
+- 0
+stochastic: 'False'
