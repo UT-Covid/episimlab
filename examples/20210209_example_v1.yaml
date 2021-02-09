@@ -1,0 +1,23 @@
+# example_v1.yaml
+
+seed_entropy: 12345
+sto_toggle: -1
+
+# transmission parameters
+asymp_relative_infect: 0.66666666
+tri_h2d: [5.2, 8.1, 10.1]
+tri_h2r: [9.4, 10.7, 12.8]
+tri_exposed_para: [1.9, 2.9, 3.9]
+tri_pa2ia: 2.3
+tri_py2iy: 2.3
+asymp_rate: 0.43
+t_onset_to_h: 5.9
+tri_y2r_para: [3.0, 4.0, 5.0]
+prop_trans_in_p: 0.44
+
+# hospitalization
+symp_h_ratio_w_risk:
+    - [0.0002791, 0.0002146, 0.0132154, 0.0285634, 0.0338733]
+    - [0.002791, 0.002146, 0.132154, 0.285634, 0.338733]
+symp_h_ratio: [0.00070175, 0.00070175, 0.04735258, 0.16329827, 0.25541833]
+hosp_f_ratio: [0.04, 0.12365475, 0.03122403, 0.10744644, 0.23157691]
