@@ -127,10 +127,11 @@ class InitCoords(coords.InitDefaultCoords):
 
     n_age = xs.variable(dims=(), intent='in')
     n_nodes = xs.variable(dims=(), intent='in')
+    n_risk = xs.variable(dims=(), intent='in')
 
     def initialize(self):
         self.age_group = range(self.n_age)
-        self.risk_group = [0]
+        self.risk_group = range(self.n_risk)
         self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
                             'Py2Iy', 'Iy2Ih', 'H2D']

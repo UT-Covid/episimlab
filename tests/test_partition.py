@@ -137,7 +137,6 @@ class TestSixteenComptToy:
     ])
     def test_can_run_model(self, epis, model, counts_basic,
                            step_clock, config_fp):
-        # TODO: replicate SEIR_Example config, e.g. via ReadToyPartitionConfig
         # TODO: update step clock from config
         input_vars = {
             'read_config__config_fp': config_fp,
