@@ -15,7 +15,7 @@ from .bf_cython_engine import brute_force_FOI
 class BruteForceCythonFOI(BaseFOI):
     """A readable, brute force algorithm for calculating force of infection (FOI).
     """
-    phi_t = xs.foreign(InitPhi, 'phi_t', intent='in')
+    phi_t = xs.global_ref('phi_t')
     phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
 

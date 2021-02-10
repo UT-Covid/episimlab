@@ -47,7 +47,7 @@ class InitPhi:
     phi_grp2 = xs.foreign(InitPhiGrpMapping, 'phi_grp2', intent='in')
     phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
     phi = xs.variable(dims=DIMS, static=True, intent='out')
-    phi_t = xs.variable(dims=DIMS, intent='out')
+    phi_t = xs.variable(dims=DIMS, intent='out', global_name='phi_t')
 
     def initialize(self):
         # coords = ((dim, getattr(self, dim)) for dim in self.DIMS)

@@ -144,7 +144,9 @@ class TestSixteenComptToy:
             'sto__sto_toggle': -1,
             'setup_coords__n_age': 2,
             'setup_coords__n_nodes': 2,
-            'setup_coords__n_risk': 1
+            'setup_coords__n_risk': 1,
+            'setup_phi__travel_fp': './tests/data/partition_capture/travel0.csv',
+            'setup_phi__contacts_fp': './tests/data/partition_capture/contacts0.csv',
         }
         output_vars = {'apply_counts_delta__counts': 'step'}
         result = self.run_model(model, step_clock, input_vars, output_vars)

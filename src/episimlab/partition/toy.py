@@ -33,11 +33,14 @@ class NaiveMigration:
 
 
 @xs.process
-class WithMethods(NaiveMigration):
+class SetupPhiWithPartitioning(NaiveMigration):
+    PHI_DIMS = ('phi_grp1', 'phi_grp2')
 
     age_group = xs.global_ref('age_group')
     risk_group = xs.global_ref('risk_group')
     vertex = xs.global_ref('vertex')
+
+    phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
 
     def initialize(self):
         # Load dataframes
@@ -49,6 +52,7 @@ class WithMethods(NaiveMigration):
         self.tc_final = self.partition_contacts(self.travel, self.contacts,
                                                 daily_timesteps=daily_timesteps)
         self.phi = self.contact_matrix(self.tc_final)
+        self.phi_t = self.phi
         self.phi_ndarray = self.phi.values
 
     def partition_contacts(self, travel, contacts, daily_timesteps):

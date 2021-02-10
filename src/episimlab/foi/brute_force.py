@@ -17,7 +17,7 @@ class BruteForceFOI(BaseFOI):
     TODO: check math with Kelly
     """
 
-    phi_t = xs.foreign(InitPhi, 'phi_t', intent='in')
+    phi_t = xs.global_ref('phi_t')
     phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
 
