@@ -95,7 +95,7 @@ class TestToyPartitioning:
             'risk_group': counts_coords_simple['risk_group'],
             'vertex': counts_coords_simple['vertex']
         })
-        proc = toy.WithMethods(**inputs)
+        proc = toy.SetupPhiWithPartitioning(**inputs)
         proc.initialize()
         tc_final = pd.read_csv(legacy_results['tc_final_fp'], index_col=None)
 
