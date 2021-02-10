@@ -1,4 +1,5 @@
 import yaml
+import string
 import xarray as xr
 import xsimlab as xs
 import pandas as pd
@@ -171,12 +172,12 @@ class InitCoords(coords.InitDefaultCoords):
     n_risk = xs.variable(dims=(), intent='in')
 
     def initialize(self):
-        self.age_group = range(self.n_age)
+        self.age_group = ['young', 'old']
         self.risk_group = range(self.n_risk)
         self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
                             'Py2Iy', 'Iy2Ih', 'H2D']
-        self.vertex = range(self.n_nodes)
+        self.vertex = list(string.ascii_uppercase)[:self.n_nodes]
 
 
 @xs.process
