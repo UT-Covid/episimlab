@@ -143,7 +143,8 @@ class TestSixteenComptToy:
             'rng__seed_entropy': 12345,
             'sto__sto_toggle': -1,
             'setup_coords__n_age': 2,
-            'setup_coords__n_nodes': 2
+            'setup_coords__n_nodes': 2,
+            'setup_coords__n_risk': 1
         }
         output_vars = {'apply_counts_delta__counts': 'step'}
         result = self.run_model(model, step_clock, input_vars, output_vars)
