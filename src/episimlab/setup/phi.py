@@ -14,9 +14,9 @@ class InitPhiGrpMapping:
     """
     DIMS = ('vertex', 'age_group', 'risk_group')
 
-    age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
-    vertex = xs.foreign(InitDefaultCoords, 'vertex', intent='in')
+    age_group = xs.global_ref('age_group')
+    risk_group = xs.global_ref('risk_group')
+    vertex = xs.global_ref('vertex')
     phi_grp1 = xs.index(dims=('phi_grp1'))
     phi_grp2 = xs.index(dims=('phi_grp2'))
     phi_grp_mapping = xs.variable(dims=DIMS, static=True, intent='out')

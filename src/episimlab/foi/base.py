@@ -13,9 +13,9 @@ class BaseFOI:
     """
     FOI_DIMS = ('vertex', 'age_group', 'risk_group')
 
-    age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
-    vertex = xs.foreign(InitDefaultCoords, 'vertex', intent='in')
+    age_group = xs.global_ref('age_group')
+    risk_group = xs.global_ref('risk_group')
+    vertex = xs.global_ref('vertex')
 
     beta = xs.variable(intent='in')
     omega = xs.variable(dims=('age_group', 'compartment'), intent='in')

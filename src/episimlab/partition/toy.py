@@ -35,9 +35,9 @@ class NaiveMigration:
 @xs.process
 class WithMethods(NaiveMigration):
 
-    age_group = xs.foreign(InitDefaultCoords, 'age_group')
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
-    vertex = xs.foreign(InitDefaultCoords, 'vertex')
+    age_group = xs.global_ref('age_group')
+    risk_group = xs.global_ref('risk_group')
+    vertex = xs.global_ref('vertex')
 
     def initialize(self):
         # Load dataframes
