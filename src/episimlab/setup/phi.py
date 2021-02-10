@@ -17,9 +17,10 @@ class InitPhiGrpMapping:
     age_group = xs.global_ref('age_group')
     risk_group = xs.global_ref('risk_group')
     vertex = xs.global_ref('vertex')
-    phi_grp1 = xs.index(dims=('phi_grp1'))
-    phi_grp2 = xs.index(dims=('phi_grp2'))
-    phi_grp_mapping = xs.variable(dims=DIMS, static=True, intent='out')
+    phi_grp1 = xs.index(dims=('phi_grp1'), global_name='phi_grp1')
+    phi_grp2 = xs.index(dims=('phi_grp2'), global_name='phi_grp2')
+    phi_grp_mapping = xs.variable(dims=DIMS, static=True, intent='out',
+                                  global_name='phi_grp_mapping')
 
     def initialize(self):
         self.COORDS = {k: getattr(self, k) for k in self.DIMS}
@@ -53,7 +54,7 @@ class InitPhi:
         # coords = ((dim, getattr(self, dim)) for dim in self.DIMS)
         self.COORDS = {k: getattr(self, k) for k in self.DIMS}
         # TODO
-        data = 0.75
+        data = 1.
         self.phi = xr.DataArray(data=data, dims=self.DIMS, coords=self.COORDS)
         self.phi_t = self.phi
 

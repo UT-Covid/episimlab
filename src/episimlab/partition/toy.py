@@ -40,9 +40,13 @@ class SetupPhiWithPartitioning(NaiveMigration):
     risk_group = xs.global_ref('risk_group')
     vertex = xs.global_ref('vertex')
 
+    phi_grp_mapping = xs.global_ref('phi_grp_mapping')
     phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
 
     def initialize(self):
+        self.phi_grp1 = self.phi_grp2 = range(self.phi_grp_mapping.size)
+        self.PHI_COORDS = {k: getattr(self, k) for k in self.PHI_DIMS}
+
         # Load dataframes
         self.travel = pd.read_csv(self.travel_fp)
         self.contacts = pd.read_csv(self.contacts_fp)
@@ -52,8 +56,41 @@ class SetupPhiWithPartitioning(NaiveMigration):
         self.tc_final = self.partition_contacts(self.travel, self.contacts,
                                                 daily_timesteps=daily_timesteps)
         self.phi = self.contact_matrix(self.tc_final)
-        self.phi_t = self.phi
+        self.phi_t = self.convert_to_phi_grp(self.phi)
         self.phi_ndarray = self.phi.values
+
+    def convert_to_phi_grp(self, phi):
+        """Converts 4-D array `arr` used in SEIR_Example to the flattened 2-D
+        phi_t array expected by episimlab.
+        """
+        # initialize 2-D array of zeros
+        da = xr.DataArray(data=0., dims=self.PHI_DIMS, coords=self.PHI_COORDS)
+        # iterate over every unique pair of vertex, age group, risk group
+        for v1, a1, r1, v2, a2, r2 in product(*[self.vertex, self.age_group,
+                                                self.risk_group] * 2):
+            # get phi groups for each set of coords
+            pg1 = self.phi_grp_mapping.loc[{
+                'vertex': v1,
+                'age_group': a1,
+                'risk_group': r1,
+            }]
+            pg2 = self.phi_grp_mapping.loc[{
+                'vertex': v2,
+                'age_group': a2,
+                'risk_group': r2,
+            }]
+            # assign value
+            value = phi.loc[{
+                'vertex1': v1,
+                'vertex2': v2,
+                'age_group1': a1,
+                'age_group2': a2,
+            }]
+            da.loc[{
+                'phi_grp1': int(pg1),
+                'phi_grp2': int(pg2),
+            }] = value
+            return da
 
     def partition_contacts(self, travel, contacts, daily_timesteps):
         tr_partitions = probabilistic_partition(travel, daily_timesteps)

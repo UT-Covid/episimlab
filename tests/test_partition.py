@@ -39,7 +39,18 @@ def to_phi_da():
 
 
 @pytest.fixture
-def counts_coords_simple(request):
+def phi_grp_mapping_simple(counts_coords_simple):
+    dims = ['vertex', 'age_group', 'risk_group']
+    c = {k: v for k, v in counts_coords_simple.items() if k in dims}
+    shape = [len(c[dim]) for dim in dims]
+    data = range(np.product(shape))
+    arr = np.array(data).reshape(shape)
+    da = xr.DataArray(data=arr, dims=list(c.keys()), coords=c)
+    return da
+
+
+@pytest.fixture
+def counts_coords_simple():
     return {
         'vertex': ['A', 'B', 'C'],
         'age_group': ['young', 'old'],
@@ -88,12 +99,14 @@ class TestToyPartitioning:
         pd.testing.assert_frame_equal(proc.tc_final, tc_final)
         np.testing.assert_array_almost_equal(proc.phi_ndarray, phi)
 
-    def test_with_methods(self, to_phi_da, legacy_results, counts_coords_simple):
+    def test_with_methods(self, to_phi_da, legacy_results, counts_coords_simple,
+                          phi_grp_mapping_simple):
         inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
             'age_group': counts_coords_simple['age_group'],
             'risk_group': counts_coords_simple['risk_group'],
-            'vertex': counts_coords_simple['vertex']
+            'vertex': counts_coords_simple['vertex'],
+            'phi_grp_mapping': phi_grp_mapping_simple
         })
         proc = toy.SetupPhiWithPartitioning(**inputs)
         proc.initialize()
