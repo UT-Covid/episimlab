@@ -137,7 +137,7 @@ def toy_partition():
     return model.update_processes({
         "setup_counts": toy.SetupCounts,
         "setup_coords": toy.InitCoords,
-        "setup_phi": toy.SetupPhiWithPartitioning,
+        "setup_phi": toy.SetupPhiWithToyPartitioning,
         "read_config": toy.ReadToyPartitionConfig,
         "setup_eta": epi.SetupDefaultEta,
         "setup_tau": epi.SetupDefaultTau,

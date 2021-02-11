@@ -34,7 +34,7 @@ class NaiveMigration:
 
 
 @xs.process
-class SetupPhiWithPartitioning(NaiveMigration):
+class SetupPhiWithToyPartitioning(NaiveMigration):
     PHI_DIMS = ('phi_grp1', 'phi_grp2')
 
     age_group = xs.global_ref('age_group')
