@@ -29,8 +29,8 @@ class NaiveMigration:
         # Call functions from SEIR_Example
         self.tc_final = partition_contacts(self.travel, self.contacts,
                                            daily_timesteps=daily_timesteps)
-        self.phi = contact_matrix(self.tc_final)
-        self.phi_ndarray = self.phi.values
+        self.phi4d = contact_matrix(self.tc_final)
+        self.phi_ndarray = self.phi4d.values
 
 
 @xs.process
@@ -56,9 +56,9 @@ class SetupPhiWithPartitioning(NaiveMigration):
         # Call functions from SEIR_Example
         self.tc_final = self.partition_contacts(self.travel, self.contacts,
                                                 daily_timesteps=daily_timesteps)
-        self.phi = self.contact_matrix(self.tc_final)
-        self.phi_t = self.convert_to_phi_grp(self.phi)
-        self.phi_ndarray = self.phi.values
+        self.phi4d = self.contact_matrix(self.tc_final)
+        self.phi_t = self.convert_to_phi_grp(self.phi4d)
+        self.phi_ndarray = self.phi4d.values
 
     def convert_to_phi_grp(self, phi):
         """Converts 4-D array `arr` used in SEIR_Example to the flattened 2-D
@@ -91,7 +91,7 @@ class SetupPhiWithPartitioning(NaiveMigration):
                 'phi_grp1': int(pg1),
                 'phi_grp2': int(pg2),
             }] = value
-            return da
+        return da
 
     def partition_contacts(self, travel, contacts, daily_timesteps):
         tr_partitions = probabilistic_partition(travel, daily_timesteps)

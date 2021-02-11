@@ -1,3 +1,4 @@
+import logging
 import pytest
 import os
 import pandas as pd
@@ -5,6 +6,7 @@ import numpy as np
 import yaml
 import xarray as xr
 import xsimlab as xs
+from itertools import product
 
 from episimlab.partition import toy
 from episimlab.models import basic
@@ -52,7 +54,7 @@ def phi_grp_mapping_simple(counts_coords_simple):
 @pytest.fixture
 def counts_coords_simple():
     return {
-        'vertex': ['A', 'B', 'C'],
+        'vertex': ['A', 'B'],
         'age_group': ['young', 'old'],
         'risk_group': ['low', 'high'],
         'compartment': ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
@@ -124,7 +126,22 @@ class TestToyPartitioning:
             for dim in da.dims:
                 da = da.sortby(dim)
             return da
-        xr.testing.assert_allclose(sort_coords(proc.phi), sort_coords(phi))
+        xr.testing.assert_allclose(sort_coords(proc.phi4d), sort_coords(phi))
+
+        # ensure that phi4d and phi_t really have the same data
+        pgm = proc.phi_grp_mapping
+        pgm_coords = [proc.phi_grp_mapping.coords[k].values for k in pgm.dims]
+        for v1, a1, r1, v2, a2, r2 in product(*pgm_coords * 2):
+            pg1 = int(pgm.loc[{'vertex': v1, 'age_group': a1, 'risk_group': r1}])
+            pg2 = int(pgm.loc[{'vertex': v2, 'age_group': a2, 'risk_group': r2}])
+            res4d = proc.phi4d.loc[{
+                'vertex1': v1,
+                'vertex2': v2,
+                'age_group1': a1,
+                'age_group2': a2,
+            }]
+            res2d = proc.phi_t.loc[{'phi_grp1': pg1, 'phi_grp2': pg2}]
+            assert res4d == res2d
 
 
 class TestSixteenComptToy:
