@@ -7,6 +7,7 @@ from numbers import Number
 
 from ..apply_counts_delta import ApplyCountsDelta
 from ..setup.coords import InitDefaultCoords
+from ..utils import get_int_per_day
 
 
 @xs.process
@@ -31,7 +32,4 @@ class BaseSEIR:
     rho = xs.variable(dims=('compartment'))
 
     def get_int_per_day(self, step_delta) -> float:
-        """
-        """
-        assert isinstance(step_delta, np.timedelta64)
-        return np.timedelta64(1, 'D') / step_delta
+        return get_int_per_day(step_delta)

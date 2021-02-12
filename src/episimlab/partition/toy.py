@@ -9,7 +9,7 @@ from itertools import product
 from ..setup.coords import InitDefaultCoords
 from .implicit_node import (
     partition_contacts, contact_matrix, probabilistic_partition)
-from ..utils import get_var_dims
+from ..utils import get_var_dims, get_int_per_day
 from .. import (foi, seir)
 from ..setup import (seed, counts, coords, sto)
 
@@ -51,11 +51,15 @@ class SetupPhiWithToyPartitioning(NaiveMigration):
         # Load dataframes
         self.travel = pd.read_csv(self.travel_fp)
         self.contacts = pd.read_csv(self.contacts_fp)
-        daily_timesteps = 10
+
+    @xs.runtime(args='step_delta')
+    def run_step(self, step_delta):
+        # Get interval per day
+        self.int_per_day = get_int_per_day(step_delta)
 
         # Call functions from SEIR_Example
         self.tc_final = self.partition_contacts(self.travel, self.contacts,
-                                                daily_timesteps=daily_timesteps)
+                                                daily_timesteps=self.int_per_day)
         self.phi4d = self.contact_matrix(self.tc_final)
         self.phi_t = self.convert_to_phi_grp(self.phi4d)
         self.phi_ndarray = self.phi4d.values

@@ -19,6 +19,11 @@ def model():
 
 
 @pytest.fixture
+def step_delta():
+    return np.timedelta64(144, 'm')
+
+
+@pytest.fixture
 def to_phi_da():
     def func(phi_fp):
         nodes = ['A', 'B', 'C']
@@ -102,7 +107,7 @@ class TestToyPartitioning:
         np.testing.assert_array_almost_equal(proc.phi_ndarray, phi)
 
     def test_with_methods(self, to_phi_da, legacy_results, counts_coords_toy,
-                          phi_grp_mapping):
+                          phi_grp_mapping, step_delta):
         inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
             'age_group': counts_coords_toy['age_group'],
@@ -112,6 +117,7 @@ class TestToyPartitioning:
         })
         proc = toy.SetupPhiWithToyPartitioning(**inputs)
         proc.initialize()
+        proc.run_step(step_delta=step_delta)
         tc_final = pd.read_csv(legacy_results['tc_final_fp'], index_col=None)
 
         # construct a DataArray from legacy phi
@@ -143,7 +149,7 @@ class TestToyPartitioning:
             res2d = proc.phi_t.loc[{'phi_grp1': pg1, 'phi_grp2': pg2}]
             assert res4d == res2d
 
-    def test_consistent_with_xarray(self, to_phi_da, legacy_results,
+    def test_consistent_with_xarray(self, to_phi_da, legacy_results, step_delta,
                                     counts_coords_toy, phi_grp_mapping):
         """Is the xarray implementation consistent with the original one that uses
         pandas dataframes?
@@ -159,10 +165,12 @@ class TestToyPartitioning:
         # run reference process
         ref_proc = toy.SetupPhiWithToyPartitioning(**inputs)
         ref_proc.initialize()
+        ref_proc.run_step(step_delta=step_delta)
 
         # run test process (the xarray implementation)
         test_proc = from_travel.SetupPhiWithPartitioning(**inputs)
         test_proc.initialize()
+        test_proc.run_step(step_delta=step_delta)
 
         # assert equality
         xr.testing.assert_allclose(ref_proc.phi_t, test_proc.phi_t)
