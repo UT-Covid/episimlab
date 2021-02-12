@@ -8,7 +8,7 @@ import xarray as xr
 import xsimlab as xs
 from itertools import product
 
-from episimlab.partition import toy
+from episimlab.partition import toy, from_travel
 from episimlab.models import basic
 from episimlab.setup import epi
 
@@ -142,6 +142,30 @@ class TestToyPartitioning:
             }]
             res2d = proc.phi_t.loc[{'phi_grp1': pg1, 'phi_grp2': pg2}]
             assert res4d == res2d
+
+    def test_consistent_with_xarray(self, to_phi_da, legacy_results,
+                                    counts_coords_toy, phi_grp_mapping):
+        """Is the xarray implementation consistent with the original one that uses
+        pandas dataframes?
+        """
+        inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
+        inputs.update({
+            'age_group': counts_coords_toy['age_group'],
+            'risk_group': counts_coords_toy['risk_group'],
+            'vertex': counts_coords_toy['vertex'],
+            'phi_grp_mapping': phi_grp_mapping
+        })
+
+        # run reference process
+        ref_proc = toy.SetupPhiWithToyPartitioning(**inputs)
+        ref_proc.initialize()
+
+        # run test process (the xarray implementation)
+        test_proc = from_travel.SetupPhiWithPartitioning(**inputs)
+        test_proc.initialize()
+
+        # assert equality
+        xr.testing.assert_allclose(ref_proc.phi_t, test_proc.phi_t)
 
 
 class TestSixteenComptToy:
