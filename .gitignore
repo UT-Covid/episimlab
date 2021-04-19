@@ -109,3 +109,4 @@ venv.bak/
 data
 !tests/data
 src/**/*.html
+**.c
