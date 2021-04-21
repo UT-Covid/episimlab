@@ -88,7 +88,7 @@ def adj_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
 @pytest.fixture()
 def phi_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
     """A MultiIndex mapping for a phi array"""
-    dims = ['age_group', 'risk_group']
+    dims = ['vertex', 'age_group', 'risk_group']
     coords = {
         k: v for k, v in counts_coords.items()
         if k in dims
@@ -118,8 +118,8 @@ def adj_t(counts_coords) -> xr.DataArray:
 
 
 @pytest.fixture()
-def phi_t():
-    data = [[0.51540028, 0.51540028, 0.94551748, 0.94551748, 1.96052056, 1.96052056, 0.12479711, 0.12479711, 0.0205698, 0.0205698 ],
+def phi_t(phi_grp_mapping):
+    _data = [[0.51540028, 0.51540028, 0.94551748, 0.94551748, 1.96052056, 1.96052056, 0.12479711, 0.12479711, 0.0205698, 0.0205698 ],
             [0.51540028, 0.51540028, 0.94551748, 0.94551748, 1.96052056, 1.96052056, 0.12479711, 0.12479711, 0.0205698, 0.0205698 ],
             [0.20813759, 0.20813759, 1.72090425, 1.72090425, 1.9304265, 1.9304265, 0.16597259, 0.16597259, 0.0238168, 0.0238168 ],
             [0.20813759, 0.20813759, 1.72090425, 1.72090425, 1.9304265, 1.9304265, 0.16597259, 0.16597259, 0.0238168, 0.0238168 ],
@@ -129,10 +129,12 @@ def phi_t():
             [0.20985118, 0.20985118, 0.70358752, 0.70358752, 1.24247158, 1.24247158, 0.97500204, 0.97500204, 0.10835478, 0.10835478 ],
             [0.14845117, 0.14845117, 0.69386045, 0.69386045, 0.98826341, 0.98826341, 0.34871121, 0.34871121, 0.61024946, 0.61024946 ],
             [0.14845117, 0.14845117, 0.69386045, 0.69386045, 0.98826341, 0.98826341, 0.34871121, 0.34871121, 0.61024946, 0.61024946 ]]
+    data = 0.2
     dims = ['phi_grp1', 'phi_grp2']
+    index = range(phi_grp_mapping.size)
     coords = {
-        'phi_grp1': range(10),
-        'phi_grp2': range(10)
+        'phi_grp1': index,
+        'phi_grp2': index
     }
     return xr.DataArray(data=data, dims=dims, coords=coords)
 
@@ -266,7 +268,7 @@ def stochastic(request):
 @pytest.fixture(params=[
     # int_per_day == 1
     # TODO
-    '24H',
+    # '24H',
     # int_per_day == 2
     '12H'
 ])
@@ -281,7 +283,7 @@ def step_clock(request):
 @pytest.fixture(params=[
     # int_per_day == 1
     # TODO
-    24,
+    # 24,
     # int_per_day == 2
     12
 ])

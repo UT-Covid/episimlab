@@ -1,0 +1,9 @@
+i,j,age_i,age_j,partitioned_per_capita_contacts
+A,A,old,old,0.0
+A,B,old,old,0.0
+B,A,old,old,0.0
+B,B,old,old,0.0
+A,A,young,young,0.16666666666666666
+A,B,young,young,0.3333333333333333
+B,A,young,young,0.16666666666666666
+B,B,young,young,0.3333333333333333

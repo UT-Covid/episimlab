@@ -12,9 +12,6 @@ class TestInitPhi:
             'phi_grp1': np.arange(10),
             'phi_grp2': np.arange(10),
             'phi_grp_mapping': phi_grp_mapping,
-            'age_group': counts_coords['age_group'],
-            'risk_group': counts_coords['risk_group'],
-            'day_of_week': np.arange(7)
         }
         proc = InitPhi(**inputs)
         proc.initialize()
@@ -28,6 +25,7 @@ class TestInitPhiGrpMapping:
 
     def test_can_init(self, counts_coords):
         inputs = {
+            'vertex': counts_coords['vertex'],
             'age_group': counts_coords['age_group'],
             'risk_group': counts_coords['risk_group'],
         }
