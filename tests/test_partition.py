@@ -6,7 +6,7 @@ import yaml
 import xarray as xr
 import xsimlab as xs
 
-from episimlab.partition import toy
+from episimlab.partition import toy, partition
 from episimlab.models import basic
 from episimlab.setup import epi
 
@@ -149,3 +149,50 @@ class TestSixteenComptToy:
         output_vars = {'apply_counts_delta__counts': 'step'}
         result = self.run_model(model, step_clock, input_vars, output_vars)
         assert isinstance(result, xr.Dataset)
+
+
+class TestPartitioning:
+    """
+    Check that refactored partitioning generates expected results
+    """
+
+    def test_partitioning(self, legacy_results, counts_coords_simple):
+        inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
+        inputs.update({
+            'age_group': counts_coords_simple['age_group'],
+            'risk_group': counts_coords_simple['risk_group']
+        })
+        proc = partition.Partition(**inputs)
+        proc.initialize()
+
+        tc_final = pd.read_csv(legacy_results['tc_final_fp'], index_col=None)
+        phi = np.load(legacy_results['phi_fp'])
+
+        # test against legacy
+        pd.testing.assert_frame_equal(proc.contact_partitions, tc_final)
+        np.testing.assert_array_almost_equal(proc.contact_mat, phi)
+
+    def test_workflow(self, to_phi_da, legacy_results, counts_coords_simple):
+        inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
+        inputs.update({
+            'age_group': counts_coords_simple['age_group'],
+            'risk_group': counts_coords_simple['risk_group']
+        })
+        proc = partition.Partition(**inputs)
+        proc.initialize()
+
+        # construct a DataArray from legacy phi
+        phi = to_phi_da(legacy_results['phi_fp'])
+
+        # sort each coordinate
+        # this just changes assert_allclose to be agnostic to order of coords
+        def sort_coords(da):
+            for dim in da.dims:
+                da = da.sortby(dim)
+            return da
+
+        # rename test output to have legacy coordinate names
+        test_phi_xr = proc.contact_xr.rename(
+            {'age_i': 'age_group1', 'age_j': 'age_group2', 'vertex_i': 'vertex1', 'vertex_j': 'vertex2'}
+        )
+        xr.testing.assert_allclose(sort_coords(test_phi_xr), sort_coords(phi))
