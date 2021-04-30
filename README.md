@@ -43,6 +43,9 @@ pip install "dask[distributed]" "dask[dataframe]"
 4. Install the Episimlab package using pip:
 ```bash
 pip install .
+
+# Alternatively, run the setup.py
+python setup.py install
 ```
 
 ### Install GNU GSL
