@@ -1,3 +1,4 @@
+import logging
 import pytest
 import os
 import pandas as pd
@@ -5,8 +6,9 @@ import numpy as np
 import yaml
 import xarray as xr
 import xsimlab as xs
+from itertools import product
 
-from episimlab.partition import toy
+from episimlab.partition import toy, from_travel
 from episimlab.models import basic
 from episimlab.setup import epi
 
@@ -14,6 +16,11 @@ from episimlab.setup import epi
 @pytest.fixture
 def model():
     return basic.toy_partition()
+
+
+@pytest.fixture
+def step_delta():
+    return np.timedelta64(144, 'm')
 
 
 @pytest.fixture
@@ -39,9 +46,20 @@ def to_phi_da():
 
 
 @pytest.fixture
-def counts_coords_simple(request):
+def phi_grp_mapping(counts_coords_toy):
+    dims = ['vertex', 'age_group', 'risk_group']
+    c = {k: v for k, v in counts_coords_toy.items() if k in dims}
+    shape = [len(c[dim]) for dim in dims]
+    data = range(np.product(shape))
+    arr = np.array(data).reshape(shape)
+    da = xr.DataArray(data=arr, dims=list(c.keys()), coords=c)
+    return da
+
+
+@pytest.fixture
+def counts_coords_toy():
     return {
-        'vertex': ['A', 'B', 'C'],
+        'vertex': ['A', 'B'],
         'age_group': ['young', 'old'],
         'risk_group': ['low', 'high'],
         'compartment': ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
@@ -88,15 +106,18 @@ class TestToyPartitioning:
         pd.testing.assert_frame_equal(proc.tc_final, tc_final)
         np.testing.assert_array_almost_equal(proc.phi_ndarray, phi)
 
-    def test_with_methods(self, to_phi_da, legacy_results, counts_coords_simple):
+    def test_with_methods(self, to_phi_da, legacy_results, counts_coords_toy,
+                          phi_grp_mapping, step_delta):
         inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
-            'age_group': counts_coords_simple['age_group'],
-            'risk_group': counts_coords_simple['risk_group'],
-            'vertex': counts_coords_simple['vertex']
+            'age_group': counts_coords_toy['age_group'],
+            'risk_group': counts_coords_toy['risk_group'],
+            'vertex': counts_coords_toy['vertex'],
+            'phi_grp_mapping': phi_grp_mapping
         })
-        proc = toy.WithMethods(**inputs)
+        proc = toy.SetupPhiWithToyPartitioning(**inputs)
         proc.initialize()
+        proc.run_step(step_delta=step_delta)
         tc_final = pd.read_csv(legacy_results['tc_final_fp'], index_col=None)
 
         # construct a DataArray from legacy phi
@@ -111,7 +132,48 @@ class TestToyPartitioning:
             for dim in da.dims:
                 da = da.sortby(dim)
             return da
-        xr.testing.assert_allclose(sort_coords(proc.phi), sort_coords(phi))
+        xr.testing.assert_allclose(sort_coords(proc.phi4d), sort_coords(phi))
+
+        # ensure that phi4d and phi_t really have the same data
+        pgm = proc.phi_grp_mapping
+        pgm_coords = [proc.phi_grp_mapping.coords[k].values for k in pgm.dims]
+        for v1, a1, r1, v2, a2, r2 in product(*pgm_coords * 2):
+            pg1 = int(pgm.loc[{'vertex': v1, 'age_group': a1, 'risk_group': r1}])
+            pg2 = int(pgm.loc[{'vertex': v2, 'age_group': a2, 'risk_group': r2}])
+            res4d = proc.phi4d.loc[{
+                'vertex1': v1,
+                'vertex2': v2,
+                'age_group1': a1,
+                'age_group2': a2,
+            }]
+            res2d = proc.phi_t.loc[{'phi_grp1': pg1, 'phi_grp2': pg2}]
+            assert res4d == res2d
+
+    def test_consistent_with_xarray(self, to_phi_da, legacy_results, step_delta,
+                                    counts_coords_toy, phi_grp_mapping):
+        """Is the xarray implementation consistent with the original one that uses
+        pandas dataframes?
+        """
+        inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
+        inputs.update({
+            'age_group': counts_coords_toy['age_group'],
+            'risk_group': counts_coords_toy['risk_group'],
+            'vertex': counts_coords_toy['vertex'],
+            'phi_grp_mapping': phi_grp_mapping
+        })
+
+        # run reference process
+        ref_proc = toy.SetupPhiWithToyPartitioning(**inputs)
+        ref_proc.initialize()
+        ref_proc.run_step(step_delta=step_delta)
+
+        # run test process (the xarray implementation)
+        test_proc = from_travel.SetupPhiWithPartitioning(**inputs)
+        test_proc.initialize()
+        test_proc.run_step(step_delta=step_delta)
+
+        # assert equality
+        xr.testing.assert_allclose(ref_proc.phi_t, test_proc.phi_t)
 
 
 class TestSixteenComptToy:
@@ -137,14 +199,16 @@ class TestSixteenComptToy:
     ])
     def test_can_run_model(self, epis, model, counts_basic,
                            step_clock, config_fp):
-        # TODO: replicate SEIR_Example config, e.g. via ReadToyPartitionConfig
         # TODO: update step clock from config
         input_vars = {
             'read_config__config_fp': config_fp,
             'rng__seed_entropy': 12345,
             'sto__sto_toggle': -1,
             'setup_coords__n_age': 2,
-            'setup_coords__n_nodes': 2
+            'setup_coords__n_nodes': 2,
+            'setup_coords__n_risk': 1,
+            'setup_phi__travel_fp': './tests/data/partition_capture/travel0.csv',
+            'setup_phi__contacts_fp': './tests/data/partition_capture/contacts0.csv',
         }
         output_vars = {'apply_counts_delta__counts': 'step'}
         result = self.run_model(model, step_clock, input_vars, output_vars)

@@ -14,12 +14,13 @@ class InitPhiGrpMapping:
     """
     DIMS = ('vertex', 'age_group', 'risk_group')
 
-    age_group = xs.foreign(InitDefaultCoords, 'age_group', intent='in')
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group', intent='in')
-    vertex = xs.foreign(InitDefaultCoords, 'vertex', intent='in')
-    phi_grp1 = xs.index(dims=('phi_grp1'))
-    phi_grp2 = xs.index(dims=('phi_grp2'))
-    phi_grp_mapping = xs.variable(dims=DIMS, static=True, intent='out')
+    age_group = xs.global_ref('age_group')
+    risk_group = xs.global_ref('risk_group')
+    vertex = xs.global_ref('vertex')
+    phi_grp1 = xs.index(dims=('phi_grp1'), global_name='phi_grp1')
+    phi_grp2 = xs.index(dims=('phi_grp2'), global_name='phi_grp2')
+    phi_grp_mapping = xs.variable(dims=DIMS, static=True, intent='out',
+                                  global_name='phi_grp_mapping')
 
     def initialize(self):
         self.COORDS = {k: getattr(self, k) for k in self.DIMS}
@@ -47,13 +48,13 @@ class InitPhi:
     phi_grp2 = xs.foreign(InitPhiGrpMapping, 'phi_grp2', intent='in')
     phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
     phi = xs.variable(dims=DIMS, static=True, intent='out')
-    phi_t = xs.variable(dims=DIMS, intent='out')
+    phi_t = xs.variable(dims=DIMS, intent='out', global_name='phi_t')
 
     def initialize(self):
         # coords = ((dim, getattr(self, dim)) for dim in self.DIMS)
         self.COORDS = {k: getattr(self, k) for k in self.DIMS}
         # TODO
-        data = 0.75
+        data = 1.
         self.phi = xr.DataArray(data=data, dims=self.DIMS, coords=self.COORDS)
         self.phi_t = self.phi
 

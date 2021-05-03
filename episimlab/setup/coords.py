@@ -8,10 +8,10 @@ class InitDefaultCoords:
     in the counts array (except time).
     """
 
-    age_group = xs.index(groups=['coords'], dims='age_group')
-    risk_group = xs.index(groups=['coords'], dims='risk_group')
-    compartment = xs.index(groups=['coords'], dims='compartment')
-    vertex = xs.index(groups=['coords'], dims='vertex')
+    age_group = xs.index(dims='age_group', global_name='age_group')
+    risk_group = xs.index(dims='risk_group', global_name='risk_group')
+    compartment = xs.index(dims='compartment', global_name='compartment')
+    vertex = xs.index(dims='vertex', global_name='vertex')
 
     def initialize(self):
         self.age_group = ['0-4', '5-17', '18-49', '50-64', '65+']

@@ -320,8 +320,8 @@ def config_fp(tmpdir):
 @pytest.fixture()
 def symp_h_ratio_w_risk(counts_coords):
     """example_meyers_demo.yaml from SEIRcity v2"""
-    return [[4.02050e-04, 3.09130e-04, 1.90348e-02, 4.11413e-02, 4.87895e-02],
-            [4.02054e-03, 3.09131e-03, 1.90348e-01, 4.11413e-01, 4.87895e-01]]
+    return [[0.0002791, 0.0002146, 0.0132154, 0.0285634, 0.0338733],
+            [0.002791, 0.002146, 0.132154, 0.285634, 0.338733]]
 
 
 @pytest.fixture()

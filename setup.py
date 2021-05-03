@@ -49,7 +49,7 @@ def get_gsl_config():
 
 # Initialize variables
 repo_url = 'https://github.com/eho-tacc/episimlab'
-pkg_dir = 'src/episimlab'
+pkg_dir = 'episimlab'
 
 # Determines whether to cythonize extensions or compile from *.c
 # TODO: populate from command line option
@@ -73,16 +73,16 @@ gsl_lib = dict(language='c',
                library_dirs=[os.path.join(gsl_config['prefix'], 'lib')])
 extensions = [
     Extension('episimlab.cy_utils.cy_utils',
-              sources=[f"src/episimlab/cy_utils/cy_utils{src_ext}"],
+              sources=[f"episimlab/cy_utils/cy_utils{src_ext}"],
               **gsl_lib),
     Extension('episimlab.network.cython_explicit_travel_engine',
-              sources=[f"src/episimlab/network/cython_explicit_travel_engine{src_ext}"],
+              sources=[f"episimlab/network/cython_explicit_travel_engine{src_ext}"],
               **gsl_lib),
     Extension('episimlab.seir.bf_cython_engine',
-              sources=[f"src/episimlab/seir/bf_cython_engine{src_ext}"],
+              sources=[f"episimlab/seir/bf_cython_engine{src_ext}"],
               **gsl_lib),
     Extension('episimlab.foi.bf_cython_engine',
-              sources=[f"src/episimlab/foi/bf_cython_engine.pyx"],
+              sources=[f"episimlab/foi/bf_cython_engine.pyx"],
               **gsl_lib)
 
 ]
@@ -135,8 +135,7 @@ setup(
         'Programming Language :: Python :: 3.8',
     ],
     keywords='seir model covid-19',
-    package_dir={'':'src'},
-    packages=find_packages("src", exclude=[]),  # Required
+    packages=["episimlab"],
     package_data={},
     include_package_data=True,
     python_requires='>=3.6, <4',

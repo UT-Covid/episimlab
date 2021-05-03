@@ -1,4 +1,5 @@
 import yaml
+import string
 import xarray as xr
 import xsimlab as xs
 import pandas as pd
@@ -8,7 +9,7 @@ from itertools import product
 from ..setup.coords import InitDefaultCoords
 from .implicit_node import (
     partition_contacts, contact_matrix, probabilistic_partition)
-from ..utils import get_var_dims
+from ..utils import get_var_dims, get_int_per_day
 from .. import (foi, seir)
 from ..setup import (seed, counts, coords, sto)
 
@@ -28,28 +29,73 @@ class NaiveMigration:
         # Call functions from SEIR_Example
         self.tc_final = partition_contacts(self.travel, self.contacts,
                                            daily_timesteps=daily_timesteps)
-        self.phi = contact_matrix(self.tc_final)
-        self.phi_ndarray = self.phi.values
+        self.phi4d = contact_matrix(self.tc_final)
+        self.phi_ndarray = self.phi4d.values
 
 
 @xs.process
-class WithMethods(NaiveMigration):
+class SetupPhiWithToyPartitioning(NaiveMigration):
+    PHI_DIMS = ('phi_grp1', 'phi_grp2')
 
-    age_group = xs.foreign(InitDefaultCoords, 'age_group')
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
-    vertex = xs.foreign(InitDefaultCoords, 'vertex')
+    age_group = xs.global_ref('age_group')
+    risk_group = xs.global_ref('risk_group')
+    vertex = xs.global_ref('vertex')
+
+    phi_grp_mapping = xs.global_ref('phi_grp_mapping')
+    phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
 
     def initialize(self):
+        self.phi_grp1 = self.phi_grp2 = range(self.phi_grp_mapping.size)
+        self.PHI_COORDS = {k: getattr(self, k) for k in self.PHI_DIMS}
+
         # Load dataframes
         self.travel = pd.read_csv(self.travel_fp)
         self.contacts = pd.read_csv(self.contacts_fp)
-        daily_timesteps = 10
+
+    @xs.runtime(args='step_delta')
+    def run_step(self, step_delta):
+        # Get interval per day
+        self.int_per_day = get_int_per_day(step_delta)
 
         # Call functions from SEIR_Example
         self.tc_final = self.partition_contacts(self.travel, self.contacts,
-                                                daily_timesteps=daily_timesteps)
-        self.phi = self.contact_matrix(self.tc_final)
-        self.phi_ndarray = self.phi.values
+                                                daily_timesteps=self.int_per_day)
+        self.phi4d = self.contact_matrix(self.tc_final)
+        self.phi_t = self.convert_to_phi_grp(self.phi4d)
+        self.phi_ndarray = self.phi4d.values
+
+    def convert_to_phi_grp(self, phi):
+        """Converts 4-D array `arr` used in SEIR_Example to the flattened 2-D
+        phi_t array expected by episimlab.
+        """
+        # initialize 2-D array of zeros
+        da = xr.DataArray(data=0., dims=self.PHI_DIMS, coords=self.PHI_COORDS)
+        # iterate over every unique pair of vertex, age group, risk group
+        for v1, a1, r1, v2, a2, r2 in product(*[self.vertex, self.age_group,
+                                                self.risk_group] * 2):
+            # get phi groups for each set of coords
+            pg1 = self.phi_grp_mapping.loc[{
+                'vertex': v1,
+                'age_group': a1,
+                'risk_group': r1,
+            }]
+            pg2 = self.phi_grp_mapping.loc[{
+                'vertex': v2,
+                'age_group': a2,
+                'risk_group': r2,
+            }]
+            # assign value
+            value = phi.loc[{
+                'vertex1': v1,
+                'vertex2': v2,
+                'age_group1': a1,
+                'age_group2': a2,
+            }]
+            da.loc[{
+                'phi_grp1': int(pg1),
+                'phi_grp2': int(pg2),
+            }] = value
+        return da
 
     def partition_contacts(self, travel, contacts, daily_timesteps):
         tr_partitions = probabilistic_partition(travel, daily_timesteps)
@@ -127,14 +173,15 @@ class InitCoords(coords.InitDefaultCoords):
 
     n_age = xs.variable(dims=(), intent='in')
     n_nodes = xs.variable(dims=(), intent='in')
+    n_risk = xs.variable(dims=(), intent='in')
 
     def initialize(self):
-        self.age_group = range(self.n_age)
-        self.risk_group = [0]
+        self.age_group = ['young', 'old']
+        self.risk_group = range(self.n_risk)
         self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
                             'Py2Iy', 'Iy2Ih', 'H2D']
-        self.vertex = range(self.n_nodes)
+        self.vertex = list(string.ascii_uppercase)[:self.n_nodes]
 
 
 @xs.process

@@ -12,10 +12,10 @@ class InitDefaultCounts:
     COUNTS_DIMS = ApplyCountsDelta.COUNTS_DIMS
 
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='out')
-    age_group = xs.foreign(InitDefaultCoords, 'age_group')
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
-    compartment = xs.foreign(InitDefaultCoords, 'compartment')
-    vertex = xs.foreign(InitDefaultCoords, 'vertex')
+    age_group = xs.global_ref('age_group')
+    risk_group = xs.global_ref('risk_group')
+    compartment = xs.global_ref('compartment')
+    vertex = xs.global_ref('vertex')
 
     def initialize(self):
         self.counts = self.realistic_counts_basic()

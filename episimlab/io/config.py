@@ -34,9 +34,9 @@ class ReadV1Config:
     }
 
     config_fp = xs.variable(static=True, intent='in')
-    age_group = xs.foreign(coords.InitDefaultCoords, 'age_group', intent='in')
-    risk_group = xs.foreign(coords.InitDefaultCoords, 'risk_group', intent='in')
-    # vertex = xs.foreign(coords.InitDefaultCoords, 'vertex', intent='in')
+    age_group = xs.global_ref('age_group')
+    risk_group = xs.global_ref('risk_group')
+    # vertex = xs.global_ref('vertex')
 
     seed_entropy = xs.foreign(KEYS_MAPPING['seed_entropy'], 'seed_entropy',
                               intent='out')
