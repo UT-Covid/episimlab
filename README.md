@@ -60,6 +60,10 @@ python setup.py install
     # Check that gsl-config is in the $PATH
     gsl-config
     ```
+    * To install on Ubuntu, use `apt-get`:
+    ```bash
+    apt-get install libgsl-dev
+    ```
     * To install GSL 2.6 from source (for most Linux distributions):
     ```bash
     wget -O gsl-2.6.tar.gz ftp://ftp.gnu.org/gnu/gsl/gsl-2.6.tar.gz
