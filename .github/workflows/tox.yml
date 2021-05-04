@@ -1,4 +1,4 @@
-name: Docker publish
+name: Run tox tests
 
 on:
   push:
