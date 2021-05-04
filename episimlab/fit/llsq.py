@@ -10,33 +10,31 @@ import xsimlab as xs
 from xsimlab.model import Model
 
 
-def get_ll_data() -> xr.DataArray:
-    data = 0.
-    da = xr.DataArray(
-        data=data,
-        dims=list(),
-        coords={
-            
-        }
-    )
+def get_ih_actual() -> xr.DataArray:
+    # data = 0.
+    # da = xr.DataArray(
+    #     data=data,
+    #     dims=list(),
+    #     coords={
+    #         'step'
+    #     }
+    # )
+    return 0.
 
 
 def fit_llsq():
-    # result = run_toy_model()
-    ll_data = get_ll_data()
-    soln_full = least_squares(
+    soln = least_squares(
         fun=run_toy_model,
         x0=0.035,
         # x_scale=x_scale,
         xtol=1e-8,  # default
         # bounds=bounds,
-        # args=(ll_data)
+        args=(get_ih_actual(),)
     )
+    return soln
 
-    return result
 
-
-def run_toy_model(dep_vars) -> float:
+def run_toy_model(dep_vars, ih_actual) -> float:
     beta = dep_vars[0]
 
     # get config
@@ -60,5 +58,17 @@ def run_toy_model(dep_vars) -> float:
     )
     # with ResourceProfiler(dt=1.) as rprof:
     out_ds = in_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
-    breakpoint()
-    return out_ds
+
+    # Pull out counts of Ih compartment over time
+    ih_pred = (out_ds
+                 .apply_counts_delta__counts
+                 .loc[dict(compartment='Ih')]
+                 .sum(dim=['age_group', 'risk_group', 'vertex']))
+    assert len(ih_pred.shape) == 1, (ih_pred.shape, "!= 1")
+    assert 'step' in ih_pred.dims, f"'step' is not in {ih_pred.dims}"
+
+    # Calculate residual
+    resi = ih_pred - ih_actual
+    
+    # breakpoint()
+    return resi
