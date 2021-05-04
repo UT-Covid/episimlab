@@ -124,9 +124,14 @@ _Work in progress_
 
 ## Testing
 
-1. Follow the above [installation instructions](#installation)
-2. Install test dependencies with `pip install pytest pytest-xdist`
-3. From the root of the repository: `make pytest`
-4. Alternatively invoke pytest directly: `python -m pytest ./tests`
+Preferred testing environment runs poetry virtual env within tox.
+1. Install [tox](https://tox.readthedocs.io/) and [poetry](https://python-poetry.org/)
+2. Run tox from repository root:
+```bash
+# Default args
+tox
+# Pass args to pytest. In this case, we use 4-thread parallelism to run only the test_setup suite
+tox -- -n 4 tests/test_setup
+```
 
 [1]: https://www.gnu.org/software/gsl/
