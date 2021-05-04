@@ -61,3 +61,7 @@ class TestToyModels:
         if 'foi__foi' in result:
             foi_init = result['foi__foi'][dict(step=1)].sum()
             assert foi_init > 1e-8
+
+        # check that no phi_grp dims are in the final output dataset (see #4)
+        assert not any('phi_grp' in dim for dim in result.dims), \
+            (result.dims, "dims contain phi groups")
