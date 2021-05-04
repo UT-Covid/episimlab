@@ -32,6 +32,9 @@ jobs:
         run: python -m pip install -q poetry tox
       - name: Check that gsl-config is in the $PATH
         run: gsl-config --version
-      - name: Run tox tests
-        run: |
-          tox --
+      - name: Run all tox tests
+        if: github.event_name != 'pull_request'
+        run: tox --
+      - name: Run tox tests (fast only)
+        if: github.event_name == 'pull_request'
+        run: tox -- '-k not slow'
