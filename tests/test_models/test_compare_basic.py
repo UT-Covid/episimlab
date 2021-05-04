@@ -23,6 +23,7 @@ VERBOSE = False
 class TestCompareBasicModels:
 
     # @plotter(flavor='mpl', plotter_kwargs=dict())
+    @pytest.mark.slow
     @pytest.mark.parametrize('foi1, seir1', [
         # Python SEIR and FOI
         (foi_bf.BruteForceFOI, seir_bf.BruteForceSEIR),
