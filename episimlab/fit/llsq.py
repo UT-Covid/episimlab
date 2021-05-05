@@ -17,7 +17,6 @@ class LeastSqFitter:
     """Wrapper class for running episimlab models with
     scipy.optimize.least_squares
     """
-
     model = attr.ib(type=Model, repr=True)
     step_clock = attr.ib(type=DatetimeIndex, repr=True)
     data = attr.ib(type=xr.DataArray, repr=False)
@@ -28,8 +27,8 @@ class LeastSqFitter:
 
     def fit(self):
         self.soln = least_squares(
-            fun=run_toy_model,
-            x0=0.035,
+            fun=self.calc_residual,
+            x0=self.guess,
             # x_scale=x_scale,
             xtol=1e-8,
             verbose=2,
@@ -38,6 +37,45 @@ class LeastSqFitter:
             **self.ls_kwargs
         )
         return self.soln
+    
+    def calc_residual(self, dep_vars, ih_actual) -> float:
+        beta = dep_vars[0]
+
+        # get config
+        config_fp = os.path.join(EPISIMLAB_HOME, 'tests', 'config', 'example_v1.yaml')
+        assert os.path.isfile(config_fp)
+
+        # run model
+        model = basic_models.cy_seir_cy_foi().drop_processes(['setup_beta'])
+        in_ds = xs.create_setup(
+            model=model,
+            clocks={
+                'step': pd.date_range(start='2/1/2020', end='4/1/2020', freq='12H')
+            },
+            input_vars={
+                'read_config__config_fp': config_fp,
+                'foi__beta': beta
+            },
+            output_vars={
+                'apply_counts_delta__counts': 'step'
+            }
+        )
+        # with ResourceProfiler(dt=1.) as rprof:
+        out_ds = in_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
+
+        # Pull out counts of Ih compartment over time
+        ih_pred = (out_ds 
+                .apply_counts_delta__counts 
+                .loc[dict(compartment='Ih')] 
+                .sum(dim=['age_group', 'risk_group', 'vertex']))
+        assert len(ih_pred.shape) == 1, (ih_pred.shape, "!= 1")
+        assert 'step' in ih_pred.dims, f"'step' is not in {ih_pred.dims}"
+
+        # Calculate residual
+        resi = ih_pred - ih_actual
+        
+        # breakpoint()
+        return resi
 
 
 
