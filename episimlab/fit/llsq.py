@@ -20,14 +20,14 @@ class LeastSqFitter:
     model = attr.ib(type=Model, repr=True)
     step_clock = attr.ib(type=DatetimeIndex, repr=True)
     data = attr.ib(type=xr.DataArray, repr=False)
+    guess = attr.ib(type=float, repr=True)
     dep_var = attr.ib(type=str, default='beta', repr=True)
-    guess = attr.ib(type=float, default=0., repr=True)
     # extra kwargs to pass to least_squares
     ls_kwargs = attr.ib(type=dict, default=attr.Factory(dict), repr=False)
 
     def fit(self):
         self.soln = least_squares(
-            fun=self.calc_residual,
+            fun=run_toy_model,
             x0=self.guess,
             # x_scale=x_scale,
             xtol=1e-8,
@@ -95,16 +95,8 @@ def fit_llsq():
     data = get_ih_actual()
     model = basic_models.cy_seir_cy_foi().drop_processes(['setup_beta'])
     step_clock = pd.date_range(start='2/1/2020', end='4/1/2020', freq='12H')
-    fitter = LeastSqFitter(model=model, step_clock=step_clock, data=data)
-    soln = least_squares(
-        fun=run_toy_model,
-        x0=0.035,
-        # x_scale=x_scale,
-        xtol=1e-8,  # default
-        verbose=2,
-        # bounds=bounds,
-        args=(get_ih_actual(),)
-    )
+    fitter = LeastSqFitter(model=model, step_clock=step_clock, data=data, guess=0.035)
+    soln = fitter.fit()
     return soln
 
 
