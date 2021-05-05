@@ -27,7 +27,7 @@ class LeastSqFitter:
 
     def fit(self):
         self.soln = least_squares(
-            fun=run_toy_model,
+            fun=self.calc_residual,
             x0=self.guess,
             # x_scale=x_scale,
             xtol=1e-8,
