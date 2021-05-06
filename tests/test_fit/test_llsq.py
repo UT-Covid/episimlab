@@ -31,14 +31,17 @@ def fitter(default_model):
 
 class TestLeastSqFitters:
 
+    @pytest.mark.slow
     def test_can_fit_cumsum(self, fitter):
-        """Can fit hospital incidences. Primary use case.
+        """Can fit heads in beds incidences. Primary use case.
         """
         fitter.ls_kwargs = dict(xtol=1e-3)
         soln = fitter.run()
 
         assert isinstance(soln, OptimizeResult)
         assert soln['success']
+        print(f"RMSD: {fitter.rmsd}")
+        print(f"Fitted params: {fitter.soln['x']}")
    
     def test_converges_zero(self, fitter):
         """Set Ih compartment to zero for entire simulation, and check that beta

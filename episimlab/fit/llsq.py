@@ -2,6 +2,7 @@
 
 import os
 import attr
+import numpy as np
 import xarray as xr
 import pandas as pd
 from pandas.core.indexes.datetimes import DatetimeIndex
@@ -15,12 +16,13 @@ from xsimlab.model import Model
 
 @attr.s
 class FitBetaFromHospHeads:
-    """
+    """Fits global transmission parameter `beta` based on predicted vs actual
+    (provided) counts of Ih (hospitalized) compartment. Uses
+    scipy.optimize.least_squares.
     """
     model = attr.ib(type=Model)
     data_fp = attr.ib(type=str, default='tests/data/ll_hosp_cumsum.csv')
     guess = attr.ib(type=float, default=0.035)
-
     config_fp = attr.ib(
         type=str, repr=True,
         default=os.path.join(EPISIMLAB_HOME, 'tests', 'config', 'example_v1.yaml'))
@@ -55,9 +57,6 @@ class FitBetaFromHospHeads:
 
         # set vertex_labels same as passed data
         self.vertex_labels = self.data.coords['vertex']
-
-        # sum data over vertex axis
-        self.data = self.data.sum('vertex')
 
         # set step_clock to the same daterange in the passed data
         self.step_clock = self.data.coords['step']
@@ -101,11 +100,35 @@ class FitBetaFromHospHeads:
                    .get_out_ds() 
                    .apply_counts_delta__counts 
                    .loc[dict(compartment='Ih')] 
-                   .sum(dim=['age_group', 'risk_group', 'vertex']))
-        assert len(ih_pred.shape) == 1, (ih_pred.shape, "!= 1")
+                   .sum(dim=['age_group', 'risk_group']))
+        assert len(ih_pred.shape) == 2, (ih_pred.shape, "!= 2")
         assert 'step' in ih_pred.dims, f"'step' is not in {ih_pred.dims}"
 
         # Calculate residual
-        resi = self.data - ih_pred
+        resi = abs((self.data - ih_pred).sum())
         # breakpoint()
         return resi
+    
+    # ---------------------------- Analyze Fit ---------------------------------
+    
+    def get_soln(self):
+        if hasattr(self, 'soln'):
+            return self.soln
+        else:
+            raise Exception(f"{self.__class__.__name__} has no attribute `soln`. "
+                            "Please run method `fit` first.")
+
+    @property
+    def final_error(self) -> float:
+        return self.get_soln()['fun']
+
+    @property
+    def rmsd(self) -> float:
+        """Root mean squared deviation for time series"""
+        return np.sqrt(sum(i**2 for i in self.final_error)/len(self.final_error))
+
+    @property
+    def nrmsd(self) -> float:
+        """Root mean squared deviation normalized to data range"""
+        return NotImplemented
+        return rmsd/(max(data) - min(data))
