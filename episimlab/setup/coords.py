@@ -20,3 +20,17 @@ class InitDefaultCoords:
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
                             'Py2Iy', 'Iy2Ih', 'H2D']
         self.vertex = range(3)
+
+
+@xs.process
+class InitCoordsExpectVertex(InitDefaultCoords):
+    """InitDefaultCoords but allows user to pass `vertex_labels`."""
+    vertex_labels = xs.variable(dims='vertex', intent='in')
+
+    def initialize(self):
+        self.age_group = ['0-4', '5-17', '18-49', '50-64', '65+']
+        self.risk_group = ['low', 'high']
+        self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
+                            'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
+                            'Py2Iy', 'Iy2Ih', 'H2D']
+        self.vertex = self.vertex_labels

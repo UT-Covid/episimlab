@@ -7,6 +7,7 @@ import pandas as pd
 from pandas.core.indexes.datetimes import DatetimeIndex
 from scipy.optimize import least_squares
 from episimlab import EPISIMLAB_HOME
+from episimlab.setup.coords import InitCoordsExpectVertex
 from episimlab.models import basic as basic_models
 import xsimlab as xs
 from xsimlab.model import Model
@@ -28,10 +29,15 @@ class FitBetaFromHospHeads:
     ls_kwargs = attr.ib(type=dict, default=attr.Factory(dict), repr=False)
 
     @model.default
-    def get_default_model(self):
+    def get_default_model(self) -> Model:
         """Generate default value for attrib `model`."""
-        return basic_models.cy_seir_cy_foi().drop_processes(['setup_beta'])
-    
+        model = (basic_models 
+                 .cy_seir_cy_foi() 
+                 .drop_processes(['setup_beta'])
+                 .update_processes({'setup_coords': InitCoordsExpectVertex})
+        )
+        return model
+
     def get_data(self) -> xr.DataArray:
         """Loads hospitalization event data from CSV at `data_fp`.
         Returns the Series as a DataArray, setting to attr `data`.
@@ -41,15 +47,17 @@ class FitBetaFromHospHeads:
               .rename(columns={'date': 'step', 'zip_code': 'vertex'}))
         df['step'] = pd.to_datetime(df['step'], format="%Y-%m-%d")
         df.set_index(['vertex', 'step'], inplace=True)
-        self.data = (xr
-                     .DataArray
-                     .from_series(df['cumsum'])
-                     # sum over vertices (zip codes)
-                     .sum('vertex'))
+        self.data = xr.DataArray.from_series(df['cumsum'])
         return self.data
 
     def run(self):
         self.get_data()
+
+        # set vertex_labels same as passed data
+        self.vertex_labels = self.data.coords['vertex']
+
+        # sum data over vertex axis
+        self.data = self.data.sum('vertex')
 
         # set step_clock to the same daterange in the passed data
         self.step_clock = self.data.coords['step']
@@ -72,7 +80,8 @@ class FitBetaFromHospHeads:
             clocks={'step': self.step_clock},
             input_vars={
                 'read_config__config_fp': self.config_fp,
-                'foi__beta': self.xvars[0]
+                'foi__beta': self.xvars[0],
+                'setup_coords__vertex_labels': self.vertex_labels
             },
             output_vars={'apply_counts_delta__counts': 'step'}
         )
