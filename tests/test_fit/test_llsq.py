@@ -1,3 +1,4 @@
+import os
 import pytest
 import numpy as np
 import pandas as pd
@@ -20,10 +21,16 @@ def default_model():
 
 
 @pytest.fixture
-def fitter(default_model):
+def config_fp():
+    return os.path.join('tests', 'config', 'example_v1.yaml')
+
+
+@pytest.fixture
+def fitter(default_model, config_fp):
     """Returns instantiated fitter"""
     return FitBetaFromHospHeads(
         model=default_model,
+        config_fp=config_fp,
         guess=0.035, 
         verbosity=2,
         ls_kwargs=dict(xtol=1e-3)
