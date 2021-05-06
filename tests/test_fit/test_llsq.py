@@ -34,7 +34,7 @@ class TestLeastSqFitters:
     def test_can_fit_cumsum(self, fitter):
         """Can fit hospital incidences. Primary use case.
         """
-        fitter.ls_kwargs = dict(xtol=1e-6)
+        fitter.ls_kwargs = dict(xtol=1e-3)
         soln = fitter.run()
 
         assert isinstance(soln, OptimizeResult)
