@@ -16,13 +16,10 @@ from xsimlab.model import Model
 class FitBetaFromHospHeads:
     """
     """
-    data_fp = attr.ib(type=str)
     model = attr.ib(type=Model)
+    data_fp = attr.ib(type=str, default='tests/data/ll_hosp_cumsum.csv')
     guess = attr.ib(type=float, default=0.035)
 
-    step_clock = attr.ib(
-        type=DatetimeIndex, repr=False,
-        default=pd.date_range(start='2/1/2020', end='4/1/2020', freq='12H'))
     config_fp = attr.ib(
         type=str, repr=True,
         default=os.path.join(EPISIMLAB_HOME, 'tests', 'config', 'example_v1.yaml'))
@@ -37,26 +34,33 @@ class FitBetaFromHospHeads:
     
     def get_data(self) -> xr.DataArray:
         """Loads hospitalization event data from CSV at `data_fp`.
-        Returns the Series as a DataArray.
+        Returns the Series as a DataArray, setting to attr `data`.
         """
-        df = pd.read_csv(self.data_fp, comment='#')
-        df.set_index(['zip_code', 'date'], inplace=True)
-        return xr.DataArray.from_series(df['id']).fillna(0.)
+        df = (pd
+              .read_csv(self.data_fp, comment='#')
+              .rename(columns={'date': 'step', 'zip_code': 'vertex'}))
+        df['step'] = pd.to_datetime(df['step'], format="%Y-%m-%d")
+        df.set_index(['vertex', 'step'], inplace=True)
+        self.data = (xr
+                     .DataArray
+                     .from_series(df['cumsum'])
+                     # sum over vertices (zip codes)
+                     .sum('vertex'))
+        return self.data
 
     def run(self):
-        # get data
-        data = self.get_data()
-        
-        # run fitter
+        self.get_data()
+
+        # set step_clock to the same daterange in the passed data
+        self.step_clock = self.data.coords['step']
+        return self.fit()
+    
+    def fit(self):
+        """Run scipy.optimize.least_squares"""
         self.soln = least_squares(
             fun=self.calc_residual,
             x0=self.guess,
-            # xtol=1e-8,
-            # DEBUG
-            xtol=1e-3,
             verbose=self.verbosity,
-            # args=(data,),
-            # bounds=bounds,
             **self.ls_kwargs
         )
         return self.soln
@@ -93,5 +97,6 @@ class FitBetaFromHospHeads:
         assert 'step' in ih_pred.dims, f"'step' is not in {ih_pred.dims}"
 
         # Calculate residual
-        resi = ih_pred - self.data
+        resi = self.data - ih_pred
+        # breakpoint()
         return resi
