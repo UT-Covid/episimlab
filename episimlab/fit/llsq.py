@@ -5,6 +5,7 @@ import attr
 import numpy as np
 import xarray as xr
 import pandas as pd
+import matplotlib.pyplot as plt
 from pandas.core.indexes.datetimes import DatetimeIndex
 from scipy.optimize import least_squares
 from episimlab import EPISIMLAB_HOME
@@ -106,6 +107,8 @@ class FitBetaFromHospHeads:
 
         # Calculate residual
         resi = abs((self.data - ih_pred).sum())
+        # Save the last ih_pred
+        self.data_pred = ih_pred
         # breakpoint()
         return resi
     
@@ -117,6 +120,10 @@ class FitBetaFromHospHeads:
         else:
             raise Exception(f"{self.__class__.__name__} has no attribute `soln`. "
                             "Please run method `fit` first.")
+    
+    @property
+    def success(self):
+        return self.get_soln()['success']
 
     @property
     def final_error(self) -> float:
@@ -132,3 +139,11 @@ class FitBetaFromHospHeads:
         """Root mean squared deviation normalized to data range"""
         return NotImplemented
         return rmsd/(max(data) - min(data))
+    
+    def plot(self):
+        """Plots actual vs modeled data using matplotlib."""
+        assert self.success
+        ds = self.data.to_dataset(name='actual')
+        ds['pred'] = self.data_pred
+        plot = ds.plot.scatter(x='actual', y='pred')
+        return plot

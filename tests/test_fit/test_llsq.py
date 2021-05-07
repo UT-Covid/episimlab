@@ -49,6 +49,10 @@ class TestLeastSqFitters:
         assert soln['success']
         print(f"RMSD: {fitter.rmsd}")
         print(f"Fitted params: {fitter.soln['x']}")
+
+        # can fit
+        plot = fitter.plot()
+        # breakpoint()
    
     def test_converges_zero(self, fitter):
         """Set Ih compartment to zero for entire simulation, and check that beta
