@@ -34,12 +34,12 @@ class InitDefaultCounts:
             coords={dim: getattr(self, dim) for dim in self.COUNTS_DIMS}
         )
         # Houston
-        da.loc[dict(vertex=0, compartment='S')] = 2.326e6 / 10.
+        da[dict(vertex=0)].loc[dict(compartment='S')] = 2.326e6 / 10.
         # Austin
-        da.loc[dict(vertex=1, compartment='S')] = 1e6 / 10.
+        da[dict(vertex=1)].loc[dict(compartment='S')] = 1e6 / 10.
         # Beaumont
-        da.loc[dict(vertex=2, compartment='S')] = 1.18e5 / 10.
+        da[dict(vertex=2)].loc[dict(compartment='S')] = 1.18e5 / 10.
         # Start with 50 infected asymp in Austin
-        da.loc[dict(vertex=1, compartment='Ia')] = 50.
+        da[dict(vertex=1)].loc[dict(compartment='Ia')] = 50.
 
         return da

@@ -1,4 +1,5 @@
 # Episimlab
+[![Run tox tests](https://github.com/eho-tacc/episimlab/actions/workflows/tox.yml/badge.svg)](https://github.com/eho-tacc/episimlab/actions/workflows/tox.yml)
 
 Episimlab is a framework for developing epidemiological models in a modular fashion. It provides a set of extensible, separable components that can be combined with user-written components, allowing for rapid development of reproducible disease-modeling pipelines.
 

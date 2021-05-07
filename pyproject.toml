@@ -14,6 +14,7 @@ graphviz = "^0.16"
 xarray = "^0.17.0"
 dask = {extras = ["dataframe", "distributed"], version = "^2021.4.0"} 
 xarray-simlab = { git = "https://github.com/benbovy/xarray-simlab.git", branch = "master" }
+matplotlib = "^3.4.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.3"
