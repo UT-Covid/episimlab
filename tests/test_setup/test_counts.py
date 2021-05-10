@@ -10,9 +10,14 @@ def census_df():
 
 class TestInitCountsFromCensusCSV:
 
-    def test_can_initialize(self, census_df):
+    def test_can_initialize(self, census_df, counts_coords):
         """
         """
-        inputs = dict()
+        inputs = {
+            'vertex': counts_coords['vertex'],
+            'age_group': counts_coords['age_group'],
+            'risk_group': counts_coords['risk_group'],
+            'compartment': counts_coords['compartment'],
+        }
         proc = InitCountsFromCensusCSV(**inputs)
         proc.initialize()
