@@ -11,17 +11,12 @@ def config_fp():
 
 class TestInitDefaultCoords:
 
-    def test_can_initialize(self, counts_basic, phi_grp_mapping, phi_t):
+    def test_can_initialize(self):
         """
         """
         inputs = dict()
         proc = InitDefaultCoords(**inputs)
         proc.initialize()
-        # result = proc.foi
-
-        # logging.debug(f"phi_grp_mapping: {phi_grp_mapping}")
-        # logging.debug(f"result: {result}")
-        # assert isinstance(result, Number)
 
 
 class TestInitCoordsFromConfig:
@@ -32,3 +27,5 @@ class TestInitCoordsFromConfig:
         inputs = dict(config_fp=config_fp)
         proc = InitCoordsFromConfig(**inputs)
         proc.initialize()
+        for dim in ('vertex', 'compartment', 'age_group', 'risk_group'):
+            assert hasattr(proc, dim)

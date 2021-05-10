@@ -45,7 +45,10 @@ class InitCoordsFromConfig(InitDefaultCoords):
     config_fp = xs.variable(static=True, intent='in')
 
     def initialize(self):
-        cfg = self.get_config()
+        coords = self.get_config()['coords']
+        assert isinstance(coords, dict)
+        for dim, coord in coords.items():
+            setattr(self, dim, coord)
     
     def get_config(self) -> dict:
         with open(self.config_fp, 'r') as f:
