@@ -1,3 +1,4 @@
+import yaml
 import xsimlab as xs
 import xarray as xr
 
@@ -34,3 +35,18 @@ class InitCoordsExpectVertex(InitDefaultCoords):
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
                             'Py2Iy', 'Iy2Ih', 'H2D']
         self.vertex = self.vertex_labels
+
+
+@xs.process
+class InitCoordsFromConfig(InitDefaultCoords):
+    """InitDefaultCoords but allows user to pass all coordinates in YAML
+    file at `config_fp`.
+    """
+    config_fp = xs.variable(static=True, intent='in')
+
+    def initialize(self):
+        cfg = self.get_config()
+    
+    def get_config(self) -> dict:
+        with open(self.config_fp, 'r') as f:
+            return yaml.safe_load(f)

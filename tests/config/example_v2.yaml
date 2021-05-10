@@ -18,3 +18,10 @@ tri_py2iy: 2.3
 asymp_rate: 0.43
 t_onset_to_h: 5.9
 tri_y2r_para: [3.0, 4.0, 5.0]
+
+# set coordinates
+coords:
+    vertex: [0, 1, 2]
+    age_group: [0-4, 5-17, 18-49, 50-64, 65+]
+    risk_group: [low, high]
+    compartment: [S, E, Pa, Py, Ia, Iy, Ih, R, D, E2P, E2Py, P2I, Pa2Ia, Py2Iy, Iy2Ih, H2D]
