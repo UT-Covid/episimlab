@@ -1,8 +1,10 @@
+import pandas as pd
 import xsimlab as xs
 import xarray as xr
 from .coords import InitDefaultCoords
 
 from ..apply_counts_delta import ApplyCountsDelta
+
 
 
 @xs.process
@@ -43,3 +45,11 @@ class InitDefaultCounts:
         da[dict(vertex=1)].loc[dict(compartment='Ia')] = 50.
 
         return da
+
+@xs.process
+class InitCountsFromCensusCSV(InitDefaultCounts):
+    """Initializes counts from a census.gov formatted CSV file.
+    """
+    
+    def initialize(self):
+        pass
