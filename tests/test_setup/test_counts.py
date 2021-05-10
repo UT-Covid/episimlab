@@ -5,7 +5,7 @@ from episimlab.setup.counts import InitCountsFromCensusCSV
 
 @pytest.fixture
 def census_df():
-    return pd.read_csv('tests/data/total_pop_zcta_2019.csv')
+    return pd.read_csv('tests/data/2019_zcta_pop_5_age_groups.csv')
 
 
 class TestInitCountsFromCensusCSV:
