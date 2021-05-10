@@ -20,6 +20,7 @@ import pandas as pd
 import numpy as np
 from collections import defaultdict
 
+
 # breaks single defintion rule -- also present in seir.py
 def discrete_time_approx(rate, timestep):
     """
@@ -36,7 +37,13 @@ def load_travel(path):
     Load the number of people traveling between nodes (both implicit and explicit)
     :return:
     """
+
     travel = pd.read_csv(path, header=0)
+    try:
+        travel = travel.rename(columns={'age_src': 'age'})
+    except KeyError:
+        pass
+
     return travel
 
 def load_contact(path):
