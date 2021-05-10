@@ -275,7 +275,7 @@ def stochastic(request):
 def step_clock(request):
     return {
         'step': pd.date_range(
-            start='1/1/2018', end='1/15/2018', freq=request.param
+            start='1/1/2018', end='2/15/2018', freq=request.param
         )
     }
 
