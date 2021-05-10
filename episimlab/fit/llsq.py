@@ -106,11 +106,11 @@ class FitBetaFromHospHeads:
         assert 'step' in ih_pred.dims, f"'step' is not in {ih_pred.dims}"
 
         # Calculate residual
-        resi = abs((self.data - ih_pred).sum())
+        self.resi = (self.data - ih_pred).sum('vertex')
         # Save the last ih_pred
         self.data_pred = ih_pred
         # breakpoint()
-        return resi
+        return self.resi
     
     # ---------------------------- Analyze Fit ---------------------------------
     
