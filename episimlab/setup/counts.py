@@ -46,10 +46,26 @@ class InitDefaultCounts:
 
         return da
 
+
 @xs.process
 class InitCountsFromCensusCSV(InitDefaultCounts):
     """Initializes counts from a census.gov formatted CSV file.
     """
+    census_counts_csv = xs.variable(intent='in')
     
     def initialize(self):
-        pass
+        da = xr.DataArray(
+            data=0.,
+            dims=self.COUNTS_DIMS,
+            coords={dim: getattr(self, dim) for dim in self.COUNTS_DIMS}
+        )
+        da[dict()] = self.read_census_csv()
+        self.counts = da
+    
+    def read_census_csv(self) -> xr.DataArray:
+        df = pd.read_csv(self.census_counts_csv)
+        assert not df.isna().any().any(), ('found null values in df', df.isna().any())
+        df.rename(columns={'GEOID': 'vertex', 'age_bin': 'age_group'}, inplace=True)
+        df.set_index(['vertex', 'age_group'], inplace=True)
+        da = xr.DataArray.from_series(df['group_pop'])
+        return da
