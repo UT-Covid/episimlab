@@ -21,3 +21,6 @@ class TestInitCountsFromCensusCSV:
         }
         proc = InitCountsFromCensusCSV(**inputs)
         proc.initialize()
+        result = proc.counts
+        assert isinstance(result, xr.DataArray)
+        assert set(result.dims) == {'vertex', 'age_group', 'risk_group', 'compartment'}
