@@ -1,12 +1,6 @@
 import xsimlab as xs
 import xarray as xr
-import logging
-from itertools import product
-from numbers import Number
 
-from ..apply_counts_delta import ApplyCountsDelta
-from ..setup.coords import InitDefaultCoords
-from ..setup.phi import InitPhi, InitPhiGrpMapping
 from ..foi.base import BaseFOI
 from .base import BaseSEIR
 from .bf_cython_engine import brute_force_SEIR
@@ -21,7 +15,6 @@ class BruteForceCythonSEIR(BaseSEIR):
     # beta = xs.foreign(BaseFOI, 'beta', intent='in')
     # omega = xs.foreign(BaseFOI, 'omega', intent='in')
     # phi_t = xs.foreign(InitPhi, 'phi_t', intent='in')
-    # phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
 
     foi = xs.foreign(BaseFOI, 'foi', intent='in')
 

@@ -65,7 +65,6 @@ def slow_seir():
     return model.update_processes(dict(
         # Instantiate phi array
         setup_phi=phi.InitPhi,
-        setup_phi_grp_mapping=phi.InitPhiGrpMapping,
         # Force of infection calculation in python
         foi=bf_foi.BruteForceFOI,
         # SEIR engine in python
