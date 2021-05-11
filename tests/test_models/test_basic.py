@@ -30,8 +30,9 @@ class TestToyModels:
 
     @profiler()
     @pytest.mark.parametrize('model', (
-        basic.slow_seir(),
-        basic.slow_seir_cy_foi(),
+        # DEBUG: reenable if test_compare_basic fail
+        # basic.slow_seir(),
+        # basic.slow_seir_cy_foi(),
         basic.cy_seir_cy_foi(),
     ))
     def test_sanity(self, epis, model, input_vars, counts_basic, output_vars,
@@ -61,3 +62,7 @@ class TestToyModels:
         if 'foi__foi' in result:
             foi_init = result['foi__foi'][dict(step=1)].sum()
             assert foi_init > 1e-8
+
+        # check that no phi_grp dims are in the final output dataset (see #4)
+        assert not any('phi_grp' in dim for dim in result.dims), \
+            (result.dims, "dims contain phi groups")
