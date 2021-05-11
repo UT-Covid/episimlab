@@ -24,7 +24,7 @@ def minimum_viable():
 
         # Instantiate coords and counts array
         setup_counts=counts.InitDefaultCounts,
-        setup_coords=coords.InitDefaultCoords,
+        setup_coords=coords.InitCoordsFromConfig,
 
         # Instantiate params that inform epi params
         # setup_asymp_infect=epi.asymp_infect.SetupDefaultAsympInfect,
