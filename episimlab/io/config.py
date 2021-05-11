@@ -15,6 +15,7 @@ class ReadV1Config:
     By default, this is a .yaml file at a filepath defined by input variable
     `config_fp`.
     """
+    IGNORE_KEYS = ('coords', )
     KEYS_MAPPING = {
         'symp_h_ratio_w_risk': epi.SetupStaticPi,
         'seed_entropy': seed.SeedGenerator,
@@ -68,6 +69,8 @@ class ReadV1Config:
     def initialize(self):
         config = self.get_config()
         for name, value in config.items():
+            if name in self.IGNORE_KEYS:
+                continue
             setattr(self, name, self.try_coerce_to_da(value=value, name=name))
 
     def get_config(self) -> dict:
