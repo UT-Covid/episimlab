@@ -7,11 +7,12 @@ from episimlab.setup.phi import InitPhi
 
 class TestInitPhi:
 
-    def test_can_run_step(self, counts_coords, phi_grp_mapping):
+    def test_can_run_step(self, counts_coords):
         inputs = {
-            'phi_grp1': np.arange(10),
-            'phi_grp2': np.arange(10),
-            'phi_grp_mapping': phi_grp_mapping,
+            'vertex': counts_coords['vertex'],
+            'age_group': counts_coords['age_group'],
+            'risk_group': counts_coords['risk_group'],
+            'compartment': counts_coords['compartment'],
         }
         proc = InitPhi(**inputs)
         proc.initialize()
