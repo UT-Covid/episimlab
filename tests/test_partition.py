@@ -8,7 +8,8 @@ import xarray as xr
 import xsimlab as xs
 from itertools import product
 
-from episimlab.partition import toy, from_travel
+
+from episimlab.partition import toy, from_travel, partition
 from episimlab.models import basic
 from episimlab.setup import epi
 
@@ -89,6 +90,18 @@ def legacy_results(request):
         'phi_fp': os.path.join(base_dir, f'phi{idx}.npy'),
     }
 
+
+@pytest.fixture(params=range(9))
+def updated_results(request):
+    base_dir = os.path.join('tests', 'data', 'partition_capture')
+    idx = request.param
+    return {
+        'contacts_fp': os.path.join(base_dir, f'contacts{idx}.csv'),
+        'travel_fp': os.path.join(base_dir, f'travel{idx}.csv'),
+        'tc_final_fp': os.path.join(base_dir, f'tc_final{idx}.csv'),
+        'tr_parts_fp': os.path.join(base_dir, f'tr_parts{idx}.csv'),
+        'phi_fp': os.path.join(base_dir, f'phi{idx}.npy'),
+    }
 
 class TestToyPartitioning:
     """Can we migrate KP toy contact partitioning into episimlab processes?
@@ -213,3 +226,49 @@ class TestSixteenComptToy:
         output_vars = {'apply_counts_delta__counts': 'step'}
         result = self.run_model(model, step_clock, input_vars, output_vars)
         assert isinstance(result, xr.Dataset)
+
+
+class TestPartitioning:
+    """
+    Check that refactored partitioning generates expected results
+    """
+
+    @pytest.mark.xfail(reason="Legacy dataframe missing some rows expected to contain zero contacts.")
+    def test_partitioning(self, updated_results, counts_coords_toy):
+        inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
+        inputs.update({
+            'age_group': counts_coords_toy['age_group'],
+            'risk_group': counts_coords_toy['risk_group']
+        })
+        proc = partition.Partition(**inputs)
+        proc.initialize()
+
+        tc_final = pd.read_csv(updated_results['tc_final_fp'], index_col=None)
+
+        # test against legacy
+        pd.testing.assert_frame_equal(proc.contact_partitions, tc_final)
+
+    def test_phi(self, to_phi_da, updated_results, counts_coords_toy):
+        inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
+        inputs.update({
+            'age_group': counts_coords_toy['age_group'],
+            'risk_group': counts_coords_toy['risk_group']
+        })
+        proc = partition.Partition(**inputs)
+        proc.initialize()
+
+        # construct a DataArray from legacy phi
+        phi = to_phi_da(updated_results['phi_fp'])
+
+        # sort each coordinate
+        # this just changes assert_allclose to be agnostic to order of coords
+        def sort_coords(da):
+            for dim in da.dims:
+                da = da.sortby(dim)
+            return da
+
+        # rename test output to have legacy coordinate names
+        test_phi_xr = proc.contact_xr.rename(
+            {'age_i': 'age_group1', 'age_j': 'age_group2', 'vertex_i': 'vertex1', 'vertex_j': 'vertex2'}
+        )
+        xr.testing.assert_allclose(sort_coords(test_phi_xr), sort_coords(phi))

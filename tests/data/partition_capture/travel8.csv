@@ -1,0 +1,13 @@
+,source,destination,destination_type,age,n
+0,A,A,local,young,0
+1,A,A,local,old,0
+2,A,school,contextual,young,25
+3,A,school,contextual,old,6
+4,B,B,local,young,0
+5,B,B,local,old,0
+6,B,school,contextual,young,50
+7,B,school,contextual,old,2
+8,A,B,local,young,0
+9,A,B,local,old,0
+10,B,A,local,young,0
+11,B,A,local,old,0

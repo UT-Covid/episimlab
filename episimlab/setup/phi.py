@@ -61,3 +61,9 @@ class InitPhi:
     @xs.runtime(args='step')
     def run_step(self, step):
         pass
+
+@xs.process
+class InitPartitionedPhi:
+    """
+    """
+    DIMS = {'loca'}

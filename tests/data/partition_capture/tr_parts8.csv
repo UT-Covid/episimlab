@@ -1,0 +1,17 @@
+,i,j,age_i,age_j,pr_contact_ij
+0,A,A,old,old,0.75
+1,A,A,old,young,0.3333333333333333
+2,A,A,young,old,0.75
+3,A,A,young,young,0.3333333333333333
+4,A,B,old,old,0.25
+5,A,B,old,young,0.6666666666666666
+6,A,B,young,old,0.25
+7,A,B,young,young,0.6666666666666666
+8,B,A,old,old,0.75
+9,B,A,old,young,0.3333333333333333
+10,B,A,young,old,0.75
+11,B,A,young,young,0.3333333333333333
+12,B,B,old,old,0.25
+13,B,B,old,young,0.6666666666666666
+14,B,B,young,old,0.25
+15,B,B,young,young,0.6666666666666666
