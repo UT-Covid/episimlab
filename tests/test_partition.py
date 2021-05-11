@@ -234,11 +234,11 @@ class TestPartitioning:
     """
 
     @pytest.mark.xfail(reason="Legacy dataframe missing some rows expected to contain zero contacts.")
-    def test_partitioning(self, updated_results, counts_coords_simple):
+    def test_partitioning(self, updated_results, counts_coords_toy):
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
-            'age_group': counts_coords_simple['age_group'],
-            'risk_group': counts_coords_simple['risk_group']
+            'age_group': counts_coords_toy['age_group'],
+            'risk_group': counts_coords_toy['risk_group']
         })
         proc = partition.Partition(**inputs)
         proc.initialize()
@@ -248,11 +248,11 @@ class TestPartitioning:
         # test against legacy
         pd.testing.assert_frame_equal(proc.contact_partitions, tc_final)
 
-    def test_phi(self, to_phi_da, updated_results, counts_coords_simple):
+    def test_phi(self, to_phi_da, updated_results, counts_coords_toy):
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
-            'age_group': counts_coords_simple['age_group'],
-            'risk_group': counts_coords_simple['risk_group']
+            'age_group': counts_coords_toy['age_group'],
+            'risk_group': counts_coords_toy['risk_group']
         })
         proc = partition.Partition(**inputs)
         proc.initialize()
