@@ -116,7 +116,8 @@ class TestPartitionInModel:
     def test_partition_in_model(self, step_clock):
         model = basic.partition()
         input_vars = dict(
-            read_config__config_fp='tests/config/example_v1.yaml',
+            read_config__config_fp='tests/config/example_v2.yaml',
+            setup_coords__config_fp='tests/config/example_v2.yaml',
             setup_phi__travel_fp='tests/data/partition_capture/travel0.csv',
             setup_phi__contacts_fp='tests/data/partition_capture/contacts0.csv',
         )
