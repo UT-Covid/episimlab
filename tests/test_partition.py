@@ -110,11 +110,16 @@ class TestPartitionInModel:
             input_vars=input_vars,
             output_vars=output_vars
         )
+        breakpoint()
         return input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
 
     def test_partition_in_model(self, step_clock):
         model = basic.partition()
-        input_vars = dict()
+        input_vars = dict(
+            read_config__config_fp='tests/config/example_v1.yaml',
+            setup_phi__travel_fp='tests/data/partition_capture/travel0.csv',
+            setup_phi__contacts_fp='tests/data/partition_capture/contacts0.csv',
+        )
         output_vars = dict(apply_counts_delta__counts='step')
         result = self.run_model(model, step_clock, input_vars, output_vars)
         assert isinstance(result, xr.Dataset)

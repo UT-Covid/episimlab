@@ -65,8 +65,8 @@ class Partition(InitPhi):
         self.baseline_contact_df = pd.read_csv(self.contacts_fp)
         self.travel_df = self.load_travel_df()
 
-        self.age_group = self.age_group
-        self.demographic_groups = self.demographic_groups
+        # self.age_group = self.age_group
+        # self.demographic_groups = self.demographic_groups
         # trying to think forward to other extensions; demographic groups are a placeholder for now but not implemented
         if self.demographic_groups:
             raise NotImplementedError
