@@ -9,7 +9,7 @@ import xsimlab as xs
 from itertools import product
 
 
-from episimlab.partition import toy, from_travel, partition
+from episimlab.partition import partition
 from episimlab.models import basic
 from episimlab.setup import epi
 
