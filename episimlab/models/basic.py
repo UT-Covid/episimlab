@@ -2,7 +2,7 @@ import xsimlab as xs
 import xarray as xr
 import attr
 
-from ..partition import toy
+from ..partition.partition import Partition
 from ..setup import seed, sto, epi, counts, coords, adj, phi
 from ..foi import (
     base as base_foi,
@@ -150,10 +150,11 @@ def toy_partition():
 
 def partition():
     starter_model = cy_seir_cy_foi()
-    return starter_model
-    # return starter_model.update_processes({
-        
-    # })
+    # breakpoint()
+    return starter_model.update_processes({
+        # 'setup_phi': SetupPhiFromContactsXR,
+        'partition_contacts': Partition
+    })
 
     # model = starter_model.drop_processes([
     #     "setup_counts",

@@ -203,19 +203,10 @@ class TestPartitionInModel:
         return input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
 
     @pytest.mark.parametrize('config_fp', [
-        'tests/data/partition_capture/test_config0.yaml'
+        'tests/config/example_v1.yaml'
     ])
     def test_can_run_model(self, step_clock, config_fp):
-        input_vars = {
-            'read_config__config_fp': config_fp,
-            'rng__seed_entropy': 12345,
-            'sto__sto_toggle': -1,
-            'setup_coords__n_age': 2,
-            'setup_coords__n_nodes': 2,
-            'setup_coords__n_risk': 1,
-            'setup_phi__travel_fp': './tests/data/partition_capture/travel0.csv',
-            'setup_phi__contacts_fp': './tests/data/partition_capture/contacts0.csv',
-        }
+        input_vars = {'read_config__config_fp': config_fp}
         output_vars = {'apply_counts_delta__counts': 'step'}
         result = self.run_model(basic.partition(), step_clock, input_vars, output_vars)
         assert isinstance(result, xr.Dataset)
@@ -238,7 +229,7 @@ class TestSixteenComptToy:
             output_vars=output_vars
         )
         return input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
-
+    
     @pytest.mark.parametrize('config_fp', [
         'tests/data/partition_capture/test_config0.yaml'
     ])
