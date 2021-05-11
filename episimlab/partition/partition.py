@@ -4,6 +4,8 @@ import xsimlab as xs
 import numpy as np
 from itertools import product
 from ..setup.coords import InitDefaultCoords
+from ..setup.phi import InitPhi
+from ..utils import get_var_dims
 
 
 def contact_probability(n_i, n_j, n_i_total, n_k_total):
@@ -52,13 +54,10 @@ def legacy_mapping(col_type, table):
 
 
 @xs.process
-class Partition:
+class Partition(InitPhi):
 
     travel_fp = xs.variable(intent='in')
     contacts_fp = xs.variable(intent='in')
-    age_group = xs.foreign(InitDefaultCoords, 'age_group')  # age_groups = xs.variable(intent='in', default={'0-4', '5-17', '18-49', '50-64', '65+'})
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
-    #time = xs.foreign(InitDefaultCoords, 'time')
     demographic_groups = xs.variable(intent='in', default=None)
 
     def initialize(self):
@@ -81,6 +80,14 @@ class Partition:
         self.prob_partitions = self.probabilistic_partition()
         self.contact_partitions = self.partitions_to_contacts(daily_timesteps=10)
         self.contact_xr = self.contact_matrix()
+
+    def phi_t_from_contact_xr(self, contact_xr) -> xr.DataArray:
+        self.COORDS = {k: getattr(self, k[:-1]) for k in self.DIMS}
+        # TODO
+        data = 1.
+        self.phi = xr.DataArray(data=data, dims=self.DIMS, coords=self.COORDS)
+        self.phi_t = self.phi
+        
 
     def load_travel_df(self):
 

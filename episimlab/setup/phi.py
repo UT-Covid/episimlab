@@ -14,7 +14,6 @@ class InitPhi:
     phi_t = xs.variable(dims=DIMS, intent='out', global_name='phi_t')
     age_group = xs.global_ref('age_group')
     risk_group = xs.global_ref('risk_group')
-    compartment = xs.global_ref('compartment')
     vertex = xs.global_ref('vertex')
 
     def initialize(self):

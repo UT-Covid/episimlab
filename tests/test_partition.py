@@ -112,7 +112,7 @@ class TestPartitionInModel:
         )
         return input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
 
-    def test_partition_in_model(self):
+    def test_partition_in_model(self, step_clock):
         model = basic.partition()
         input_vars = dict()
         output_vars = dict(apply_counts_delta__counts='step')
@@ -144,7 +144,8 @@ class TestPartitioning:
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
             'age_group': counts_coords_toy['age_group'],
-            'risk_group': counts_coords_toy['risk_group']
+            'risk_group': counts_coords_toy['risk_group'],
+            'vertex': counts_coords_toy['vertex']
         })
         proc = Partition(**inputs)
         proc.initialize()
