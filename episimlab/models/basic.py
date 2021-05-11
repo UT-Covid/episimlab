@@ -11,6 +11,7 @@ from ..seir import (
     bf_cython as bf_cython_seir
 )
 from .. import apply_counts_delta
+from ..partition.partition import Partition
 from ..io.config import ReadV1Config
 from ..network import cython_explicit_travel
 
@@ -110,4 +111,11 @@ def cy_seir_cy_foi_cy_adj():
         setup_adj=adj.InitToyAdj,
         # Use adjacency matrix to simulate travel between vertices in cython
         travel=cython_explicit_travel.CythonExplicitTravel,
+    ))
+
+
+def partition():
+    model = cy_seir_cy_foi()
+    return model.update_processes(dict(
+        setup_phi=Partition
     ))

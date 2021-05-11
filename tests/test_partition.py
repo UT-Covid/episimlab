@@ -1,3 +1,4 @@
+from episimlab import apply_counts_delta
 import logging
 import pytest
 import os
@@ -9,7 +10,7 @@ import xsimlab as xs
 from itertools import product
 
 
-from episimlab.partition import partition
+from episimlab.partition.partition import Partition
 from episimlab.models import basic
 from episimlab.setup import epi
 
@@ -100,6 +101,25 @@ def updated_results(request):
     }
 
 
+class TestPartitionInModel:
+
+    def run_model(self, model, step_clock, input_vars, output_vars):
+        input_ds = xs.create_setup(
+            model=model,
+            clocks=step_clock,
+            input_vars=input_vars,
+            output_vars=output_vars
+        )
+        return input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
+
+    def test_partition_in_model(self):
+        model = basic.partition()
+        input_vars = dict()
+        output_vars = dict(apply_counts_delta__counts='step')
+        result = self.run_model(model, step_clock, input_vars, output_vars)
+        assert isinstance(result, xr.Dataset)
+
+
 class TestPartitioning:
     """
     Check that refactored partitioning generates expected results
@@ -112,7 +132,7 @@ class TestPartitioning:
             'age_group': counts_coords_toy['age_group'],
             'risk_group': counts_coords_toy['risk_group']
         })
-        proc = partition.Partition(**inputs)
+        proc = Partition(**inputs)
         proc.initialize()
 
         tc_final = pd.read_csv(updated_results['tc_final_fp'], index_col=None)
@@ -126,7 +146,7 @@ class TestPartitioning:
             'age_group': counts_coords_toy['age_group'],
             'risk_group': counts_coords_toy['risk_group']
         })
-        proc = partition.Partition(**inputs)
+        proc = Partition(**inputs)
         proc.initialize()
 
         # construct a DataArray from legacy phi

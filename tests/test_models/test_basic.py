@@ -17,7 +17,7 @@ def input_vars(config_dict, config_fp):
     return dict(read_config__config_fp=config_fp(config_dict))
 
 
-class TestToyModels:
+class TestBasicModels:
 
     def run_model(self, model, step_clock, input_vars, output_vars):
         input_ds = xs.create_setup(
