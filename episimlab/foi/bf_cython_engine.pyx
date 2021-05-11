@@ -132,7 +132,7 @@ cdef np.ndarray _brute_force_FOI(double [:, :, :, :] counts_view,
                                 continue
 
                             # Get phi
-                            phi_1_2 = phi_view[n, n2, a, a2, r, r2]
+                            phi_1_2 = phi_view[n, n_2, a, a_2, r, r_2]
 
                             # Enumerate omega
                             omega_a_2 = omega_view[a_2, 4]

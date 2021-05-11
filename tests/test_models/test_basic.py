@@ -31,9 +31,9 @@ class TestToyModels:
     @profiler()
     @pytest.mark.parametrize('model', (
         # DEBUG: reenable if test_compare_basic fail
-        basic.slow_seir(),
+        # basic.slow_seir(),
         # basic.slow_seir_cy_foi(),
-        # basic.cy_seir_cy_foi(),
+        basic.cy_seir_cy_foi(),
     ))
     def test_sanity(self, epis, model, input_vars, counts_basic, output_vars,
                     step_clock):

@@ -20,12 +20,13 @@ class BruteForceCythonFOI(BaseFOI):
         """
         """
         # Run in cython, returning a numpy array
-        foi_arr = brute_force_FOI(
+        kwargs = dict(
             counts=self.counts.values,
             phi_t=self.phi_t.values,
             omega=self.omega.values,
             beta=self.beta
         )
+        foi_arr = brute_force_FOI(**kwargs)
 
         # Convert the numpy arrray to a DataArray
         self.foi = xr.DataArray(
