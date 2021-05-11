@@ -1,11 +1,5 @@
 import xsimlab as xs
 import xarray as xr
-import numpy as np
-import pandas as pd
-import itertools
-
-from ..setup.coords import InitDefaultCoords
-from ..utils import ravel_to_midx, unravel_encoded_midx
 
 
 @xs.process
@@ -18,6 +12,10 @@ class InitPhi:
 
     phi = xs.variable(dims=DIMS, static=True, intent='out')
     phi_t = xs.variable(dims=DIMS, intent='out', global_name='phi_t')
+    age_group = xs.global_ref('age_group')
+    risk_group = xs.global_ref('risk_group')
+    compartment = xs.global_ref('compartment')
+    vertex = xs.global_ref('vertex')
 
     def initialize(self):
         # coords = ((dim, getattr(self, dim)) for dim in self.DIMS)
