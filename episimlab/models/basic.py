@@ -146,3 +146,38 @@ def toy_partition():
         "setup_rho": epi.SetupDefaultRho,
         "setup_gamma": epi.SetupDefaultGamma,
     })
+
+
+def partition():
+    starter_model = cy_seir_cy_foi()
+    return starter_model
+    # return starter_model.update_processes({
+        
+    # })
+
+    # model = starter_model.drop_processes([
+    #     "setup_counts",
+    #     "read_config",
+    #     "setup_beta",
+    #     "setup_eta",
+    #     "setup_gamma",
+    #     "setup_mu",
+    #     "setup_nu",
+    #     "setup_omega",
+    #     "setup_pi",
+    #     "setup_rho",
+    #     "setup_sigma",
+    #     "setup_tau",
+    # ])
+    # return model.update_processes({
+    #     "setup_counts": toy.SetupCounts,
+    #     "setup_coords": toy.InitCoords,
+    #     "setup_phi": toy.SetupPhiWithToyPartitioning,
+    #     "read_config": toy.ReadToyPartitionConfig,
+    #     "setup_eta": epi.SetupDefaultEta,
+    #     "setup_tau": epi.SetupDefaultTau,
+    #     "setup_nu": epi.SetupDefaultNu,
+    #     "setup_pi": epi.SetupDefaultPi,
+    #     "setup_rho": epi.SetupDefaultRho,
+    #     "setup_gamma": epi.SetupDefaultGamma,
+    # })
