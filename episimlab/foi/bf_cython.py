@@ -5,8 +5,6 @@ from itertools import product
 from numbers import Number
 
 from ..apply_counts_delta import ApplyCountsDelta
-from ..setup.coords import InitDefaultCoords
-from ..setup.phi import InitPhi, InitPhiGrpMapping
 from .base import BaseFOI
 from .bf_cython_engine import brute_force_FOI
 
@@ -16,20 +14,19 @@ class BruteForceCythonFOI(BaseFOI):
     """A readable, brute force algorithm for calculating force of infection (FOI).
     """
     phi_t = xs.global_ref('phi_t')
-    phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
 
     def run_step(self):
         """
         """
         # Run in cython, returning a numpy array
-        foi_arr = brute_force_FOI(
-            phi_grp_mapping=self.phi_grp_mapping.values,
+        kwargs = dict(
             counts=self.counts.values,
             phi_t=self.phi_t.values,
             omega=self.omega.values,
             beta=self.beta
         )
+        foi_arr = brute_force_FOI(**kwargs)
 
         # Convert the numpy arrray to a DataArray
         self.foi = xr.DataArray(

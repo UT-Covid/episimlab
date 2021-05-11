@@ -5,20 +5,15 @@ from itertools import product
 from numbers import Number
 
 from ..apply_counts_delta import ApplyCountsDelta
-from ..setup.coords import InitDefaultCoords
-from ..setup.phi import InitPhi, InitPhiGrpMapping
 from .base import BaseFOI
 
 
 @xs.process
 class BruteForceFOI(BaseFOI):
     """A readable, brute force algorithm for calculating force of infection (FOI).
-    TODO: sample FOI from Poisson if specified
-    TODO: check math with Kelly
     """
 
     phi_t = xs.global_ref('phi_t')
-    phi_grp_mapping = xs.foreign(InitPhiGrpMapping, 'phi_grp_mapping', intent='in')
     counts = xs.foreign(ApplyCountsDelta, 'counts', intent='in')
 
     def run_step(self):
@@ -38,17 +33,14 @@ class BruteForceFOI(BaseFOI):
                 vertex=v2, age_group=a2, risk_group=r2
             )].sum(dim=['compartment'])
 
-            # Get the phi_grp indices
-            phi_grp1 = self.phi_grp_mapping.loc[dict(
-                vertex=v1, age_group=a1, risk_group=r1
-            )]
-            phi_grp2 = self.phi_grp_mapping.loc[dict(
-                vertex=v2, age_group=a2, risk_group=r2
-            )]
-
             # Get the value of phi
             phi = self.phi_t.loc[dict(
-                phi_grp1=phi_grp1, phi_grp2=phi_grp2
+                vertex1=v1,
+                vertex2=v2,
+                age_group1=a1,
+                age_group2=a2,
+                risk_group1=r1,
+                risk_group2=r2,
             )].values
 
             # Get S compt

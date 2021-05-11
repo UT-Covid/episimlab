@@ -1,11 +1,7 @@
 import xsimlab as xs
-import xarray as xr
-import attr
 
-from ..partition.partition import Partition
 from ..setup import seed, sto, epi, counts, coords, adj, phi
 from ..foi import (
-    base as base_foi,
     brute_force as bf_foi,
     bf_cython as bf_cython_foi
 )
@@ -65,7 +61,6 @@ def slow_seir():
     return model.update_processes(dict(
         # Instantiate phi array
         setup_phi=phi.InitPhi,
-        setup_phi_grp_mapping=phi.InitPhiGrpMapping,
         # Force of infection calculation in python
         foi=bf_foi.BruteForceFOI,
         # SEIR engine in python
@@ -116,69 +111,3 @@ def cy_seir_cy_foi_cy_adj():
         # Use adjacency matrix to simulate travel between vertices in cython
         travel=cython_explicit_travel.CythonExplicitTravel,
     ))
-
-
-def toy_partition():
-    starter_model = cy_seir_cy_foi()
-    model = starter_model.drop_processes([
-        "setup_counts",
-        "read_config",
-        "setup_beta",
-        "setup_eta",
-        "setup_gamma",
-        "setup_mu",
-        "setup_nu",
-        "setup_omega",
-        "setup_pi",
-        "setup_rho",
-        "setup_sigma",
-        "setup_tau",
-    ])
-    return model.update_processes({
-        "setup_counts": toy.SetupCounts,
-        "setup_coords": toy.InitCoords,
-        "setup_phi": toy.SetupPhiWithToyPartitioning,
-        "read_config": toy.ReadToyPartitionConfig,
-        "setup_eta": epi.SetupDefaultEta,
-        "setup_tau": epi.SetupDefaultTau,
-        "setup_nu": epi.SetupDefaultNu,
-        "setup_pi": epi.SetupDefaultPi,
-        "setup_rho": epi.SetupDefaultRho,
-        "setup_gamma": epi.SetupDefaultGamma,
-    })
-
-
-def partition():
-    starter_model = cy_seir_cy_foi()
-    # breakpoint()
-    return starter_model.update_processes({
-        # 'setup_phi': SetupPhiFromContactsXR,
-        'partition_contacts': Partition
-    })
-
-    # model = starter_model.drop_processes([
-    #     "setup_counts",
-    #     "read_config",
-    #     "setup_beta",
-    #     "setup_eta",
-    #     "setup_gamma",
-    #     "setup_mu",
-    #     "setup_nu",
-    #     "setup_omega",
-    #     "setup_pi",
-    #     "setup_rho",
-    #     "setup_sigma",
-    #     "setup_tau",
-    # ])
-    # return model.update_processes({
-    #     "setup_counts": toy.SetupCounts,
-    #     "setup_coords": toy.InitCoords,
-    #     "setup_phi": toy.SetupPhiWithToyPartitioning,
-    #     "read_config": toy.ReadToyPartitionConfig,
-    #     "setup_eta": epi.SetupDefaultEta,
-    #     "setup_tau": epi.SetupDefaultTau,
-    #     "setup_nu": epi.SetupDefaultNu,
-    #     "setup_pi": epi.SetupDefaultPi,
-    #     "setup_rho": epi.SetupDefaultRho,
-    #     "setup_gamma": epi.SetupDefaultGamma,
-    # })
