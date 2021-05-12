@@ -58,18 +58,16 @@ class Partition(InitPhi):
 
     travel_fp = xs.variable(intent='in')
     contacts_fp = xs.variable(intent='in')
-    demographic_groups = xs.variable(intent='in', default=None)
+    # demographic_groups = xs.variable(intent='in', default=None)
 
     def initialize(self):
 
         self.baseline_contact_df = pd.read_csv(self.contacts_fp)
         self.travel_df = self.load_travel_df()
 
-        # self.age_group = self.age_group
-        # self.demographic_groups = self.demographic_groups
         # trying to think forward to other extensions; demographic groups are a placeholder for now but not implemented
-        if self.demographic_groups:
-            raise NotImplementedError
+        # if self.demographic_groups:
+        #     raise NotImplementedError
         self.spatial_dims = ['source', 'destination']       # enforce that these are the only spatial dimensions
         self.age_dims = ['source_age', 'destination_age']          # always make age relative to source, destination
         self.contacts = self.setup_contacts()
