@@ -59,6 +59,7 @@ class Partition(InitPhi):
     travel_fp = xs.variable(intent='in')
     contacts_fp = xs.variable(intent='in')
     # demographic_groups = xs.variable(intent='in', default=None)
+    vertex = xs.index(dims='vertex', global_name='vertex')
 
     def initialize(self):
 
@@ -77,15 +78,21 @@ class Partition(InitPhi):
         # initialize empty class members to hold intermediate results generated during workflow
         self.prob_partitions = self.probabilistic_partition()
         self.contact_partitions = self.partitions_to_contacts(daily_timesteps=10)
-        self.contact_xr = self.contact_matrix()
+        # breakpoint()
+        self.contact_xr = (self
+                           .contact_matrix()
+                           .rename({
+                               'vertex_i': 'vertex1',
+                               'vertex_j': 'vertex2',
+                               'age_i': 'age_group1',
+                               'age_j': 'age_group2',
+                           })
+                          )
 
-    def phi_t_from_contact_xr(self, contact_xr) -> xr.DataArray:
-        self.COORDS = {k: getattr(self, k[:-1]) for k in self.DIMS}
-        # TODO
-        data = 1.
-        self.phi = xr.DataArray(data=data, dims=self.DIMS, coords=self.COORDS)
-        self.phi_t = self.phi
-        
+        # set vertex coords to set of unique indices along vertex1 and vertex2
+        # axes
+        self.vertex = self.contact_xr['vertex1']
+
 
     def load_travel_df(self):
 

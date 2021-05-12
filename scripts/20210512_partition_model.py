@@ -5,20 +5,26 @@ import xsimlab as xs
 from episimlab import apply_counts_delta
 from episimlab.models import basic
 from episimlab.partition.partition import Partition
+from episimlab.setup import coords
 
 
 def main(**opts):
     # ---------------------------- Define model --------------------------------
 
-    starting_model = basic.cy_seir_cy_foi()
-    model = starting_model.update_processes(dict(setup_phi=Partition))
+    model = (basic
+             .cy_seir_cy_foi()
+             .update_processes({
+                 'setup_coords': coords.InitCoordsExceptVertex,
+                'setup_phi': Partition
+             })
+            )
 
     # ---------------------------- Define inputs -------------------------------
 
     input_vars = {
         'config_fp': 'tests/config/example_v2.yaml',
-        'travel_fp': 'tests/data/partition_capture/travel0.csv',
-        'contacts_fp': 'tests/data/partition_capture/contacts0.csv',
+        'travel_fp': 'data/20200311_travel.csv',
+        'contacts_fp': 'data/polymod_contacts.csv',
     }
 
     # Reindex with `process__variable` keys

@@ -117,5 +117,6 @@ def cy_seir_cy_foi_cy_adj():
 def partition():
     model = cy_seir_cy_foi()
     return model.update_processes(dict(
+        setup_coords=coords.InitCoordsExceptVertex,
         setup_phi=Partition
     ))

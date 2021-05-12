@@ -110,14 +110,14 @@ class TestPartitionInModel:
             input_vars=input_vars,
             output_vars=output_vars
         )
-        breakpoint()
+        # breakpoint()
         return input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
 
     def test_partition_in_model(self, step_clock):
         model = basic.partition()
         input_vars = dict(
             read_config__config_fp='tests/config/example_v2.yaml',
-            setup_coords__config_fp='tests/config/example_v2.yaml',
+            # setup_coords__config_fp='tests/config/example_v2.yaml',
             setup_phi__travel_fp='tests/data/partition_capture/travel0.csv',
             setup_phi__contacts_fp='tests/data/partition_capture/contacts0.csv',
         )
@@ -151,7 +151,7 @@ class TestPartitioning:
         inputs.update({
             'age_group': counts_coords_toy['age_group'],
             'risk_group': counts_coords_toy['risk_group'],
-            'vertex': counts_coords_toy['vertex']
+            # 'vertex': counts_coords_toy['vertex']
         })
         proc = Partition(**inputs)
         proc.initialize()
