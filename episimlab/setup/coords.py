@@ -62,7 +62,7 @@ class InitCoordsExceptVertex:
     compartment = xs.index(dims='compartment', global_name='compartment')
 
     def initialize(self):
-        self.age_group = ['0-4', '5-17', '18-49', '50-64', '65+']
+        self.age_group = ['<5', '5-17', '18-49', '50-64', '65+']
         self.risk_group = ['low', 'high']
         self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',

@@ -14,7 +14,7 @@ def main(**opts):
     model = (basic
              .cy_seir_cy_foi()
              .update_processes({
-                 'setup_coords': coords.InitCoordsExceptVertex,
+                'setup_coords': coords.InitCoordsExceptVertex,
                 'setup_phi': Partition
              })
             )
@@ -37,11 +37,12 @@ def main(**opts):
     input_ds = xs.create_setup(
         model=model,
         clocks={
-            'step': pd.date_range(start='1/1/2018', end='1/15/2018', freq='24H')
+            'step': pd.date_range(start='1/1/2018', end='1/3/2018', freq='24H')
         },
         input_vars=input_vars_with_proc,
         output_vars=dict(apply_counts_delta__counts='step')
     )
+    # breakpoint()
 
     # ------------------------------ Run model ---------------------------------
 
