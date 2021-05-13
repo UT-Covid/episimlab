@@ -14,7 +14,11 @@ def output_vars():
 
 @pytest.fixture
 def input_vars(config_dict, config_fp):
-    return dict(read_config__config_fp=config_fp(config_dict))
+    cfg = config_fp(config_dict)
+    return dict(
+        read_config__config_fp=cfg,
+        setup_coords__config_fp=cfg
+    )
 
 
 class TestBasicModels:

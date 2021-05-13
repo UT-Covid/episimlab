@@ -18,7 +18,7 @@ def counts_dims():
 ])
 def counts_coords(request):
     return {
-        'vertex': range(request.param),
+        'vertex': list(range(request.param)),
         'age_group': ['0-4', '5-17', '18-49', '50-64', '65+'],
         'risk_group': ['low', 'high'],
         'compartment': ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
@@ -406,7 +406,8 @@ def tri_y2r_para():
 def config_dict(seed_entropy, sto_toggle, counts_basic, tri_h2r, symp_h_ratio,
                 tri_exposed_para, prop_trans_in_p, hosp_f_ratio,
                 symp_h_ratio_w_risk, tri_pa2ia, asymp_relative_infect,
-                asymp_rate, tri_h2d, t_onset_to_h, tri_y2r_para, tri_py2iy):
+                asymp_rate, tri_h2d, t_onset_to_h, tri_y2r_para, tri_py2iy,
+                counts_coords):
     return {
         'seed_entropy': seed_entropy,
         'sto_toggle': sto_toggle,
@@ -422,5 +423,6 @@ def config_dict(seed_entropy, sto_toggle, counts_basic, tri_h2r, symp_h_ratio,
         'tri_h2d': tri_h2d,
         't_onset_to_h': t_onset_to_h,
         'tri_y2r_para': tri_y2r_para,
-        'tri_py2iy': tri_py2iy
+        'tri_py2iy': tri_py2iy,
+        'coords': counts_coords
     }
