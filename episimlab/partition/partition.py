@@ -70,11 +70,6 @@ class Partition:
         self.baseline_contact_df = pd.read_csv(self.contacts_fp)
         self.travel_df = self.load_travel_df()
 
-        self.age_group = self.age_group
-        self.demographic_groups = self.demographic_groups
-        # trying to think forward to other extensions; demographic groups are a placeholder for now but not implemented
-        if self.demographic_groups:
-            raise NotImplementedError
         self.spatial_dims = ['source', 'destination']       # enforce that these are the only spatial dimensions
         self.age_dims = ['source_age', 'destination_age']          # always make age relative to source, destination
         self.contacts = self.setup_contacts()
@@ -101,14 +96,9 @@ class Partition:
         # breakpoint()
 
     def subset_date(self, time_step_date):
-
         travel_current_date = self.travel_df[self.travel_df['date'] == time_step_date]
-        try:
-            assert travel_current_date.empty == False
-        except AssertionError as e:
-            e.args += (('No travel data for date {}.'.format(time_step_date), ))
-            raise
-
+        assert not travel_current_date.empty, \
+            'No travel data for date {}.'.format(time_step_date)
         return travel_current_date
 
     def load_travel_df(self):
