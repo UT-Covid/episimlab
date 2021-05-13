@@ -312,9 +312,37 @@ class PartitionFromNC:
     """Reads DataArray from NetCDF file at `contact_da_fp`, and sets attr
     `contact_xr`.
     """
+    PHI_DIMS = ('vertex1', 'vertex2',
+            'age_group1', 'age_group2',
+            'risk_group1', 'risk_group2')
+
+    age_group = xs.index(dims='age_group', global_name='age_group')
+    risk_group = xs.index(dims='risk_group', global_name='risk_group')
+    compartment = xs.index(dims='compartment', global_name='compartment')
+    vertex = xs.index(dims='vertex', global_name='vertex')
+
     contact_da_fp = xs.variable(intent='in')
-    contact_xr = xs.variable(static=False, intent='out')
+    phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
 
     def initialize(self):
         self.contact_xr = xr.open_dataarray(self.contact_da_fp)
         assert isinstance(self.contact_xr, xr.DataArray)
+
+        # set age group and vertex coords
+        self.age_group = pd.unique(self.contact_xr.coords['age_i'].astype(str))
+        self.vertex = pd.unique(self.contact_xr.coords['vertex_i'].astype(str))
+        # breakpoint()
+        
+        # set risk group and compartment coords
+        self.initialize_misc_coords()
+    
+        self.COORDS = {k: getattr(self, k[:-1]) for k in self.PHI_DIMS}
+        data = 1.
+        self.phi_t = xr.DataArray(data=data, dims=self.PHI_DIMS, coords=self.COORDS)
+
+    
+    def initialize_misc_coords(self):
+        self.risk_group = ['low', 'high']
+        self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
+                            'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
+                            'Py2Iy', 'Iy2Ih', 'H2D']

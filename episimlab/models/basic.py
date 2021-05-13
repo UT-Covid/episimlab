@@ -115,8 +115,12 @@ def cy_seir_cy_foi_cy_adj():
 
 
 def partition():
-    model = cy_seir_cy_foi()
-    return model.update_processes(dict(
-        setup_coords=coords.InitCoordsFromTravel,
-        setup_phi=PartitionFromNC
-    ))
+    model = minimum_viable()
+    return (model
+            # .drop_processes(['setup_phi'])
+            .update_processes(dict(
+                foi=bf_cython_foi.BruteForceCythonFOI,
+                seir=bf_cython_seir.BruteForceCythonSEIR,
+                setup_coords=PartitionFromNC,
+            ))
+           )
