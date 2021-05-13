@@ -55,7 +55,11 @@ class TestCompareBasicModels:
         that this test should always pass.
         """
         # generate input variables
-        input_vars = dict(read_config__config_fp=config_fp(config_dict))
+        cfg = config_fp(config_dict)
+        input_vars = dict(
+            read_config__config_fp=cfg,
+            setup_coords__config_fp=cfg
+        )
 
         # load default model
         model = basic.slow_seir()
