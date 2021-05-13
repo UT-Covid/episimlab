@@ -65,6 +65,7 @@ class Partition:
     risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
     #time = xs.foreign(InitDefaultCoords, 'time')
     demographic_groups = xs.variable(intent='in', default=None)
+    contact_xr = xs.variable(static=False, intent='out')
 
     def initialize(self):
 
