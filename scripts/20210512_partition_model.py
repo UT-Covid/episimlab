@@ -11,20 +11,13 @@ from episimlab.setup import coords
 def main(**opts):
     # ---------------------------- Define model --------------------------------
 
-    model = (basic
-             .cy_seir_cy_foi()
-             .update_processes({
-                'setup_coords': coords.InitCoordsExceptVertex,
-                'setup_phi': Partition
-             })
-            )
+    model = basic.partition()
 
     # ---------------------------- Define inputs -------------------------------
 
     input_vars = {
         'config_fp': 'tests/config/example_v2.yaml',
-        'travel_fp': 'data/20200311_travel.csv',
-        'contacts_fp': 'data/polymod_contacts.csv',
+        'contact_da_fp': 'tests/data/20200311_contact_matrix.nc',
     }
 
     # Reindex with `process__variable` keys
@@ -32,7 +25,6 @@ def main(**opts):
     for proc, var in model.input_vars:
         assert var in input_vars, f"model requires var {var}, but could not find in input var dict"
         input_vars_with_proc[f"{proc}__{var}"] = input_vars[var]
-
     
     input_ds = xs.create_setup(
         model=model,

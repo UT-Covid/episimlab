@@ -325,20 +325,38 @@ class PartitionFromNC:
     phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
 
     def initialize(self):
-        self.contact_xr = xr.open_dataarray(self.contact_da_fp)
+        self.contact_xr = (xr
+                           .open_dataarray(self.contact_da_fp)
+                           .rename({
+                               'vertex_i': 'vertex1',
+                               'vertex_j': 'vertex2',
+                               'age_i': 'age_group1',
+                               'age_j': 'age_group2',
+                           })
+                        #    .expand_dims(['risk_group1', 'risk_group2'])
+                          )
+        self.contact_xr.coords['age_group1'] = self.contact_xr.coords['age_group1'].astype(str)
+        self.contact_xr.coords['age_group2'] = self.contact_xr.coords['age_group2'].astype(str)
         assert isinstance(self.contact_xr, xr.DataArray)
+        # breakpoint()
 
         # set age group and vertex coords
-        self.age_group = pd.unique(self.contact_xr.coords['age_i'].astype(str))
-        self.vertex = pd.unique(self.contact_xr.coords['vertex_i'].astype(str))
+        self.age_group = self.contact_xr.coords['age_group1'].values
+        self.vertex = self.contact_xr.coords['vertex1'].values
         # breakpoint()
         
         # set risk group and compartment coords
         self.initialize_misc_coords()
     
         self.COORDS = {k: getattr(self, k[:-1]) for k in self.PHI_DIMS}
-        data = 1.
-        self.phi_t = xr.DataArray(data=data, dims=self.PHI_DIMS, coords=self.COORDS)
+        self.phi_t = xr.DataArray(data=np.nan, dims=self.PHI_DIMS, coords=self.COORDS)
+        
+        # broadcast into phi_array
+        self.phi_t.loc[dict(risk_group1='low', risk_group2='low')] = self.contact_xr
+        self.phi_t.loc[dict(risk_group1='low', risk_group2='high')] = self.contact_xr
+        self.phi_t.loc[dict(risk_group1='high', risk_group2='high')] = self.contact_xr
+        self.phi_t.loc[dict(risk_group1='high', risk_group2='low')] = self.contact_xr
+        assert not self.phi_t.isnull().any()
 
     
     def initialize_misc_coords(self):
