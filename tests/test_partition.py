@@ -91,7 +91,9 @@ def legacy_results(request):
     }
 
 
-@pytest.fixture(params=range(9))
+# TODO
+# @pytest.fixture(params=range(9))
+@pytest.fixture(params=[8])
 def updated_results(request):
     base_dir = os.path.join('tests', 'data', 'partition_capture')
     idx = request.param
@@ -256,6 +258,10 @@ class TestPartitioning:
         })
         proc = partition.Partition(**inputs)
         proc.initialize()
+        proc.run_step(step_delta=np.timedelta64(24, 'h'),
+                      step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
+                      step_end=np.datetime64('2020-03-12T00:00:00.000000000'),
+                      )
 
         # construct a DataArray from legacy phi
         phi = to_phi_da(updated_results['phi_fp'])
