@@ -102,13 +102,6 @@ class Partition:
         self.prob_partitions = self.probabilistic_partition()
         self.contact_partitions = self.partitions_to_contacts(daily_timesteps=10)
         self.contact_xr = self.contact_matrix()
-        # breakpoint()
-
-    def subset_date(self, time_step_date):
-        travel_current_date = self.travel_df_with_date[self.travel_df_with_date['date'] == time_step_date]
-        assert not travel_current_date.empty, \
-            'No travel data for date {}.'.format(time_step_date)
-        return travel_current_date
 
     def load_travel_df(self):
 
