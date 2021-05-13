@@ -91,7 +91,9 @@ def legacy_results(request):
     }
 
 
-@pytest.fixture(params=range(9))
+# TODO
+# @pytest.fixture(params=range(9))
+@pytest.fixture(params=[8])
 def updated_results(request):
     base_dir = os.path.join('tests', 'data', 'partition_capture')
     idx = request.param
