@@ -252,14 +252,13 @@ class TestPartitioning:
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
             'age_group': counts_coords_toy['age_group'],
-            'risk_group': counts_coords_toy['risk_group'],
-            'travel_fp': 'tests/data/partition_capture/travel8.csv',
+            'risk_group': counts_coords_toy['risk_group']
         })
         proc = partition.Partition(**inputs)
         proc.initialize()
         proc.run_step(step_delta=np.timedelta64(24, 'h'),
-                      step_start=np.datetime64('2018-01-01T00:00:00.000000000'),
-                      step_end=np.datetime64('2018-01-02T00:00:00.000000000'),
+                      step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
+                      step_end=np.datetime64('2020-03-12T00:00:00.000000000'),
                       )
 
         # construct a DataArray from legacy phi

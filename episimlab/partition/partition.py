@@ -84,16 +84,19 @@ class Partition:
         # step_start and step_end are datetime64 marking beginning and end of this step
         logging.debug(f"step_start: {step_start}")
         logging.debug(f"step_end: {step_end}")
-        # convert both to datetime.datetime
-        start_dt = dt.utcfromtimestamp(step_start.astype('O')/1e9)
-        end_dt = dt.utcfromtimestamp(step_end.astype('O')/1e9)
 
         # step_delta is the time since previous step
         # we could just as easily calculate this: step_end - step_start
         # Example of how to use the `step_delta` to convert to interval per day
         self.int_per_day = utils.get_int_per_day(step_delta)
 
-        self.travel_df = self.subset_date(time_step_date=step_start)
+        # Generate travel_df by indexing on `date`
+        self.travel_df = self.travel_df_with_date[
+            (self.travel_df_with_date['date'] >= step_start) &
+            (self.travel_df_with_date['date'] <= step_end)
+        ]
+        assert not self.travel_df.empty, \
+            f'No travel data for date between {step_start} and {step_end}'
 
         # initialize empty class members to hold intermediate results generated during workflow
         self.prob_partitions = self.probabilistic_partition()
@@ -110,6 +113,7 @@ class Partition:
     def load_travel_df(self):
 
         tdf = pd.read_csv(self.travel_fp)
+        tdf['date'] = pd.to_datetime(tdf['date'])
         try:
             tdf = tdf.rename(columns={'age_src': 'age'})
         except KeyError:
