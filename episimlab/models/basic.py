@@ -11,6 +11,7 @@ from ..seir import (
     bf_cython as bf_cython_seir
 )
 from .. import apply_counts_delta
+from ..partition.partition import PartitionFromNC
 from ..io.config import ReadV1Config
 from ..network import cython_explicit_travel
 
@@ -23,7 +24,7 @@ def minimum_viable():
 
         # Instantiate coords and counts array
         setup_counts=counts.InitDefaultCounts,
-        setup_coords=coords.InitDefaultCoords,
+        setup_coords=coords.InitCoordsFromConfig,
 
         # Instantiate params that inform epi params
         # setup_asymp_infect=epi.asymp_infect.SetupDefaultAsympInfect,
@@ -111,3 +112,15 @@ def cy_seir_cy_foi_cy_adj():
         # Use adjacency matrix to simulate travel between vertices in cython
         travel=cython_explicit_travel.CythonExplicitTravel,
     ))
+
+
+def partition():
+    model = minimum_viable()
+    return (model
+            # .drop_processes(['setup_phi'])
+            .update_processes(dict(
+                foi=bf_cython_foi.BruteForceCythonFOI,
+                seir=bf_cython_seir.BruteForceCythonSEIR,
+                setup_coords=PartitionFromNC,
+            ))
+           )

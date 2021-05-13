@@ -12,7 +12,7 @@ class TestInitPhi:
             'vertex': counts_coords['vertex'],
             'age_group': counts_coords['age_group'],
             'risk_group': counts_coords['risk_group'],
-            'compartment': counts_coords['compartment'],
+            # 'compartment': counts_coords['compartment'],
         }
         proc = InitPhi(**inputs)
         proc.initialize()

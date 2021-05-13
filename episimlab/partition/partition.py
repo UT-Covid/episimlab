@@ -6,6 +6,8 @@ import numpy as np
 from datetime import datetime as dt
 from itertools import product
 from ..setup.coords import InitDefaultCoords
+from ..setup.phi import InitPhi
+from ..utils import get_var_dims
 from .. import utils
 
 logging.basicConfig(level=logging.DEBUG)
@@ -58,13 +60,17 @@ def legacy_mapping(col_type, table):
 
 @xs.process
 class Partition:
+    PHI_DIMS = ('vertex1', 'vertex2',
+            'age_group1', 'age_group2',
+            'risk_group1', 'risk_group2')
+
+    phi = xs.variable(dims=PHI_DIMS, static=True, intent='out')
+    phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
+    age_group = xs.global_ref('age_group')
 
     travel_fp = xs.variable(intent='in')
     contacts_fp = xs.variable(intent='in')
-    age_group = xs.foreign(InitDefaultCoords, 'age_group')  # age_groups = xs.variable(intent='in', default={'0-4', '5-17', '18-49', '50-64', '65+'})
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
     #time = xs.foreign(InitDefaultCoords, 'time')
-    demographic_groups = xs.variable(intent='in', default=None)
     contact_xr = xs.variable(static=False, intent='out')
 
     def initialize(self):
@@ -84,6 +90,9 @@ class Partition:
         # step_start and step_end are datetime64 marking beginning and end of this step
         logging.debug(f"step_start: {step_start}")
         logging.debug(f"step_end: {step_end}")
+        # float('inf') for step_end if it is NaT
+        if pd.isnull(step_end):
+            step_end = pd.Timestamp.max
 
         # step_delta is the time since previous step
         # we could just as easily calculate this: step_end - step_start
@@ -101,12 +110,22 @@ class Partition:
         # initialize empty class members to hold intermediate results generated during workflow
         self.prob_partitions = self.probabilistic_partition()
         self.contact_partitions = self.partitions_to_contacts(daily_timesteps=10)
-        self.contact_xr = self.contact_matrix()
+        # breakpoint()
+        self.contact_xr = (self
+                           .contact_matrix()
+                           .rename({
+                               'vertex_i': 'vertex1',
+                               'vertex_j': 'vertex2',
+                               'age_i': 'age_group1',
+                               'age_j': 'age_group2',
+                           })
+                          )
 
     def load_travel_df(self):
 
         tdf = pd.read_csv(self.travel_fp)
         tdf['date'] = pd.to_datetime(tdf['date'])
+        # breakpoint()
         try:
             tdf = tdf.rename(columns={'age_src': 'age'})
         except KeyError:
@@ -286,3 +305,63 @@ class TemporalPartition(Partition):
     demographic_groups = xs.variable(intent='in', default=None)
 
     # todo: apply the contact partitioning over time slices in travel_fp
+
+
+@xs.process
+class PartitionFromNC:
+    """Reads DataArray from NetCDF file at `contact_da_fp`, and sets attr
+    `contact_xr`.
+    """
+    PHI_DIMS = ('vertex1', 'vertex2',
+            'age_group1', 'age_group2',
+            'risk_group1', 'risk_group2')
+
+    age_group = xs.index(dims='age_group', global_name='age_group')
+    risk_group = xs.index(dims='risk_group', global_name='risk_group')
+    compartment = xs.index(dims='compartment', global_name='compartment')
+    vertex = xs.index(dims='vertex', global_name='vertex')
+
+    contact_da_fp = xs.variable(intent='in')
+    phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
+
+    def initialize(self):
+        self.contact_xr = (xr
+                           .open_dataarray(self.contact_da_fp)
+                           .rename({
+                               'vertex_i': 'vertex1',
+                               'vertex_j': 'vertex2',
+                               'age_i': 'age_group1',
+                               'age_j': 'age_group2',
+                           })
+                        #    .expand_dims(['risk_group1', 'risk_group2'])
+                          )
+        self.contact_xr.coords['age_group1'] = self.contact_xr.coords['age_group1'].astype(str)
+        self.contact_xr.coords['age_group2'] = self.contact_xr.coords['age_group2'].astype(str)
+        assert isinstance(self.contact_xr, xr.DataArray)
+        # breakpoint()
+
+        # set age group and vertex coords
+        self.age_group = self.contact_xr.coords['age_group1'].values
+        self.vertex = self.contact_xr.coords['vertex1'].values
+        # breakpoint()
+        
+        # set risk group and compartment coords
+        self.initialize_misc_coords()
+    
+        self.COORDS = {k: getattr(self, k[:-1]) for k in self.PHI_DIMS}
+        self.phi_t = xr.DataArray(data=np.nan, dims=self.PHI_DIMS, coords=self.COORDS)
+        
+        # broadcast into phi_array
+        # TODO: refactor
+        self.phi_t.loc[dict(risk_group1='low', risk_group2='low')] = self.contact_xr
+        self.phi_t.loc[dict(risk_group1='low', risk_group2='high')] = self.contact_xr
+        self.phi_t.loc[dict(risk_group1='high', risk_group2='high')] = self.contact_xr
+        self.phi_t.loc[dict(risk_group1='high', risk_group2='low')] = self.contact_xr
+        assert not self.phi_t.isnull().any()
+
+    
+    def initialize_misc_coords(self):
+        self.risk_group = ['low', 'high']
+        self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
+                            'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
+                            'Py2Iy', 'Iy2Ih', 'H2D']

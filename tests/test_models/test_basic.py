@@ -14,10 +14,14 @@ def output_vars():
 
 @pytest.fixture
 def input_vars(config_dict, config_fp):
-    return dict(read_config__config_fp=config_fp(config_dict))
+    cfg = config_fp(config_dict)
+    return dict(
+        read_config__config_fp=cfg,
+        setup_coords__config_fp=cfg
+    )
 
 
-class TestToyModels:
+class TestBasicModels:
 
     def run_model(self, model, step_clock, input_vars, output_vars):
         input_ds = xs.create_setup(
