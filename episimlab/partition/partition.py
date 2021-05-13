@@ -100,6 +100,17 @@ class Partition:
         self.contact_xr = self.contact_matrix()
         # breakpoint()
 
+    def subset_date(self, time_step_date):
+
+        travel_current_date = self.travel_df[self.travel_df['date'] == time_step_date]
+        try:
+            assert travel_current_date.empty == False
+        except AssertionError as e:
+            e.args += (('No travel data for date {}.'.format(time_step_date), ))
+            raise
+
+        return travel_current_date
+
     def load_travel_df(self):
 
         tdf = pd.read_csv(self.travel_fp)
