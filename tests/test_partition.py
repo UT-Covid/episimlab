@@ -120,8 +120,10 @@ class TestPartitionInModel:
         input_vars = dict(
             read_config__config_fp='tests/config/example_v2.yaml',
             # setup_coords__config_fp='tests/config/example_v2.yaml',
-            setup_phi__travel_fp='tests/data/partition_capture/travel0.csv',
-            setup_phi__contacts_fp='tests/data/partition_capture/contacts0.csv',
+            setup_coords__travel_fp='tests/data/partition_capture/travel0.csv',
+            setup_phi__contact_da_fp='tests/data/20200311_contact_matrix.nc',
+            # setup_phi__travel_fp='tests/data/partition_capture/travel0.csv',
+            # setup_phi__contacts_fp='tests/data/partition_capture/contacts0.csv',
         )
         output_vars = dict(apply_counts_delta__counts='step')
         result = self.run_model(model, step_clock, input_vars, output_vars)
@@ -152,7 +154,7 @@ class TestPartitioning:
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
             'age_group': counts_coords_toy['age_group'],
-            'risk_group': counts_coords_toy['risk_group'],
+            # 'risk_group': counts_coords_toy['risk_group'],
             # 'vertex': counts_coords_toy['vertex']
         })
         proc = Partition(**inputs)
@@ -161,7 +163,7 @@ class TestPartitioning:
                       step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
                       step_end=np.datetime64('2020-03-12T00:00:00.000000000'),
                       )
-
+        
         # construct a DataArray from legacy phi
         phi = to_phi_da(updated_results['phi_fp'])
 
@@ -173,7 +175,4 @@ class TestPartitioning:
             return da
 
         # rename test output to have legacy coordinate names
-        test_phi_xr = proc.contact_xr.rename(
-            {'age_i': 'age_group1', 'age_j': 'age_group2', 'vertex_i': 'vertex1', 'vertex_j': 'vertex2'}
-        )
-        xr.testing.assert_allclose(sort_coords(test_phi_xr), sort_coords(phi))
+        xr.testing.assert_allclose(sort_coords(proc.contact_xr), sort_coords(phi))

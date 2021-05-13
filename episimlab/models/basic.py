@@ -11,7 +11,7 @@ from ..seir import (
     bf_cython as bf_cython_seir
 )
 from .. import apply_counts_delta
-from ..partition.partition import Partition
+from ..partition.partition import PartitionFromNC
 from ..io.config import ReadV1Config
 from ..network import cython_explicit_travel
 
@@ -117,6 +117,6 @@ def cy_seir_cy_foi_cy_adj():
 def partition():
     model = cy_seir_cy_foi()
     return model.update_processes(dict(
-        setup_coords=coords.InitCoordsExceptVertex,
-        setup_phi=Partition
+        setup_coords=coords.InitCoordsFromTravel,
+        setup_phi=PartitionFromNC
     ))

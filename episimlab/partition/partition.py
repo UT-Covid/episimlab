@@ -59,13 +59,17 @@ def legacy_mapping(col_type, table):
 
 
 @xs.process
-class Partition(InitPhi):
+class Partition:
+    PHI_DIMS = ('vertex1', 'vertex2',
+            'age_group1', 'age_group2',
+            'risk_group1', 'risk_group2')
+
+    phi = xs.variable(dims=PHI_DIMS, static=True, intent='out')
+    phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
+    age_group = xs.global_ref('age_group')
 
     travel_fp = xs.variable(intent='in')
     contacts_fp = xs.variable(intent='in')
-    vertex = xs.index(dims='vertex', global_name='vertex')
-    age_group = xs.foreign(InitDefaultCoords, 'age_group')  # age_groups = xs.variable(intent='in', default={'0-4', '5-17', '18-49', '50-64', '65+'})
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
     #time = xs.foreign(InitDefaultCoords, 'time')
     contact_xr = xs.variable(static=False, intent='out')
 
@@ -86,6 +90,9 @@ class Partition(InitPhi):
         # step_start and step_end are datetime64 marking beginning and end of this step
         logging.debug(f"step_start: {step_start}")
         logging.debug(f"step_end: {step_end}")
+        # float('inf') for step_end if it is NaT
+        if pd.isnull(step_end):
+            step_end = pd.Timestamp.max
 
         # step_delta is the time since previous step
         # we could just as easily calculate this: step_end - step_start
@@ -114,15 +121,11 @@ class Partition(InitPhi):
                            })
                           )
 
-        # set vertex coords to set of unique indices along vertex1 and vertex2
-        # axes
-        self.vertex = self.contact_xr['vertex1']
-
-
     def load_travel_df(self):
 
         tdf = pd.read_csv(self.travel_fp)
         tdf['date'] = pd.to_datetime(tdf['date'])
+        # breakpoint()
         try:
             tdf = tdf.rename(columns={'age_src': 'age'})
         except KeyError:
@@ -302,3 +305,16 @@ class TemporalPartition(Partition):
     demographic_groups = xs.variable(intent='in', default=None)
 
     # todo: apply the contact partitioning over time slices in travel_fp
+
+
+@xs.process
+class PartitionFromNC:
+    """Reads DataArray from NetCDF file at `contact_da_fp`, and sets attr
+    `contact_xr`.
+    """
+    contact_da_fp = xs.variable(intent='in')
+    contact_xr = xs.variable(static=False, intent='out')
+
+    def initialize(self):
+        self.contact_xr = xr.open_dataarray(self.contact_da_fp)
+        assert isinstance(self.contact_xr, xr.DataArray)
