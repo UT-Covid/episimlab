@@ -2,6 +2,7 @@
 import argparse
 import pandas as pd
 import xsimlab as xs
+from matplotlib import pyplot as plt
 from episimlab import apply_counts_delta
 from episimlab.models import basic
 from episimlab.partition.partition import Partition
@@ -11,13 +12,14 @@ from episimlab.setup import coords
 def main(**opts):
     # ---------------------------- Define model --------------------------------
 
-    model = basic.partition()
+    model = (basic.partition().drop_processes(['setup_beta']))
 
     # ---------------------------- Define inputs -------------------------------
 
     input_vars = {
-        'config_fp': 'tests/config/example_v2.yaml',
+        'config_fp': 'scripts/20210512_partition_model.yaml',
         'contact_da_fp': 'tests/data/20200311_contact_matrix.nc',
+        'beta': 1.
     }
 
     # Reindex with `process__variable` keys
@@ -29,7 +31,7 @@ def main(**opts):
     input_ds = xs.create_setup(
         model=model,
         clocks={
-            'step': pd.date_range(start='1/1/2018', end='1/3/2018', freq='24H')
+            'step': pd.date_range(start='3/11/2020', end='6/1/2020', freq='24H')
         },
         input_vars=input_vars_with_proc,
         output_vars=dict(apply_counts_delta__counts='step')
@@ -39,6 +41,13 @@ def main(**opts):
     # ------------------------------ Run model ---------------------------------
 
     out_ds = input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
+    counts = out_ds['apply_counts_delta__counts']
+    # breakpoint()
+
+    # ------------------------------ Analyze/Plot ------------------------------
+
+    counts.sum(['age_group', 'risk_group', 'vertex']).loc[dict()].plot.line(x='step')
+    plt.show()
 
 
 def get_opts() -> dict:

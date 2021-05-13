@@ -352,6 +352,7 @@ class PartitionFromNC:
         self.phi_t = xr.DataArray(data=np.nan, dims=self.PHI_DIMS, coords=self.COORDS)
         
         # broadcast into phi_array
+        # TODO: refactor
         self.phi_t.loc[dict(risk_group1='low', risk_group2='low')] = self.contact_xr
         self.phi_t.loc[dict(risk_group1='low', risk_group2='high')] = self.contact_xr
         self.phi_t.loc[dict(risk_group1='high', risk_group2='high')] = self.contact_xr
