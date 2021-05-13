@@ -6,19 +6,24 @@ from matplotlib import pyplot as plt
 from episimlab import apply_counts_delta
 from episimlab.models import basic
 from episimlab.partition.partition import Partition
-from episimlab.setup import coords
+from episimlab.setup import coords, counts
 
 
 def main(**opts):
     # ---------------------------- Define model --------------------------------
 
-    model = (basic.partition().drop_processes(['setup_beta']))
+    model = (basic
+             .partition()
+             .drop_processes(['setup_beta'])
+             .update_processes(dict(setup_counts=counts.InitCountsFromCensusCSV))
+            )
 
     # ---------------------------- Define inputs -------------------------------
 
     input_vars = {
         'config_fp': 'scripts/20210512_partition_model.yaml',
         'contact_da_fp': 'tests/data/20200311_contact_matrix.nc',
+        'census_counts_csv': 'data/2019_zcta_pop_5_age_groups.csv',
         'beta': 1.
     }
 
@@ -41,12 +46,12 @@ def main(**opts):
     # ------------------------------ Run model ---------------------------------
 
     out_ds = input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
-    counts = out_ds['apply_counts_delta__counts']
+    cts = out_ds['apply_counts_delta__counts']
     # breakpoint()
 
     # ------------------------------ Analyze/Plot ------------------------------
 
-    counts.sum(['age_group', 'risk_group', 'vertex']).loc[dict()].plot.line(x='step')
+    cts.sum(['age_group', 'risk_group', 'vertex']).loc[dict()].plot.line(x='step')
     plt.show()
 
 
