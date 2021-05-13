@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 import xarray as xr
 import xsimlab as xs
@@ -5,6 +6,8 @@ import numpy as np
 from itertools import product
 from ..setup.coords import InitDefaultCoords
 from .. import utils
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def contact_probability(n_i, n_j, n_i_total, n_k_total):
@@ -78,10 +81,18 @@ class Partition:
         self.all_dims = self.spatial_dims + self.age_dims
         self.non_spatial_dims = self.age_dims  # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
     
-    @xs.runtime(args='step_delta')
-    def run_step(self, step_delta):
+    # docs at https://xarray-simlab.readthedocs.io/en/latest/_api_generated/xsimlab.runtime.html?highlight=runtime#xsimlab.runtime
+    @xs.runtime(args=['step_delta', 'step_start', 'step_end'])
+    def run_step(self, step_delta, step_start, step_end):
+        # step_delta is the time since previous step
         # Example of how to use the `step_delta` to convert to interval per day
         self.int_per_day = utils.get_int_per_day(step_delta)
+
+        # step_start and step_end are datetimes marking beginning and end of this step
+        logging.debug(f"step_start: {step_start}")
+        logging.debug(f"step_end: {step_end}")
+
+
 
         # initialize empty class members to hold intermediate results generated during workflow
         self.prob_partitions = self.probabilistic_partition()
