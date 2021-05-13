@@ -54,17 +54,12 @@ def legacy_mapping(col_type, table):
 @xs.process
 class Partition:
 
-    travel_fp = xs.variable(intent='in')
-    contacts_fp = xs.variable(intent='in')
-    age_group = xs.foreign(InitDefaultCoords, 'age_group')  # age_groups = xs.variable(intent='in', default={'0-4', '5-17', '18-49', '50-64', '65+'})
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
-    #time = xs.foreign(InitDefaultCoords, 'time')
+    travel_df = xs.variable(intent='in')
+    baseline_contact_df = xs.variable(intent='in')
+    age_group = xs.foreign(InitDefaultCoords, 'age_group')
     demographic_groups = xs.variable(intent='in', default=None)
 
     def initialize(self):
-
-        self.baseline_contact_df = pd.read_csv(self.contacts_fp)
-        self.travel_df = self.load_travel_df()
 
         self.age_group = self.age_group
         self.demographic_groups = self.demographic_groups
@@ -81,16 +76,6 @@ class Partition:
         self.prob_partitions = self.probabilistic_partition()
         self.contact_partitions = self.partitions_to_contacts(daily_timesteps=10)
         self.contact_xr = self.contact_matrix()
-
-    def load_travel_df(self):
-
-        tdf = pd.read_csv(self.travel_fp)
-        try:
-            tdf = tdf.rename(columns={'age_src': 'age'})
-        except KeyError:
-            pass
-
-        return tdf
 
     def setup_contacts(self):
 

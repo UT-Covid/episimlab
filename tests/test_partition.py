@@ -10,6 +10,7 @@ from itertools import product
 
 
 from episimlab.partition import toy, from_travel, partition
+from episimlab.partition.travel_management import load_travel_df
 from episimlab.models import basic
 from episimlab.setup import epi
 
@@ -79,12 +80,25 @@ def legacy_config(request):
 
 
 @pytest.fixture(params=range(8))
-def legacy_results(request):
+def legacy_results_toy(request):
     base_dir = os.path.join('tests', 'data', 'partition_capture')
     idx = request.param
     return {
         'contacts_fp': os.path.join(base_dir, f'contacts{idx}.csv'),
         'travel_fp': os.path.join(base_dir, f'travel{idx}.csv'),
+        'tc_final_fp': os.path.join(base_dir, f'tc_final{idx}.csv'),
+        'tr_parts_fp': os.path.join(base_dir, f'tr_parts{idx}.csv'),
+        'phi_fp': os.path.join(base_dir, f'phi{idx}.npy'),
+    }
+
+
+@pytest.fixture(params=range(8))
+def legacy_results(request):
+    base_dir = os.path.join('tests', 'data', 'partition_capture')
+    idx = request.param
+    return {
+        'baseline_contact_df': load_travel_df(os.path.join(base_dir, f'contacts{idx}.csv')),
+        'travel_df': load_travel_df(os.path.join(base_dir, f'travel{idx}.csv')),
         'tc_final_fp': os.path.join(base_dir, f'tc_final{idx}.csv'),
         'tr_parts_fp': os.path.join(base_dir, f'tr_parts{idx}.csv'),
         'phi_fp': os.path.join(base_dir, f'phi{idx}.npy'),
@@ -96,8 +110,8 @@ def updated_results(request):
     base_dir = os.path.join('tests', 'data', 'partition_capture')
     idx = request.param
     return {
-        'contacts_fp': os.path.join(base_dir, f'contacts{idx}.csv'),
-        'travel_fp': os.path.join(base_dir, f'travel{idx}.csv'),
+        'baseline_contact_df': load_travel_df(os.path.join(base_dir, f'contacts{idx}.csv')),
+        'travel_df': load_travel_df(os.path.join(base_dir, f'travel{idx}.csv')),
         'tc_final_fp': os.path.join(base_dir, f'tc_final{idx}.csv'),
         'tr_parts_fp': os.path.join(base_dir, f'tr_parts{idx}.csv'),
         'phi_fp': os.path.join(base_dir, f'phi{idx}.npy'),
@@ -108,20 +122,20 @@ class TestToyPartitioning:
     Do the migrated processes produce the same results as SEIR_Example?
     """
 
-    def test_toy_partitioning(self, legacy_results):
-        inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
+    def test_toy_partitioning(self, legacy_results_toy):
+        inputs = {k: legacy_results_toy[k] for k in ('contacts_fp', 'travel_fp')}
         proc = toy.NaiveMigration(**inputs)
         proc.initialize()
-        tc_final = pd.read_csv(legacy_results['tc_final_fp'], index_col=None)
-        phi = np.load(legacy_results['phi_fp'])
+        tc_final = pd.read_csv(legacy_results_toy['tc_final_fp'], index_col=None)
+        phi = np.load(legacy_results_toy['phi_fp'])
 
         # test against legacy
         pd.testing.assert_frame_equal(proc.tc_final, tc_final)
         np.testing.assert_array_almost_equal(proc.phi_ndarray, phi)
 
-    def test_with_methods(self, to_phi_da, legacy_results, counts_coords_toy,
+    def test_with_methods(self, to_phi_da, legacy_results_toy, counts_coords_toy,
                           phi_grp_mapping, step_delta):
-        inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
+        inputs = {k: legacy_results_toy[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
             'age_group': counts_coords_toy['age_group'],
             'risk_group': counts_coords_toy['risk_group'],
@@ -131,10 +145,10 @@ class TestToyPartitioning:
         proc = toy.SetupPhiWithToyPartitioning(**inputs)
         proc.initialize()
         proc.run_step(step_delta=step_delta)
-        tc_final = pd.read_csv(legacy_results['tc_final_fp'], index_col=None)
+        tc_final = pd.read_csv(legacy_results_toy['tc_final_fp'], index_col=None)
 
         # construct a DataArray from legacy phi
-        phi = to_phi_da(legacy_results['phi_fp'])
+        phi = to_phi_da(legacy_results_toy['phi_fp'])
 
         # test against legacy
         pd.testing.assert_frame_equal(proc.tc_final, tc_final)
@@ -162,12 +176,12 @@ class TestToyPartitioning:
             res2d = proc.phi_t.loc[{'phi_grp1': pg1, 'phi_grp2': pg2}]
             assert res4d == res2d
 
-    def test_consistent_with_xarray(self, to_phi_da, legacy_results, step_delta,
+    def test_consistent_with_xarray(self, to_phi_da, legacy_results_toy, step_delta,
                                     counts_coords_toy, phi_grp_mapping):
         """Is the xarray implementation consistent with the original one that uses
         pandas dataframes?
         """
-        inputs = {k: legacy_results[k] for k in ('contacts_fp', 'travel_fp')}
+        inputs = {k: legacy_results_toy[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
             'age_group': counts_coords_toy['age_group'],
             'risk_group': counts_coords_toy['risk_group'],
@@ -235,7 +249,7 @@ class TestPartitioning:
 
     @pytest.mark.xfail(reason="Legacy dataframe missing some rows expected to contain zero contacts.")
     def test_partitioning(self, updated_results, counts_coords_toy):
-        inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
+        inputs = {k: updated_results[k] for k in ('baseline_contact_df', 'travel_df')}
         inputs.update({
             'age_group': counts_coords_toy['age_group'],
             'risk_group': counts_coords_toy['risk_group']
@@ -249,10 +263,9 @@ class TestPartitioning:
         pd.testing.assert_frame_equal(proc.contact_partitions, tc_final)
 
     def test_phi(self, to_phi_da, updated_results, counts_coords_toy):
-        inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
+        inputs = {k: updated_results[k] for k in ('baseline_contact_df', 'travel_df')}
         inputs.update({
             'age_group': counts_coords_toy['age_group'],
-            'risk_group': counts_coords_toy['risk_group']
         })
         proc = partition.Partition(**inputs)
         proc.initialize()
