@@ -3,6 +3,7 @@ import pandas as pd
 import xarray as xr
 import xsimlab as xs
 import numpy as np
+from datetime import datetime as dt
 from itertools import product
 from ..setup.coords import InitDefaultCoords
 from .. import utils
@@ -68,7 +69,7 @@ class Partition:
     def initialize(self):
 
         self.baseline_contact_df = pd.read_csv(self.contacts_fp)
-        self.travel_df = self.load_travel_df()
+        self.travel_df_with_date = self.load_travel_df()
 
         self.spatial_dims = ['source', 'destination']       # enforce that these are the only spatial dimensions
         self.age_dims = ['source_age', 'destination_age']          # always make age relative to source, destination
@@ -79,15 +80,19 @@ class Partition:
     # docs at https://xarray-simlab.readthedocs.io/en/latest/_api_generated/xsimlab.runtime.html?highlight=runtime#xsimlab.runtime
     @xs.runtime(args=['step_delta', 'step_start', 'step_end'])
     def run_step(self, step_delta, step_start, step_end):
+        # step_start and step_end are datetime64 marking beginning and end of this step
+        logging.debug(f"step_start: {step_start}")
+        logging.debug(f"step_end: {step_end}")
+        # convert both to datetime.datetime
+        start_dt = dt.utcfromtimestamp(step_start.astype('O')/1e9)
+        end_dt = dt.utcfromtimestamp(step_end.astype('O')/1e9)
+
         # step_delta is the time since previous step
+        # we could just as easily calculate this: step_end - step_start
         # Example of how to use the `step_delta` to convert to interval per day
         self.int_per_day = utils.get_int_per_day(step_delta)
 
-        # step_start and step_end are datetimes marking beginning and end of this step
-        logging.debug(f"step_start: {step_start}")
-        logging.debug(f"step_end: {step_end}")
-
-
+        self.travel_df = self.subset_date(time_step_date=step_start)
 
         # initialize empty class members to hold intermediate results generated during workflow
         self.prob_partitions = self.probabilistic_partition()
@@ -96,7 +101,7 @@ class Partition:
         # breakpoint()
 
     def subset_date(self, time_step_date):
-        travel_current_date = self.travel_df[self.travel_df['date'] == time_step_date]
+        travel_current_date = self.travel_df_with_date[self.travel_df_with_date['date'] == time_step_date]
         assert not travel_current_date.empty, \
             'No travel data for date {}.'.format(time_step_date)
         return travel_current_date
