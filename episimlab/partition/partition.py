@@ -1,11 +1,16 @@
+import logging
 import pandas as pd
 import xarray as xr
 import xsimlab as xs
 import numpy as np
+from datetime import datetime as dt
 from itertools import product
 from ..setup.coords import InitDefaultCoords
 from ..setup.phi import InitPhi
 from ..utils import get_var_dims
+from .. import utils
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def contact_probability(n_i, n_j, n_i_total, n_k_total):
@@ -58,22 +63,42 @@ class Partition(InitPhi):
 
     travel_fp = xs.variable(intent='in')
     contacts_fp = xs.variable(intent='in')
-    # demographic_groups = xs.variable(intent='in', default=None)
     vertex = xs.index(dims='vertex', global_name='vertex')
+    age_group = xs.foreign(InitDefaultCoords, 'age_group')  # age_groups = xs.variable(intent='in', default={'0-4', '5-17', '18-49', '50-64', '65+'})
+    risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
+    #time = xs.foreign(InitDefaultCoords, 'time')
+    contact_xr = xs.variable(static=False, intent='out')
 
     def initialize(self):
 
         self.baseline_contact_df = pd.read_csv(self.contacts_fp)
-        self.travel_df = self.load_travel_df()
+        self.travel_df_with_date = self.load_travel_df()
 
-        # trying to think forward to other extensions; demographic groups are a placeholder for now but not implemented
-        # if self.demographic_groups:
-        #     raise NotImplementedError
         self.spatial_dims = ['source', 'destination']       # enforce that these are the only spatial dimensions
         self.age_dims = ['source_age', 'destination_age']          # always make age relative to source, destination
         self.contacts = self.setup_contacts()
         self.all_dims = self.spatial_dims + self.age_dims
         self.non_spatial_dims = self.age_dims  # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
+    
+    # docs at https://xarray-simlab.readthedocs.io/en/latest/_api_generated/xsimlab.runtime.html?highlight=runtime#xsimlab.runtime
+    @xs.runtime(args=['step_delta', 'step_start', 'step_end'])
+    def run_step(self, step_delta, step_start, step_end):
+        # step_start and step_end are datetime64 marking beginning and end of this step
+        logging.debug(f"step_start: {step_start}")
+        logging.debug(f"step_end: {step_end}")
+
+        # step_delta is the time since previous step
+        # we could just as easily calculate this: step_end - step_start
+        # Example of how to use the `step_delta` to convert to interval per day
+        self.int_per_day = utils.get_int_per_day(step_delta)
+
+        # Generate travel_df by indexing on `date`
+        self.travel_df = self.travel_df_with_date[
+            (self.travel_df_with_date['date'] >= step_start) &
+            (self.travel_df_with_date['date'] <= step_end)
+        ]
+        assert not self.travel_df.empty, \
+            f'No travel data for date between {step_start} and {step_end}'
 
         # initialize empty class members to hold intermediate results generated during workflow
         self.prob_partitions = self.probabilistic_partition()
@@ -97,6 +122,7 @@ class Partition(InitPhi):
     def load_travel_df(self):
 
         tdf = pd.read_csv(self.travel_fp)
+        tdf['date'] = pd.to_datetime(tdf['date'])
         try:
             tdf = tdf.rename(columns={'age_src': 'age'})
         except KeyError:
