@@ -7,7 +7,7 @@ from episimlab.foi.brute_force import BruteForceFOI
 
 class TestBruteForceCythonFOI:
 
-    def test_can_run_step(self, beta, omega, counts_basic, phi_grp_mapping, phi_t):
+    def test_can_run_step(self, beta, omega, counts_basic, phi_t):
         """
         """
         inputs = {
@@ -18,7 +18,6 @@ class TestBruteForceCythonFOI:
             'omega': omega,
             'counts': counts_basic,
             'phi_t': phi_t,
-            'phi_grp_mapping': phi_grp_mapping
         }
         foi_getter = BruteForceCythonFOI(**inputs)
         foi_getter.run_step()
@@ -26,11 +25,10 @@ class TestBruteForceCythonFOI:
 
         # assert that FOI is non zero
         assert result.sum() >= 1e-8
-        # logging.debug(f"phi_grp_mapping: {phi_grp_mapping}")
         # logging.debug(f"result: {result}")
         assert isinstance(result, xr.DataArray)
 
-    def test_can_reproduce_python(self, beta, omega, counts_basic, phi_grp_mapping, phi_t):
+    def test_can_reproduce_python(self, beta, omega, counts_basic, phi_t):
         """
         """
         inputs = {
@@ -41,7 +39,6 @@ class TestBruteForceCythonFOI:
             'omega': omega,
             'counts': counts_basic,
             'phi_t': phi_t,
-            'phi_grp_mapping': phi_grp_mapping
         }
 
         # get FOI in cython
