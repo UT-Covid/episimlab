@@ -256,6 +256,7 @@ class TestPartitioning:
         })
         proc = partition.Partition(**inputs)
         proc.initialize()
+        proc.run_step(step_delta=np.timedelta64(24, 'h'))
 
         # construct a DataArray from legacy phi
         phi = to_phi_da(updated_results['phi_fp'])

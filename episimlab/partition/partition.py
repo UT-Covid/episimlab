@@ -4,6 +4,7 @@ import xsimlab as xs
 import numpy as np
 from itertools import product
 from ..setup.coords import InitDefaultCoords
+from .. import utils
 
 
 def contact_probability(n_i, n_j, n_i_total, n_k_total):
@@ -76,11 +77,17 @@ class Partition:
         self.contacts = self.setup_contacts()
         self.all_dims = self.spatial_dims + self.age_dims
         self.non_spatial_dims = self.age_dims  # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
+    
+    @xs.runtime(args='step_delta')
+    def run_step(self, step_delta):
+        # Example of how to use the `step_delta` to convert to interval per day
+        self.int_per_day = utils.get_int_per_day(step_delta)
 
         # initialize empty class members to hold intermediate results generated during workflow
         self.prob_partitions = self.probabilistic_partition()
         self.contact_partitions = self.partitions_to_contacts(daily_timesteps=10)
         self.contact_xr = self.contact_matrix()
+        # breakpoint()
 
     def load_travel_df(self):
 
