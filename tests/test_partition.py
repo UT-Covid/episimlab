@@ -124,7 +124,9 @@ class TestPartitionInModel:
         result = self.run_model(model, step_clock, input_vars, output_vars)
         assert isinstance(result, xr.Dataset)
 
-    @pytest.mark.skip(reason="Very slow test that requires data/20200311_travel.csv")
+    @pytest.mark.slow
+    @pytest.mark.skipif(not os.path.isfile("data/20200311_travel.csv"),
+                        reason="Very slow test that requires data/20200311_travel.csv")
     def test_partition_from_csv(self, step_clock):
         model = basic.partition().update_processes(dict(get_contact_xr=Partition2Contact))
         input_vars = dict(
