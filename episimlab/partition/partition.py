@@ -59,9 +59,7 @@ def legacy_mapping(col_type, table):
 
 
 @xs.process
-class Partition:
-    age_group = xs.global_ref('age_group')
-
+class Partition2Contact:
     travel_fp = xs.variable(intent='in')
     contacts_fp = xs.variable(intent='in')
     #time = xs.foreign(InitDefaultCoords, 'time')

@@ -6,7 +6,7 @@ import xsimlab as xs
 from matplotlib import pyplot as plt
 from episimlab import apply_counts_delta
 from episimlab.models import basic
-from episimlab.partition.partition import Partition
+from episimlab.partition.partition import Partition2Contact
 from episimlab.setup import coords, counts
 
 
@@ -15,8 +15,7 @@ def partition_from_csv():
              .partition()
              .drop_processes(['setup_beta'])
              .update_processes(dict(
-                 setup_counts=counts.InitCountsFromCensusCSV,
-                 setup_coords=Partition,
+                 get_contact_nc=Partition2Contact, 
              ))
             )
     breakpoint()

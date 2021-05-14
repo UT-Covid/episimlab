@@ -122,6 +122,6 @@ def partition():
                 foi=bf_cython_foi.BruteForceCythonFOI,
                 seir=bf_cython_seir.BruteForceCythonSEIR,
                 setup_coords=Contact2Phi, 
-                read_contact_nc=NC2Contact, 
+                get_contact_nc=NC2Contact, 
             ))
            )
