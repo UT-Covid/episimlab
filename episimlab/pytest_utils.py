@@ -20,7 +20,7 @@ def profiler(flavor='wall_clock', log_dir='./logs', log_stub=None, show_prof=Fal
         pass
     """
 
-    assert log_dir is not None
+    assert os.path.isdir(log_dir)
     if log_stub is None:
         log_stub = _get_timestamp()
 
