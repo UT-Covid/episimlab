@@ -60,12 +60,6 @@ def legacy_mapping(col_type, table):
 
 @xs.process
 class Partition:
-    PHI_DIMS = ('vertex1', 'vertex2',
-            'age_group1', 'age_group2',
-            'risk_group1', 'risk_group2')
-
-    phi = xs.variable(dims=PHI_DIMS, static=True, intent='out')
-    phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
     age_group = xs.global_ref('age_group')
 
     travel_fp = xs.variable(intent='in')
@@ -143,6 +137,17 @@ class Partition:
         contact_dict['pr_contact_src_dest'] = []
 
         return contact_dict
+    
+    @property
+    def age_group(self, recalc=False) -> list:
+        """Gets age group from join on travel_df and baseline_contact_df"""
+        if not hasattr(self, '_age_group') or recalc is True:
+            assert hasattr(self, 'baseline_contact_df')
+            assert hasattr(self, 'travel_df')
+            ag_from_contacts = set(self.baseline_contact_df[['age1', 'age2']].values.ravel('K'))
+            ag_from_travel = set(self.travel_df.age.unique())
+            self._age_group = ag_from_contacts.union(ag_from_travel)
+        return list(self._age_group)
 
     def probabilistic_partition(self):
 
