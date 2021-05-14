@@ -66,7 +66,8 @@ class Partition2Contact:
     #time = xs.foreign(InitDefaultCoords, 'time')
     contact_xr = xs.variable(dims=DIMS, intent='out', global_name='contact_xr')
 
-    def initialize(self):
+    @xs.runtime(args=['step_delta', 'step_start', 'step_end'])
+    def initialize(self, step_delta, step_start, step_end):
 
         self.baseline_contact_df = pd.read_csv(self.contacts_fp)
         self.travel_df_with_date = self.load_travel_df()
@@ -76,6 +77,10 @@ class Partition2Contact:
         self.contacts = self.setup_contacts()
         self.all_dims = self.spatial_dims + self.age_dims
         self.non_spatial_dims = self.age_dims  # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
+
+        # we need contact_xr set during initialize, for setting coordinates
+        # self.run_step(step_delta, step_start, step_end)
+        
 
     # docs at https://xarray-simlab.readthedocs.io/en/latest/_api_generated/xsimlab.runtime.html?highlight=runtime#xsimlab.runtime
     @xs.runtime(args=['step_delta', 'step_start', 'step_end'])
@@ -311,18 +316,21 @@ class Contact2Phi:
     compartment = xs.index(dims='compartment', global_name='compartment')
     vertex = xs.index(dims='vertex', global_name='vertex')
 
-    contact_xr = xs.global_ref('contact_xr')
+    contact_xr = xs.global_ref('contact_xr', intent='in')
     phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
 
     def initialize(self):
+        self.initialize_misc_coords()
+        self.run_step()
+
+    def run_step(self):
         # set age group and vertex coords
         self.age_group = self.contact_xr.coords['age_group1'].values
         self.vertex = self.contact_xr.coords['vertex1'].values
 
-        self.initialize_misc_coords()
-        self.initialize_phi()
+        self.get_phi()
 
-    def initialize_phi(self):
+    def get_phi(self):
         self.COORDS = {k: getattr(self, k[:-1]) for k in self.PHI_DIMS}
         self.phi_t = xr.DataArray(data=np.nan, dims=self.PHI_DIMS, coords=self.COORDS)
 

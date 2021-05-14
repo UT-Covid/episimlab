@@ -152,12 +152,12 @@ class TestPartitioning:
     def test_phi(self, to_phi_da, updated_results, counts_coords_toy):
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
         proc = Partition2Contact(**inputs)
-        proc.initialize()
-        proc.run_step(step_delta=np.timedelta64(24, 'h'),
-                      step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
-                      step_end=np.datetime64('2020-03-12T00:00:00.000000000'),
-                      )
-        
+        kw = dict(step_delta=np.timedelta64(24, 'h'),
+                  step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
+                  step_end=np.datetime64('2020-03-12T00:00:00.000000000'),)
+        proc.initialize(**kw)
+        proc.run_step(**kw)
+
         # construct a DataArray from legacy phi
         phi = to_phi_da(updated_results['phi_fp'])
 
