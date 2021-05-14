@@ -149,9 +149,6 @@ class TestPartitioning:
 
     def test_phi(self, to_phi_da, updated_results, counts_coords_toy):
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
-        inputs.update({
-            'age_group': counts_coords_toy['age_group'],
-        })
         proc = Partition(**inputs)
         proc.initialize()
         proc.run_step(step_delta=np.timedelta64(24, 'h'),
