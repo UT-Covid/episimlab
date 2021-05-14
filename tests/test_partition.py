@@ -124,12 +124,13 @@ class TestPartitionInModel:
         result = self.run_model(model, step_clock, input_vars, output_vars)
         assert isinstance(result, xr.Dataset)
 
+    @pytest.mark.skip(reason="Very slow test that requires data/20200311_travel.csv")
     def test_partition_from_csv(self, step_clock):
         model = basic.partition().update_processes(dict(get_contact_xr=Partition2Contact))
         input_vars = dict(
             read_config__config_fp='tests/config/example_v2.yaml',
             get_contact_xr__travel_fp='data/20200311_travel.csv',
-            get_contact_xr__contacts_fp='data/polymod_contacts.csv',
+            get_contact_xr__contacts_fp='tests/data/polymod_contacts.csv',
         )
         output_vars = dict(apply_counts_delta__counts='step')
         result = self.run_model(model, step_clock, input_vars, output_vars)
