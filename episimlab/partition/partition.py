@@ -60,10 +60,11 @@ def legacy_mapping(col_type, table):
 
 @xs.process
 class Partition2Contact:
+    DIMS = ('vertex1', 'vertex2', 'age_group1', 'age_group2',)
     travel_fp = xs.variable(intent='in')
     contacts_fp = xs.variable(intent='in')
     #time = xs.foreign(InitDefaultCoords, 'time')
-    contact_xr = xs.variable(static=False, intent='out')
+    contact_xr = xs.variable(dims=DIMS, intent='out', global_name='contact_xr')
 
     def initialize(self):
 
