@@ -76,7 +76,7 @@ class Partition2Contact:
         self.age_dims = ['source_age', 'destination_age']          # always make age relative to source, destination
 
         # we need contact_xr set during initialize, for setting coordinates
-        # time interval is set between zero and first timestep in travel df
+        # time interval is set first timestep in travel df 
         step_end = self.travel_df_with_date.date.min().to_datetime64()
         self.run_step(None, step_start=step_end, step_end=step_end)
         assert hasattr(self, 'contact_xr')

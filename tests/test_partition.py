@@ -118,11 +118,7 @@ class TestPartitionInModel:
         model = basic.partition()
         input_vars = dict(
             read_config__config_fp='tests/config/example_v2.yaml',
-            # setup_coords__config_fp='tests/config/example_v2.yaml',
-            # setup_coords__travel_fp='tests/data/partition_capture/travel0.csv',
             get_contact_xr__contact_da_fp='tests/data/20200311_contact_matrix.nc',
-            # setup_phi__travel_fp='tests/data/partition_capture/travel0.csv',
-            # setup_phi__contacts_fp='tests/data/partition_capture/contacts0.csv',
         )
         output_vars = dict(apply_counts_delta__counts='step')
         result = self.run_model(model, step_clock, input_vars, output_vars)
