@@ -74,9 +74,6 @@ class Partition2Contact:
 
         self.spatial_dims = ['source', 'destination']       # enforce that these are the only spatial dimensions
         self.age_dims = ['source_age', 'destination_age']          # always make age relative to source, destination
-        self.contacts = self.setup_contacts()
-        self.all_dims = self.spatial_dims + self.age_dims
-        self.non_spatial_dims = self.age_dims  # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
 
         # we need contact_xr set during initialize, for setting coordinates
         # self.run_step(step_delta, step_start, step_end)
@@ -96,6 +93,10 @@ class Partition2Contact:
         # we could just as easily calculate this: step_end - step_start
         # Example of how to use the `step_delta` to convert to interval per day
         self.int_per_day = utils.get_int_per_day(step_delta)
+
+        self.contacts = self.setup_contacts()
+        self.all_dims = self.spatial_dims + self.age_dims
+        self.non_spatial_dims = self.age_dims  # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
 
         # Generate travel_df by indexing on `date`
         self.travel_df = self.travel_df_with_date[
