@@ -9,6 +9,7 @@ from ..setup.coords import InitDefaultCoords
 from ..setup.phi import InitPhi
 from ..utils import get_var_dims
 from .. import utils
+from ..pytest_utils import profiler
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -123,6 +124,7 @@ class Partition2Contact:
                            })
                           )
 
+    @profiler()
     def load_travel_df(self):
 
         tdf = pd.read_csv(self.travel_fp)
@@ -157,6 +159,7 @@ class Partition2Contact:
             self._age_group = ag_from_contacts.union(ag_from_travel)
         return list(self._age_group)
 
+    @profiler()
     def probabilistic_partition(self):
 
         total_pop = self.travel_df.groupby(['source', 'age'])['n'].sum().to_dict()
@@ -240,6 +243,7 @@ class Partition2Contact:
 
         return contact_df
 
+    @profiler()
     def partitions_to_contacts(self, daily_timesteps):
 
         tc = pd.merge(
@@ -256,6 +260,7 @@ class Partition2Contact:
 
         return tc
 
+    @profiler()
     def contact_matrix(self):
 
         sources = self.contact_partitions['i'].unique()
@@ -363,6 +368,7 @@ class NC2Contact:
     contact_da_fp = xs.variable(intent='in')
     contact_xr = xs.variable(dims=DIMS, intent='out', global_name='contact_xr')
 
+    @profiler()
     def initialize(self):
         da = (xr
               .open_dataarray(self.contact_da_fp)
