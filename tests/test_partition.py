@@ -114,7 +114,7 @@ class TestPartitionInModel:
         # breakpoint()
         return input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
 
-    def test_partition_in_model(self, step_clock):
+    def test_partition_from_nc(self, step_clock):
         model = basic.partition()
         input_vars = dict(
             read_config__config_fp='tests/config/example_v2.yaml',
@@ -123,6 +123,18 @@ class TestPartitionInModel:
             get_contact_xr__contact_da_fp='tests/data/20200311_contact_matrix.nc',
             # setup_phi__travel_fp='tests/data/partition_capture/travel0.csv',
             # setup_phi__contacts_fp='tests/data/partition_capture/contacts0.csv',
+        )
+        output_vars = dict(apply_counts_delta__counts='step')
+        result = self.run_model(model, step_clock, input_vars, output_vars)
+        assert isinstance(result, xr.Dataset)
+
+    def test_partition_from_csv(self, step_clock):
+        model = basic.partition().update_processes(dict(get_contact_xr=Partition2Contact))
+        input_vars = dict(
+            read_config__config_fp='tests/config/example_v2.yaml',
+            get_contact_xr__travel_fp='tests/data/partition_capture/travel0.csv',
+            # get_contact_xr__contact_da_fp='tests/data/20200311_contact_matrix.nc',
+            get_contact_xr__contacts_fp='tests/data/partition_capture/contacts0.csv',
         )
         output_vars = dict(apply_counts_delta__counts='step')
         result = self.run_model(model, step_clock, input_vars, output_vars)
