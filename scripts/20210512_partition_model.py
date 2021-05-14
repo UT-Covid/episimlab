@@ -22,8 +22,8 @@ def partition_from_csv():
 
     input_vars = {
         'config_fp': 'scripts/20210512_partition_model.yaml',
-        'travel_fp': 'tests/data/partition_capture/travel0.csv',
-        'contacts_fp': 'tests/data/partition_capture/contacts0.csv',
+        'travel_fp': 'data/20200311_travel.csv',
+        'contacts_fp': 'data/polymod_contacts.csv',
         'census_counts_csv': 'data/2019_zcta_pop_5_age_groups.csv',
         'beta': 1.
     }
