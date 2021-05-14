@@ -19,8 +19,7 @@ from cython.parallel import prange
 DTYPE_FLOAT = np.float64
 DTYPE_INT = np.intc
 
-def brute_force_FOI(np.ndarray phi_grp_mapping,
-                    np.ndarray counts,
+def brute_force_FOI(np.ndarray counts,
                     np.ndarray phi_t,
                     # np.ndarray rho,
                     # np.ndarray gamma,
@@ -35,9 +34,8 @@ def brute_force_FOI(np.ndarray phi_grp_mapping,
     """
     """
     cdef:
-        long [:, :, :] phi_grp_view = phi_grp_mapping
         double [:, :, :, :] counts_view = counts
-        double [:, :] phi_view = phi_t
+        double [:, :, :, :, :, :] phi_view = phi_t
         # double [:, :] rho_view = rho
         # double [:] gamma_view = gamma
         # double [:, :] pi_view = pi
@@ -49,7 +47,6 @@ def brute_force_FOI(np.ndarray phi_grp_mapping,
         # double [:] eta_view = eta
 
     return _brute_force_FOI(
-        phi_grp_view,
         counts_view,
         phi_view,
         # rho_view,
@@ -66,9 +63,8 @@ def brute_force_FOI(np.ndarray phi_grp_mapping,
     )
 
 
-cdef np.ndarray _brute_force_FOI(long [:, :, :] phi_grp_view,
-                                double [:, :, :, :] counts_view,
-                                double [:, :] phi_view,
+cdef np.ndarray _brute_force_FOI(double [:, :, :, :] counts_view,
+                                double [:, :, :, :, :, :] phi_view,
                                 # double [:, :] rho_view,
                                 # double [:] gamma_view,
                                 # double [:, :] pi_view,
@@ -136,9 +132,7 @@ cdef np.ndarray _brute_force_FOI(long [:, :, :] phi_grp_view,
                                 continue
 
                             # Get phi
-                            phi_1_2 = phi_view[
-                                phi_grp_view[n, a, r],
-                                phi_grp_view[n_2, a_2, r_2]]
+                            phi_1_2 = phi_view[n, n_2, a, a_2, r, r_2]
 
                             # Enumerate omega
                             omega_a_2 = omega_view[a_2, 4]

@@ -6,7 +6,7 @@ from episimlab.foi.brute_force import BruteForceFOI
 
 class TestBruteForceFOI:
 
-    def test_can_run_step(self, omega, beta, counts_basic, phi_grp_mapping, phi_t):
+    def test_can_run_step(self, omega, beta, counts_basic, phi_t):
         """
         """
         inputs = {
@@ -17,7 +17,6 @@ class TestBruteForceFOI:
             'omega': omega,
             'counts': counts_basic,
             'phi_t': phi_t,
-            'phi_grp_mapping': phi_grp_mapping
         }
         foi_getter = BruteForceFOI(**inputs)
         foi_getter.run_step()

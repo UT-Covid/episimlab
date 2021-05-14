@@ -4,7 +4,7 @@ import xsimlab as xs
 import pandas as pd
 import numpy as np
 import logging
-import episimlab
+from episimlab.models import basic
 from episimlab.seir import (
     base as seir_base,
     brute_force as seir_bf,
@@ -55,10 +55,14 @@ class TestCompareBasicModels:
         that this test should always pass.
         """
         # generate input variables
-        input_vars = dict(read_config__config_fp=config_fp(config_dict))
+        cfg = config_fp(config_dict)
+        input_vars = dict(
+            read_config__config_fp=cfg,
+            setup_coords__config_fp=cfg
+        )
 
         # load default model
-        model = episimlab.models.basic.slow_seir()
+        model = basic.slow_seir()
 
         # construct models
         model1 = model.update_processes(dict(

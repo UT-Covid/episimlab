@@ -18,7 +18,7 @@ def counts_dims():
 ])
 def counts_coords(request):
     return {
-        'vertex': range(request.param),
+        'vertex': list(range(request.param)),
         'age_group': ['0-4', '5-17', '18-49', '50-64', '65+'],
         'risk_group': ['low', 'high'],
         'compartment': ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
@@ -118,23 +118,23 @@ def adj_t(counts_coords) -> xr.DataArray:
 
 
 @pytest.fixture()
-def phi_t(phi_grp_mapping):
-    _data = [[0.51540028, 0.51540028, 0.94551748, 0.94551748, 1.96052056, 1.96052056, 0.12479711, 0.12479711, 0.0205698, 0.0205698 ],
-            [0.51540028, 0.51540028, 0.94551748, 0.94551748, 1.96052056, 1.96052056, 0.12479711, 0.12479711, 0.0205698, 0.0205698 ],
-            [0.20813759, 0.20813759, 1.72090425, 1.72090425, 1.9304265, 1.9304265, 0.16597259, 0.16597259, 0.0238168, 0.0238168 ],
-            [0.20813759, 0.20813759, 1.72090425, 1.72090425, 1.9304265, 1.9304265, 0.16597259, 0.16597259, 0.0238168, 0.0238168 ],
-            [0.24085226, 0.24085226, 0.90756038, 0.90756038, 1.68238057, 1.68238057, 0.23138952, 0.23138952, 0.0278581, 0.0278581 ],
-            [0.24085226, 0.24085226, 0.90756038, 0.90756038, 1.68238057, 1.68238057, 0.23138952, 0.23138952, 0.0278581, 0.0278581 ],
-            [0.20985118, 0.20985118, 0.70358752, 0.70358752, 1.24247158, 1.24247158, 0.97500204, 0.97500204, 0.10835478, 0.10835478 ],
-            [0.20985118, 0.20985118, 0.70358752, 0.70358752, 1.24247158, 1.24247158, 0.97500204, 0.97500204, 0.10835478, 0.10835478 ],
-            [0.14845117, 0.14845117, 0.69386045, 0.69386045, 0.98826341, 0.98826341, 0.34871121, 0.34871121, 0.61024946, 0.61024946 ],
-            [0.14845117, 0.14845117, 0.69386045, 0.69386045, 0.98826341, 0.98826341, 0.34871121, 0.34871121, 0.61024946, 0.61024946 ]]
+def phi_t(counts_coords):
     data = 0.2
-    dims = ['phi_grp1', 'phi_grp2']
-    index = range(phi_grp_mapping.size)
+    dims = (
+        'vertex1',
+        'vertex2',
+        'age_group1',
+        'age_group2',
+        'risk_group1',
+        'risk_group2',
+    )
     coords = {
-        'phi_grp1': index,
-        'phi_grp2': index
+        'vertex1': counts_coords['vertex'],
+        'vertex2': counts_coords['vertex'],
+        'age_group1': counts_coords['age_group'],
+        'age_group2': counts_coords['age_group'],
+        'risk_group1': counts_coords['risk_group'],
+        'risk_group2': counts_coords['risk_group'],
     }
     return xr.DataArray(data=data, dims=dims, coords=coords)
 
@@ -406,7 +406,8 @@ def tri_y2r_para():
 def config_dict(seed_entropy, sto_toggle, counts_basic, tri_h2r, symp_h_ratio,
                 tri_exposed_para, prop_trans_in_p, hosp_f_ratio,
                 symp_h_ratio_w_risk, tri_pa2ia, asymp_relative_infect,
-                asymp_rate, tri_h2d, t_onset_to_h, tri_y2r_para, tri_py2iy):
+                asymp_rate, tri_h2d, t_onset_to_h, tri_y2r_para, tri_py2iy,
+                counts_coords):
     return {
         'seed_entropy': seed_entropy,
         'sto_toggle': sto_toggle,
@@ -422,5 +423,6 @@ def config_dict(seed_entropy, sto_toggle, counts_basic, tri_h2r, symp_h_ratio,
         'tri_h2d': tri_h2d,
         't_onset_to_h': t_onset_to_h,
         'tri_y2r_para': tri_y2r_para,
-        'tri_py2iy': tri_py2iy
+        'tri_py2iy': tri_py2iy,
+        'coords': counts_coords
     }
