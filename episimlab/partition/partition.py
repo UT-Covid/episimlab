@@ -294,18 +294,6 @@ class Partition:
 
         return new_da
 
-@xs.process
-class TemporalPartition(Partition):
-
-    travel_fp = xs.variable(intent='in')
-    contacts_fp = xs.variable(intent='in')
-    age_group = xs.foreign(InitDefaultCoords, 'age_group')  # age_groups = xs.variable(intent='in', default={'0-4', '5-17', '18-49', '50-64', '65+'})
-    risk_group = xs.foreign(InitDefaultCoords, 'risk_group')
-    # vertex = xs.foreign(InitDefaultCoords, 'vertex')
-    demographic_groups = xs.variable(intent='in', default=None)
-
-    # todo: apply the contact partitioning over time slices in travel_fp
-
 
 @xs.process
 class Contact2Phi:
