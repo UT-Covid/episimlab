@@ -83,7 +83,7 @@ class Partition:
         self.contacts = self.setup_contacts()
         self.all_dims = self.spatial_dims + self.age_dims
         self.non_spatial_dims = self.age_dims  # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
-    
+
     # docs at https://xarray-simlab.readthedocs.io/en/latest/_api_generated/xsimlab.runtime.html?highlight=runtime#xsimlab.runtime
     @xs.runtime(args=['step_delta', 'step_start', 'step_end'])
     def run_step(self, step_delta, step_start, step_end):
@@ -310,11 +310,11 @@ class TemporalPartition(Partition):
 @xs.process
 class PartitionFromNC:
     """Reads DataArray from NetCDF file at `contact_da_fp`, and sets attr
-    `contact_xr`.
+    `contact_xr`, then coerces to `phi_t` array.
     """
     PHI_DIMS = ('vertex1', 'vertex2',
-            'age_group1', 'age_group2',
-            'risk_group1', 'risk_group2')
+                'age_group1', 'age_group2',
+                'risk_group1', 'risk_group2')
 
     age_group = xs.index(dims='age_group', global_name='age_group')
     risk_group = xs.index(dims='risk_group', global_name='risk_group')
@@ -324,33 +324,35 @@ class PartitionFromNC:
     contact_da_fp = xs.variable(intent='in')
     phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
 
+    def get_contact_xr(self) -> xr.DataArray:
+        da = (xr
+              .open_dataarray(self.contact_da_fp)
+              .rename({
+                  'vertex_i': 'vertex1',
+                  'vertex_j': 'vertex2',
+                  'age_i': 'age_group1',
+                  'age_j': 'age_group2',
+               })
+             )
+        da.coords['age_group1'] = da.coords['age_group1'].astype(str)
+        da.coords['age_group2'] = da.coords['age_group2'].astype(str)
+        assert isinstance(da, xr.DataArray)
+        return da
+
     def initialize(self):
-        self.contact_xr = (xr
-                           .open_dataarray(self.contact_da_fp)
-                           .rename({
-                               'vertex_i': 'vertex1',
-                               'vertex_j': 'vertex2',
-                               'age_i': 'age_group1',
-                               'age_j': 'age_group2',
-                           })
-                        #    .expand_dims(['risk_group1', 'risk_group2'])
-                          )
-        self.contact_xr.coords['age_group1'] = self.contact_xr.coords['age_group1'].astype(str)
-        self.contact_xr.coords['age_group2'] = self.contact_xr.coords['age_group2'].astype(str)
-        assert isinstance(self.contact_xr, xr.DataArray)
-        # breakpoint()
+        self.contact_xr = self.get_contact_xr()
 
         # set age group and vertex coords
         self.age_group = self.contact_xr.coords['age_group1'].values
         self.vertex = self.contact_xr.coords['vertex1'].values
-        # breakpoint()
-        
-        # set risk group and compartment coords
+
         self.initialize_misc_coords()
-    
+        self.initialize_phi()
+
+    def initialize_phi(self):
         self.COORDS = {k: getattr(self, k[:-1]) for k in self.PHI_DIMS}
         self.phi_t = xr.DataArray(data=np.nan, dims=self.PHI_DIMS, coords=self.COORDS)
-        
+
         # broadcast into phi_array
         # TODO: refactor
         self.phi_t.loc[dict(risk_group1='low', risk_group2='low')] = self.contact_xr
@@ -359,8 +361,8 @@ class PartitionFromNC:
         self.phi_t.loc[dict(risk_group1='high', risk_group2='low')] = self.contact_xr
         assert not self.phi_t.isnull().any()
 
-    
     def initialize_misc_coords(self):
+        """Set up coords besides vertex and age group."""
         self.risk_group = ['low', 'high']
         self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
