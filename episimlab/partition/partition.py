@@ -60,12 +60,6 @@ def legacy_mapping(col_type, table):
 
 @xs.process
 class Partition:
-    PHI_DIMS = ('vertex1', 'vertex2',
-            'age_group1', 'age_group2',
-            'risk_group1', 'risk_group2')
-
-    phi = xs.variable(dims=PHI_DIMS, static=True, intent='out')
-    phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
     age_group = xs.global_ref('age_group')
 
     travel_fp = xs.variable(intent='in')
