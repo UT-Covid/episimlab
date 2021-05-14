@@ -76,7 +76,10 @@ class Partition2Contact:
         self.age_dims = ['source_age', 'destination_age']          # always make age relative to source, destination
 
         # we need contact_xr set during initialize, for setting coordinates
-        # self.run_step(step_delta, step_start, step_end)
+        # time interval is set between zero and first timestep in travel df
+        step_end = self.travel_df_with_date.date.min().to_datetime64()
+        self.run_step(None, step_start=step_end, step_end=step_end)
+        assert hasattr(self, 'contact_xr')
         
 
     # docs at https://xarray-simlab.readthedocs.io/en/latest/_api_generated/xsimlab.runtime.html?highlight=runtime#xsimlab.runtime
@@ -92,7 +95,7 @@ class Partition2Contact:
         # step_delta is the time since previous step
         # we could just as easily calculate this: step_end - step_start
         # Example of how to use the `step_delta` to convert to interval per day
-        self.int_per_day = utils.get_int_per_day(step_delta)
+        self.int_per_day = utils.get_int_per_day(step_delta) if step_delta else None
 
         self.contacts = self.setup_contacts()
         self.all_dims = self.spatial_dims + self.age_dims
