@@ -15,14 +15,15 @@ def partition_from_csv():
              .partition()
              .drop_processes(['setup_beta'])
              .update_processes(dict(
-                 get_contact_nc=Partition2Contact, 
+                 get_contact_xr=Partition2Contact, 
              ))
             )
-    breakpoint()
+    # breakpoint()
 
     input_vars = {
         'config_fp': 'scripts/20210512_partition_model.yaml',
-        # 'travel_': 'tests/data/20200311_contact_matrix.nc',
+        'travel_fp': 'tests/data/partition_capture/travel0.csv',
+        'contacts_fp': 'tests/data/partition_capture/contacts0.csv',
         'census_counts_csv': 'data/2019_zcta_pop_5_age_groups.csv',
         'beta': 1.
     }
