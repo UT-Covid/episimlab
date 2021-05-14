@@ -308,10 +308,8 @@ class TemporalPartition(Partition):
 
 
 @xs.process
-class PartitionFromNC:
-    """Reads DataArray from NetCDF file at `contact_da_fp`, and sets attr
-    `contact_xr`, then coerces to `phi_t` array.
-    """
+class Contact2Phi:
+    """Given array `contact_xr`, coerces to `phi_t` array."""
     PHI_DIMS = ('vertex1', 'vertex2',
                 'age_group1', 'age_group2',
                 'risk_group1', 'risk_group2')
@@ -321,27 +319,10 @@ class PartitionFromNC:
     compartment = xs.index(dims='compartment', global_name='compartment')
     vertex = xs.index(dims='vertex', global_name='vertex')
 
-    contact_da_fp = xs.variable(intent='in')
+    contact_xr = xs.global_ref('contact_xr')
     phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
 
-    def get_contact_xr(self) -> xr.DataArray:
-        da = (xr
-              .open_dataarray(self.contact_da_fp)
-              .rename({
-                  'vertex_i': 'vertex1',
-                  'vertex_j': 'vertex2',
-                  'age_i': 'age_group1',
-                  'age_j': 'age_group2',
-               })
-             )
-        da.coords['age_group1'] = da.coords['age_group1'].astype(str)
-        da.coords['age_group2'] = da.coords['age_group2'].astype(str)
-        assert isinstance(da, xr.DataArray)
-        return da
-
     def initialize(self):
-        self.contact_xr = self.get_contact_xr()
-
         # set age group and vertex coords
         self.age_group = self.contact_xr.coords['age_group1'].values
         self.vertex = self.contact_xr.coords['vertex1'].values
@@ -367,3 +348,29 @@ class PartitionFromNC:
         self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
                             'Py2Iy', 'Iy2Ih', 'H2D']
+
+
+@xs.process
+class NC2Contact:
+    """Reads DataArray from NetCDF file at `contact_da_fp`, and sets attr
+    `contact_xr`.
+    """
+    DIMS = ('vertex1', 'vertex2', 'age_group1', 'age_group2',)
+    contact_da_fp = xs.variable(intent='in')
+    contact_xr = xs.variable(dims=DIMS, intent='out', global_name='contact_xr')
+
+    def initialize(self):
+        da = (xr
+              .open_dataarray(self.contact_da_fp)
+              .rename({
+                  'vertex_i': 'vertex1',
+                  'vertex_j': 'vertex2',
+                  'age_i': 'age_group1',
+                  'age_j': 'age_group2',
+               })
+             )
+        da.coords['age_group1'] = da.coords['age_group1'].astype(str)
+        da.coords['age_group2'] = da.coords['age_group2'].astype(str)
+        assert isinstance(da, xr.DataArray)
+
+        self.contact_xr = da

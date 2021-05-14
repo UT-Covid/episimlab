@@ -11,7 +11,7 @@ from ..seir import (
     bf_cython as bf_cython_seir
 )
 from .. import apply_counts_delta
-from ..partition.partition import PartitionFromNC
+from ..partition.partition import NC2Contact, Contact2Phi
 from ..io.config import ReadV1Config
 from ..network import cython_explicit_travel
 
@@ -121,6 +121,7 @@ def partition():
             .update_processes(dict(
                 foi=bf_cython_foi.BruteForceCythonFOI,
                 seir=bf_cython_seir.BruteForceCythonSEIR,
-                setup_coords=PartitionFromNC,
+                setup_coords=Contact2Phi, 
+                read_contact_nc=NC2Contact, 
             ))
            )

@@ -121,7 +121,7 @@ class TestPartitionInModel:
             read_config__config_fp='tests/config/example_v2.yaml',
             # setup_coords__config_fp='tests/config/example_v2.yaml',
             # setup_coords__travel_fp='tests/data/partition_capture/travel0.csv',
-            setup_coords__contact_da_fp='tests/data/20200311_contact_matrix.nc',
+            read_contact_nc__contact_da_fp='tests/data/20200311_contact_matrix.nc',
             # setup_phi__travel_fp='tests/data/partition_capture/travel0.csv',
             # setup_phi__contacts_fp='tests/data/partition_capture/contacts0.csv',
         )
