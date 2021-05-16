@@ -1,0 +1,17 @@
+,i,j,age_i,age_j,partitioned_per_capita_contacts
+0,A,A,old,old,0.0
+1,A,B,old,old,0.0
+2,B,A,old,old,0.0
+3,B,B,old,old,0.0
+4,A,A,old,young,0.36111111111111105
+5,A,B,old,young,0.6388888888888888
+6,B,A,old,young,0.3666666666666667
+7,B,B,old,young,0.6333333333333333
+8,A,A,young,old,0.07580213903743317
+9,A,B,young,old,0.024197860962566847
+10,B,A,young,old,0.07586580086580087
+11,B,B,young,old,0.024134199134199136
+12,A,A,young,young,0.178921568627451
+13,A,B,young,young,0.321078431372549
+14,B,A,young,young,0.17328042328042326
+15,B,B,young,young,0.3267195767195767
