@@ -55,6 +55,7 @@ class TestTravelManager:
         with pytest.raises(Exception):
             _ = travel.subset_date(test_dates_fail)
 
+    @pytest.mark.xfail('Deprecated')
     def test_run_step(self, travel_mgmt_data, test_dates_pass, results, to_phi_da):
 
         travel = tm.TravelManager(**travel_mgmt_data)
