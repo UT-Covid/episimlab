@@ -173,7 +173,7 @@ class Partition2Contact:
         daily_pop = self.daily_totals()
 
         # many:many self join to find sources that share common destinations
-        print('Starting dask merge at {}'.format(datetime.now()))
+        logging.debug('Starting dask merge at {}'.format(datetime.now()))
         travel_left = dd.from_pandas(self.travel_df, npartitions=10)
         travel_right = dd.from_pandas(self.travel_df[['source', 'destination', 'age', 'n']], npartitions=100)
         travel_full = dd.merge(
@@ -183,7 +183,7 @@ class Partition2Contact:
             right_index=True,
             suffixes=['_i', '_j']
         ).reset_index()
-        print('Finishing dask merge at {}'.format(datetime.now()))
+        logging.debug('Finishing dask merge at {}'.format(datetime.now()))
 
         # subsequent joins in pandas on unindexed data frames:
         # dask does not support multi-indexes
@@ -191,7 +191,7 @@ class Partition2Contact:
 
         # add population totals to expanded travel dataframe
         # first merge adds n_total_i, the total population of i disregarding travel
-        print('Starting pandas merge 1 at {}'.format(datetime.now()))
+        logging.debug('Starting pandas merge 1 at {}'.format(datetime.now()))
         travel_totals = pd.merge(
             travel_full, total,
             left_on=['source_i', 'age_i'],
@@ -199,7 +199,7 @@ class Partition2Contact:
             how='left',
         ).drop('location', axis=1)
 
-        print('Starting pandas merge 2 at {}'.format(datetime.now()))
+        logging.debug('Starting pandas merge 2 at {}'.format(datetime.now()))
         # second merge adds n_total_k, the daily net population of k accounting for travel in and out by age group
         travel_totals = pd.merge(
             travel_totals, daily_pop,
@@ -209,7 +209,7 @@ class Partition2Contact:
             suffixes=['_total_i', '_total_k']
         )
 
-        print('Calculating contact probabilities on full dataframe starting at {}'.format(datetime.now()))
+        logging.debug('Calculating contact probabilities on full dataframe starting at {}'.format(datetime.now()))
         # calculate probability of contact between i and j in location k
         travel_totals['nij/ni'] = travel_totals['n_i'] / travel_totals['n_total_i']
         travel_totals['njk/nk'] = travel_totals['n_j'] / travel_totals['n_total_k']
@@ -278,7 +278,7 @@ class Partition2Contact:
 
     def build_contact_xr(self):
 
-        print('Building contact xarray at {}'.format(datetime.now()))
+        logging.debug('Building contact xarray at {}'.format(datetime.now()))
         indexed_contact_df = self.contact_partitions.set_index(['i', 'j', 'age_i', 'age_j'])
         contact_xarray = indexed_contact_df.to_xarray()
         contact_xarray = contact_xarray.to_array()
@@ -296,7 +296,7 @@ class Partition2Contact:
 
     def contact_matrix(self):
 
-        print('Finalizing contact matrix at {}'.format(datetime.now()))
+        logging.debug('Finalizing contact matrix at {}'.format(datetime.now()))
         sources = self.contact_partitions['i'].unique()
         destinations = self.contact_partitions['j'].unique()
 
