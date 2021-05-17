@@ -37,7 +37,7 @@ def partition_from_csv():
     input_ds = xs.create_setup(
         model=model,
         clocks={
-            'step': pd.date_range(start='3/11/2020', end='6/1/2020', freq='24H')
+            'step': pd.date_range(start='3/11/2020', end='3/13/2020', freq='24H')
         },
         input_vars=input_vars_with_proc,
         output_vars=dict(apply_counts_delta__counts='step')

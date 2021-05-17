@@ -78,38 +78,49 @@ class Partition2Contact:
         self.run_step(None, step_start=step_end, step_end=step_end)
         assert hasattr(self, 'contact_xr')
         
+    def get_travel_df(self) -> pd.DataFrame:
+        """Given timestamps `step_start` and `step_end`, returns attr
+        `travel_df`, which is indexed from attr `travel_df_with_date`.
+        Special handling for NaT and cases where `step_start` equals `step_end`.
+        """
+        date = self.travel_df_with_date['date']
 
-    # docs at https://xarray-simlab.readthedocs.io/en/latest/_api_generated/xsimlab.runtime.html?highlight=runtime#xsimlab.runtime
+        isnull = (pd.isnull(self.step_start), pd.isnull(self.step_end))
+        assert not all(isnull), \
+            f"both of `step_start` and `step_end` are null (NaT)"
+        if isnull[0]:
+            mask = (date == self.step_end)
+        elif isnull[1]:
+            mask = (date == self.step_start)
+        elif self.step_start == self.step_end:
+            mask = (date == self.step_start)
+        else:
+            assert self.step_start <= self.step_end
+            mask = (date >= self.step_start) & (date < self.step_end)
+            
+        # Generate travel_df by indexing on `date`
+        self.travel_df = self.travel_df_with_date[mask]
+        assert not self.travel_df.empty, \
+            f'No travel data for date between {self.step_start} and {self.step_end}'
+        return self.travel_df
+
+    # NOTE: step_start and step_end reversed due to xarray-simlab bug
     @xs.runtime(args=['step_delta', 'step_end', 'step_start'])
     def run_step(self, step_delta, step_start, step_end):
-
-        # step_start and step_end are datetime64 marking beginning and end of this step
-        logging.debug(f"step_start: {step_start}")
-        logging.debug(f"step_end: {step_end}")
-        # float('inf') for step_end if it is NaT
-
-        if pd.isnull(step_start):
-            step_start = step_end
-        if pd.isnull(step_end):
-            step_end = step_start
-        assert step_start <= step_end
-
-        # step_delta is the time since previous step
-        # we could just as easily calculate this: step_end - step_start
-        # Example of how to use the `step_delta` to convert to interval per day
-        self.int_per_day = utils.get_int_per_day(step_delta) if step_delta else None
+        """Runs at every time step in the context of xsimlab.Model."""
+        # propagate step metadata to instance scope
+        self.step_delta = step_delta
+        self.step_start = step_start
+        self.step_end = step_end
+        logging.debug(f"step_start: {self.step_start}")
+        logging.debug(f"step_end: {self.step_end}")
 
         self.contacts = self.setup_contacts()
         self.all_dims = self.spatial_dims + self.age_dims
         self.non_spatial_dims = self.age_dims  # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
 
-        # Generate travel_df by indexing on `date`
-        self.travel_df = self.travel_df_with_date[
-            (self.travel_df_with_date['date'] >= step_start) &
-            (self.travel_df_with_date['date'] < step_end)
-        ]
-        assert not self.travel_df.empty, \
-            f'No travel data for date between {step_start} and {step_end}'
+        # Indexing on date, generate travel_df from travel_df_with_date
+        self.travel_df = self.get_travel_df()
 
         # initialize empty class members to hold intermediate results generated during workflow
         self.prob_partitions = self.dask_partition()
