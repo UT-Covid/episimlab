@@ -80,7 +80,7 @@ class Partition2Contact:
         
 
     # docs at https://xarray-simlab.readthedocs.io/en/latest/_api_generated/xsimlab.runtime.html?highlight=runtime#xsimlab.runtime
-    @xs.runtime(args=['step_delta', 'step_start', 'step_end'])
+    @xs.runtime(args=['step_delta', 'step_end', 'step_start'])
     def run_step(self, step_delta, step_start, step_end):
 
         # step_start and step_end are datetime64 marking beginning and end of this step
@@ -88,8 +88,11 @@ class Partition2Contact:
         logging.debug(f"step_end: {step_end}")
         # float('inf') for step_end if it is NaT
 
+        if pd.isnull(step_start):
+            step_start = step_end
         if pd.isnull(step_end):
-            step_end = pd.Timestamp.max
+            step_end = step_start
+        assert step_start <= step_end
 
         # step_delta is the time since previous step
         # we could just as easily calculate this: step_end - step_start
