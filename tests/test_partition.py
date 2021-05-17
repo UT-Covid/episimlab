@@ -86,6 +86,7 @@ def legacy_results_toy(request):
         'phi_fp': os.path.join(base_dir, f'phi{idx}.npy'),
     }
 
+
 @pytest.fixture(params=[8, 9])
 def updated_results(request):
     base_dir = os.path.join('tests', 'data', 'partition_capture')
@@ -97,6 +98,7 @@ def updated_results(request):
         'tr_parts_fp': os.path.join(base_dir, f'tr_parts{idx}.csv'),
         'phi_fp': os.path.join(base_dir, f'phi{idx}.npy'),
     }
+
 
 class TestPartitionInModel:
 
@@ -125,7 +127,8 @@ class TestPartitionInModel:
                         reason="Very slow test that requires data/20200311_travel.csv")
     @pytest.mark.skip
     def test_partition_from_csv(self, step_clock):
-        model = basic.partition().update_processes(dict(get_contact_xr=Partition2Contact))
+        model = basic.partition().update_processes(
+            dict(get_contact_xr=Partition2Contact))
         input_vars = dict(
             read_config__config_fp='tests/config/example_v2.yaml',
             get_contact_xr__travel_fp='data/20200311_travel.csv',
@@ -158,8 +161,10 @@ class TestPartitioning:
         tr_part = pd.read_csv(updated_results['tr_parts_fp'], index_col=None)
 
         # test against legacy
-        pd.testing.assert_frame_equal(proc.prob_partitions, tr_part.drop('Unnamed: 0', axis=1))
-        pd.testing.assert_frame_equal(proc.contact_partitions, tc_final.drop('Unnamed: 0', axis=1))
+        pd.testing.assert_frame_equal(
+            proc.prob_partitions, tr_part.drop('Unnamed: 0', axis=1))
+        pd.testing.assert_frame_equal(
+            proc.contact_partitions, tc_final.drop('Unnamed: 0', axis=1))
 
     def test_phi(self, to_phi_da, updated_results, counts_coords_toy):
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
@@ -180,4 +185,5 @@ class TestPartitioning:
                 da = da.sortby(dim)
             return da
 
-        xr.testing.assert_allclose(sort_coords(proc.contact_xr), sort_coords(phi))
+        xr.testing.assert_allclose(sort_coords(
+            proc.contact_xr), sort_coords(phi))
