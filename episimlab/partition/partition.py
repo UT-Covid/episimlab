@@ -3,17 +3,15 @@ import pandas as pd
 import xarray as xr
 import xsimlab as xs
 import numpy as np
-from datetime import datetime as dt
 from itertools import product
-from ..setup.coords import InitDefaultCoords
-from ..setup.phi import InitPhi
-from ..utils import get_var_dims
 from .. import utils
 from ..pytest_utils import profiler
+import dask.dataframe as dd
+from datetime import datetime
 
 logging.basicConfig(level=logging.DEBUG)
 
-
+# todo: vectorize
 def contact_probability(n_i, n_j, n_i_total, n_k_total):
 
     # contacts between members of source node within the destination node
@@ -64,15 +62,13 @@ class Partition2Contact:
     DIMS = ('vertex1', 'vertex2', 'age_group1', 'age_group2',)
     travel_fp = xs.variable(intent='in')
     contacts_fp = xs.variable(intent='in')
-    #time = xs.foreign(InitDefaultCoords, 'time')
-    contact_xr = xs.variable(dims=DIMS, intent='out', global_name='contact_xr')
+    contact_xr = xs.variable(static=False, dims=DIMS, intent='out', global_name='contact_xr')
 
     @xs.runtime(args=['step_delta', 'step_start', 'step_end'])
     def initialize(self, step_delta, step_start, step_end):
 
         self.baseline_contact_df = pd.read_csv(self.contacts_fp)
         self.travel_df_with_date = self.load_travel_df()
-
         self.spatial_dims = ['source', 'destination']       # enforce that these are the only spatial dimensions
         self.age_dims = ['source_age', 'destination_age']          # always make age relative to source, destination
 
@@ -86,10 +82,12 @@ class Partition2Contact:
     # docs at https://xarray-simlab.readthedocs.io/en/latest/_api_generated/xsimlab.runtime.html?highlight=runtime#xsimlab.runtime
     @xs.runtime(args=['step_delta', 'step_start', 'step_end'])
     def run_step(self, step_delta, step_start, step_end):
+
         # step_start and step_end are datetime64 marking beginning and end of this step
         logging.debug(f"step_start: {step_start}")
         logging.debug(f"step_end: {step_end}")
         # float('inf') for step_end if it is NaT
+
         if pd.isnull(step_end):
             step_end = pd.Timestamp.max
 
@@ -111,25 +109,15 @@ class Partition2Contact:
             f'No travel data for date between {step_start} and {step_end}'
 
         # initialize empty class members to hold intermediate results generated during workflow
-        self.prob_partitions = self.probabilistic_partition()
+        self.prob_partitions = self.dask_partition()
         self.contact_partitions = self.partitions_to_contacts(daily_timesteps=10)
-        # breakpoint()
-        self.contact_xr = (self
-                           .contact_matrix()
-                           .rename({
-                               'vertex_i': 'vertex1',
-                               'vertex_j': 'vertex2',
-                               'age_i': 'age_group1',
-                               'age_j': 'age_group2',
-                           })
-                          )
+        self.contact_xr = self.build_contact_xr()
 
     @profiler()
     def load_travel_df(self):
 
         tdf = pd.read_csv(self.travel_fp)
         tdf['date'] = pd.to_datetime(tdf['date'])
-        # breakpoint()
         try:
             tdf = tdf.rename(columns={'age_src': 'age'})
         except KeyError:
@@ -159,110 +147,156 @@ class Partition2Contact:
             self._age_group = ag_from_contacts.union(ag_from_travel)
         return list(self._age_group)
 
-    @profiler()
-    def probabilistic_partition(self):
+    def population_totals(self):
 
-        total_pop = self.travel_df.groupby(['source', 'age'])['n'].sum().to_dict()
-        total_contextual_dest = self.travel_df[self.travel_df['destination_type'] == 'contextual'].groupby(['destination', 'age'])['n'].sum().to_dict()
+        # get population totals for all locations (contextual and local areas)
+        total_pop = self.travel_df.groupby(['source', 'age'])['n'].sum().reset_index()
+        total_contextual = \
+        self.travel_df[self.travel_df['destination_type'] == 'contextual'].groupby(['destination', 'age'])[
+            'n'].sum().reset_index()
+        total_pop = total_pop.rename(columns={'source': 'location'})
+        total_contextual = total_contextual.rename(columns={'destination': 'location'})
+        total = pd.concat([total_pop, total_contextual])
 
-        if len(set(total_pop.keys()).intersection(set(total_contextual_dest.keys()))) > 0:
-            raise ValueError('Contextual nodes cannot also be source nodes.')
-        if len(set(total_contextual_dest.keys()).intersection(set(total_pop.keys()))) > 0:
-            raise ValueError('Contextual nodes cannot also be source nodes.')
+        return total
 
-        total_pop.update(total_contextual_dest)
+    def daily_totals(self):
 
-        # resident populations (population less those who travel out)
-        residents = self.travel_df[self.travel_df['source'] == self.travel_df['destination']]
-        residents = residents.groupby(['source', 'destination', 'age'])['n'].sum().to_dict()
+        # get daily population by destination
+        daily_pop = self.travel_df.groupby(['destination', 'age'])['n'].sum().reset_index()
 
-        mapping = self.travel_df.groupby(['destination']).aggregate(lambda tdf: tdf.unique().tolist()).reset_index()
-        mapping['source'] = [set(i) for i in mapping['source']]
-        mapping['destination_type'] = [i[0] if len(i) == 1 else i for i in mapping['destination_type']]
-        implicit2source = mapping[mapping['destination_type'] == 'contextual'][['source', 'destination']].set_index('destination').to_dict(orient='index')
+        return daily_pop
 
-        # if it's local contact, or contact in contextual location within local pop only, it's straightforward
-        for i, row in self.travel_df.iterrows():
-            if row['destination_type'] == 'local':
-                for destination_age in self.age_group:
+    def dask_partition(self):
 
-                    self.contacts['source'].append(row['source'])
-                    self.contacts['destination'].append(row['destination'])
-                    self.contacts['source_age'].append(row['age'])
-                    self.contacts['destination_age'].append(destination_age)
+        total = self.population_totals()
+        daily_pop = self.daily_totals()
 
-                    # if it's local within-node contact, the pr(contact) = n stay in node / n total in node
-                    # (no need to multiply by another fraction)
-                    if (row['source'] == row['destination']) and (destination_age == row['age']):
-                        daily_pr = contact_probability(
-                            n_i=row['n'],                                       # people who do not leave source locality
-                            n_j=1,                                              # set to 1 to ignore destination population (destination = source)
-                            n_i_total=total_pop[(row['source'], row['age'])],   # total population of source locality
-                            n_k_total=1                                         # set to 1 to ignore destination population (destination = source)
-                        )
-                        self.contacts['pr_contact_src_dest'].append(daily_pr)
-                    else:
-                        daily_pr = contact_probability(
-                            n_i=row['n'],                                                               # migratory population from source locality
-                            n_j=residents[(row['destination'], row['destination'], destination_age)],   # residential (daily) population of destination locality
-                            n_i_total=total_pop[(row['source'], row['age'])],                           # total population of source locality
-                            n_k_total=total_pop[(row['destination'], destination_age)]                  # total population of destination locality
-                        )
-                        self.contacts['pr_contact_src_dest'].append(daily_pr)
+        # many:many self join to find sources that share common destinations
+        print('Starting dask merge at {}'.format(datetime.now()))
+        travel_left = dd.from_pandas(self.travel_df, npartitions=10)
+        travel_right = dd.from_pandas(self.travel_df[['source', 'destination', 'age', 'n']], npartitions=100)
+        travel_full = dd.merge(
+            travel_left.set_index('destination').compute(),
+            travel_right.set_index('destination').compute(),
+            left_index=True,
+            right_index=True,
+            suffixes=['_i', '_j']
+        ).reset_index()
+        print('Finishing dask merge at {}'.format(datetime.now()))
 
-            # partitioning contacts between two different nodes within a contextual node requires a bit more parsing
-            elif row['destination_type'] == 'contextual':
+        # subsequent joins in pandas on unindexed data frames:
+        # dask does not support multi-indexes
+        # we need to maintain different names for the columns that would be the multi-index
 
-                # get all of the sources that feed into the contextual location
-                other_sources = implicit2source[row['destination']]['source']
-                for j in other_sources:
+        # add population totals to expanded travel dataframe
+        # first merge adds n_total_i, the total population of i disregarding travel
+        print('Starting pandas merge 1 at {}'.format(datetime.now()))
+        travel_totals = pd.merge(
+            travel_full, total,
+            left_on=['source_i', 'age_i'],
+            right_on=['location', 'age'],
+            how='left',
+        ).drop('location', axis=1)
 
-                    for destination_age in self.age_group:
+        print('Starting pandas merge 2 at {}'.format(datetime.now()))
+        # second merge adds n_total_k, the daily net population of k accounting for travel in and out by age group
+        travel_totals = pd.merge(
+            travel_totals, daily_pop,
+            left_on=['destination', 'age_j'],
+            right_on=['destination', 'age'],
+            how='left',
+            suffixes=['_total_i', '_total_k']
+        )
 
-                        self.contacts['source'].append(row['source'])
-                        self.contacts['destination'].append(j)
-                        self.contacts['source_age'].append(row['age'])
-                        self.contacts['destination_age'].append(destination_age)
+        print('Calculating contact probabilities on full dataframe starting at {}'.format(datetime.now()))
+        # calculate probability of contact between i and j in location k
+        travel_totals['nij/ni'] = travel_totals['n_i'] / travel_totals['n_total_i']
+        travel_totals['njk/nk'] = travel_totals['n_j'] / travel_totals['n_total_k']
+        travel_totals['pr_contact_ijk'] = travel_totals['nij/ni'] * travel_totals['njk/nk']
 
-                        # filter by source and destination
-                        j_to_dest = self.travel_df[(self.travel_df['source'] == j) \
-                                                   & (self.travel_df['destination'] == row['destination']) \
-                                                   & (self.travel_df['age'] == destination_age)]['n'].item()
+        # sum over contextual locations
+        total_prob = travel_totals.groupby(['source_i', 'source_j', 'age_i', 'age_j'])[
+            'pr_contact_ijk'].sum().reset_index()
+        return total_prob
 
-                        # after all the filtering, there should be only one item remaining
-                        daily_pr = contact_probability(
-                            n_i=row['n'],                                               # migratory population from source locality
-                            n_j=j_to_dest,                                              # migrants from other locality j that share same contextual destination
-                            n_i_total=total_pop[(row['source'], row['age'])],           # total population of source locality
-                            n_k_total=total_pop[(row['destination'], destination_age)]  # total population of contextual destination
-                        )
-                        self.contacts['pr_contact_src_dest'].append(daily_pr)
+    def pandas_partition(self):
 
-        contact_df = pd.DataFrame.from_dict(self.contacts)
-        contact_df = contact_df.groupby(self.all_dims)['pr_contact_src_dest'].sum().reset_index()
+        total = self.population_totals()
+        daily_pop = self.daily_totals()
 
-        return contact_df
+        # one:many self join to find sources that share common destinations
+        travel_full = pd.merge(
+            self.travel_df,
+            self.travel_df[['source', 'destination', 'age', 'n']],
+            on='destination',
+            suffixes=['_i', '_j']
+        )
 
-    @profiler()
+        # add population totals to expanded travel dataframe
+        # first merge adds n_total_i, the total population of i disregarding travel
+        travel_totals = pd.merge(
+            travel_full, total,
+            left_on=['source_i', 'age_i'],
+            right_on=['location', 'age'],
+            how='left',
+        ).drop('location', axis=1)
+        # second merge adds n_total_k, the daily net population of k accounting for travel in and out by age group
+        travel_totals = pd.merge(
+            travel_totals, daily_pop,
+            left_on=['destination', 'age_j'],
+            right_on=['destination', 'age'],
+            how='left',
+            suffixes=['_total_i', '_total_k']
+        )
+
+        # calculate probability of contact between i and j in location k
+        travel_totals['nij/ni'] = travel_totals['n_i'] / travel_totals['n_total_i']
+        travel_totals['njk/nk'] = travel_totals['n_j'] / travel_totals['n_total_k']
+        travel_totals['pr_contact_ijk'] = travel_totals['nij/ni'] * travel_totals['njk/nk']
+
+        # sum over contextual locations
+        total_prob = travel_totals.groupby(['source_i', 'source_j', 'age_i', 'age_j'])['pr_contact_ijk'].sum().reset_index()
+        return total_prob
+
+    # todo: surface "daily_timesteps" to user
     def partitions_to_contacts(self, daily_timesteps):
 
         tc = pd.merge(
             self.prob_partitions, self.baseline_contact_df, how='outer',
-            left_on=self.non_spatial_dims,
+            left_on=['age_i', 'age_j'],
             right_on=[legacy_mapping(i, 'contact') for i in self.non_spatial_dims]
         )
         tc['interval_per_capita_contacts'] = tc['daily_per_capita_contacts'] / daily_timesteps
-        tc['partitioned_per_capita_contacts'] = tc['pr_contact_src_dest'] * tc['interval_per_capita_contacts']
+        tc['partitioned_per_capita_contacts'] = tc['pr_contact_ijk'] * tc['interval_per_capita_contacts']
 
         tc = tc.dropna()
-        tc = tc.rename(columns={'source': 'i', 'destination': 'j', 'source_age': 'age_i', 'destination_age': 'age_j'})
+        tc = tc.rename(columns={'source': 'i', 'destination': 'j', 'source_i': 'i', 'source_j': 'j', 'source_age': 'age_i', 'destination_age': 'age_j'})
         tc = tc[['i', 'j', 'age_i', 'age_j', 'partitioned_per_capita_contacts']].drop_duplicates()
 
         return tc
 
-    @profiler()
+    def build_contact_xr(self):
+
+        print('Building contact xarray at {}'.format(datetime.now()))
+        indexed_contact_df = self.contact_partitions.set_index(['i', 'j', 'age_i', 'age_j'])
+        contact_xarray = indexed_contact_df.to_xarray()
+        contact_xarray = contact_xarray.to_array()
+        contact_xarray = contact_xarray.squeeze().drop('variable')
+        contact_xarray = contact_xarray.rename(
+            {
+                'i': 'vertex1',
+                'j': 'vertex2',
+                'age_i': 'age_group1',
+                'age_j': 'age_group2',
+            }
+        )
+        #contact_xarray = contact_xarray.reset_coords(names='partitioned_per_capita_contacts', drop=True)
+        return contact_xarray
+
     def contact_matrix(self):
 
+        print('Finalizing contact matrix at {}'.format(datetime.now()))
         sources = self.contact_partitions['i'].unique()
         destinations = self.contact_partitions['j'].unique()
 

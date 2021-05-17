@@ -1,4 +1,4 @@
-,i,j,age_i,age_j,pr_contact_ij
+,source_i,source_j,age_i,age_j,pr_contact_ijk
 0,A,A,old,old,0.75
 1,A,A,old,young,0.3333333333333333
 2,A,A,young,old,0.75
