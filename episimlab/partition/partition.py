@@ -305,6 +305,11 @@ class Partition2Contact:
                 'age_j': 'age_group2',
             }
         )
+
+        # convert coords from dtype object
+        contact_xarray.coords['age_group1'] = contact_xarray.coords['age_group1'].astype(str).values
+        contact_xarray.coords['age_group2'] = contact_xarray.coords['age_group2'].astype(str).values
+
         #contact_xarray = contact_xarray.reset_coords(names='partitioned_per_capita_contacts', drop=True)
         return contact_xarray
 
