@@ -14,5 +14,6 @@ def dt64_to_day_of_week(dt64) -> int:
 def get_int_per_day(step_delta) -> float:
     """
     """
-    assert isinstance(step_delta, np.timedelta64)
+    assert isinstance(step_delta, np.timedelta64), \
+        f"`step_delta` is not datetime64: {step_delta} type is {type(step_delta)}"
     return np.timedelta64(1, 'D') / step_delta
