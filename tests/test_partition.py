@@ -122,11 +122,16 @@ class TestPartitionInModel:
         result = self.run_model(model, step_clock, input_vars, output_vars)
         assert isinstance(result, xr.Dataset)
 
-    @pytest.mark.slow
+    # @pytest.mark.slow
     @pytest.mark.skipif(not os.path.isfile("data/20200311_travel.csv"),
-                        reason="Very slow test that requires data/20200311_travel.csv")
-    @pytest.mark.skip
-    def test_partition_from_csv(self, step_clock):
+                        reason="Requires data/20200311_travel.csv")
+    # @pytest.mark.skip
+    def test_partition_from_csv(self):
+        step_clock = {
+            'step': pd.date_range(
+                start='3/11/2020', end='3/13/2020', freq='24H'
+            )
+        }
         model = basic.partition().update_processes(
             dict(get_contact_xr=Partition2Contact))
         input_vars = dict(
