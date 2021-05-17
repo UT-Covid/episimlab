@@ -106,7 +106,7 @@ class Partition2Contact:
         # Generate travel_df by indexing on `date`
         self.travel_df = self.travel_df_with_date[
             (self.travel_df_with_date['date'] >= step_start) &
-            (self.travel_df_with_date['date'] <= step_end)
+            (self.travel_df_with_date['date'] < step_end)
         ]
         assert not self.travel_df.empty, \
             f'No travel data for date between {step_start} and {step_end}'
