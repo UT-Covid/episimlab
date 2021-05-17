@@ -144,15 +144,15 @@ class TestPartitioning:
     def test_partitioning(self, updated_results, counts_coords_toy):
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
         inputs.update({
-            'age_group': counts_coords_toy['age_group'],
-            'risk_group': counts_coords_toy['risk_group']
+            # 'age_group': counts_coords_toy['age_group'],
+            # 'risk_group': counts_coords_toy['risk_group']
         })
+        kw = dict(step_delta=np.timedelta64(24, 'h'),
+                  step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
+                  step_end=np.datetime64('2020-03-12T00:00:00.000000000'),)
         proc = Partition2Contact(**inputs)
-        proc.initialize()
-        proc.run_step(step_delta=np.timedelta64(24, 'h'),
-                      step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
-                      step_end=np.datetime64('2020-03-12T00:00:00.000000000'),
-                      )
+        proc.initialize(**kw)
+        proc.run_step(**kw)
 
         tc_final = pd.read_csv(updated_results['tc_final_fp'], index_col=None)
         tr_part = pd.read_csv(updated_results['tr_parts_fp'], index_col=None)
