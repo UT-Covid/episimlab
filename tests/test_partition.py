@@ -9,7 +9,6 @@ import xarray as xr
 import xsimlab as xs
 from itertools import product
 
-
 from episimlab.partition.partition import Partition
 from episimlab.models import basic
 from episimlab.setup import epi
@@ -76,7 +75,7 @@ def legacy_config(request):
 
 
 @pytest.fixture(params=range(8))
-def legacy_results(request):
+def legacy_results_toy(request):
     base_dir = os.path.join('tests', 'data', 'partition_capture')
     idx = request.param
     return {
@@ -87,10 +86,7 @@ def legacy_results(request):
         'phi_fp': os.path.join(base_dir, f'phi{idx}.npy'),
     }
 
-
-# TODO
-# @pytest.fixture(params=range(9))
-@pytest.fixture(params=[8])
+@pytest.fixture(params=[8, 9])
 def updated_results(request):
     base_dir = os.path.join('tests', 'data', 'partition_capture')
     idx = request.param
@@ -101,7 +97,6 @@ def updated_results(request):
         'tr_parts_fp': os.path.join(base_dir, f'tr_parts{idx}.csv'),
         'phi_fp': os.path.join(base_dir, f'phi{idx}.npy'),
     }
-
 
 class TestPartitionInModel:
 
@@ -135,20 +130,21 @@ class TestPartitioning:
     Check that refactored partitioning generates expected results
     """
 
-    @pytest.mark.xfail(reason="Legacy dataframe missing some rows expected to contain zero contacts.")
     def test_partitioning(self, updated_results, counts_coords_toy):
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
-        inputs.update({
-            'age_group': counts_coords_toy['age_group'],
-            'risk_group': counts_coords_toy['risk_group']
-        })
         proc = Partition(**inputs)
         proc.initialize()
+        proc.run_step(step_delta=np.timedelta64(24, 'h'),
+                      step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
+                      step_end=np.datetime64('2020-03-12T00:00:00.000000000'),
+                      )
 
         tc_final = pd.read_csv(updated_results['tc_final_fp'], index_col=None)
+        tr_part = pd.read_csv(updated_results['tr_parts_fp'], index_col=None)
 
         # test against legacy
-        pd.testing.assert_frame_equal(proc.contact_partitions, tc_final)
+        pd.testing.assert_frame_equal(proc.prob_partitions, tr_part.drop('Unnamed: 0', axis=1))
+        pd.testing.assert_frame_equal(proc.contact_partitions, tc_final.drop('Unnamed: 0', axis=1))
 
     def test_phi(self, to_phi_da, updated_results, counts_coords_toy):
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
@@ -169,5 +165,4 @@ class TestPartitioning:
                 da = da.sortby(dim)
             return da
 
-        # rename test output to have legacy coordinate names
         xr.testing.assert_allclose(sort_coords(proc.contact_xr), sort_coords(phi))
