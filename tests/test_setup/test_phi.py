@@ -2,16 +2,17 @@ import pytest
 import logging
 import xarray as xr
 import numpy as np
-from episimlab.setup.phi import InitPhi, InitPhiGrpMapping
+from episimlab.setup.phi import InitPhi
 
 
 class TestInitPhi:
 
-    def test_can_run_step(self, counts_coords, phi_grp_mapping):
+    def test_can_run_step(self, counts_coords):
         inputs = {
-            'phi_grp1': np.arange(10),
-            'phi_grp2': np.arange(10),
-            'phi_grp_mapping': phi_grp_mapping,
+            'vertex': counts_coords['vertex'],
+            'age_group': counts_coords['age_group'],
+            'risk_group': counts_coords['risk_group'],
+            # 'compartment': counts_coords['compartment'],
         }
         proc = InitPhi(**inputs)
         proc.initialize()
@@ -20,17 +21,3 @@ class TestInitPhi:
         assert isinstance(result, xr.DataArray)
         # logging.debug(f"result: {result}")
 
-
-class TestInitPhiGrpMapping:
-
-    def test_can_init(self, counts_coords):
-        inputs = {
-            'vertex': counts_coords['vertex'],
-            'age_group': counts_coords['age_group'],
-            'risk_group': counts_coords['risk_group'],
-        }
-        proc = InitPhiGrpMapping(**inputs)
-        proc.initialize()
-        result = proc.phi_grp_mapping
-        assert isinstance(result, xr.DataArray)
-        # logging.debug(f"result: {result}")

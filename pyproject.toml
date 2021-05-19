@@ -20,6 +20,8 @@ matplotlib = "^3.4.1"
 pytest = "^6.2.3"
 pytest-xdist = "^2.2.1"
 tox = "^3.23.0"
+pytest-pythonpath = "^0.7.3"
+bokeh = "^2.3.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
