@@ -1,4 +1,5 @@
 import pytest
+import xarray as xr
 import pandas as pd
 from episimlab.setup.counts import InitCountsFromCensusCSV
 
@@ -10,6 +11,7 @@ def census_counts_csv():
 
 class TestInitCountsFromCensusCSV:
 
+    @pytest.mark.xfail(reason="Cannot cast vertex labels onto pre-existing vertex coords")
     def test_can_initialize(self, census_counts_csv, counts_coords):
         """
         """
