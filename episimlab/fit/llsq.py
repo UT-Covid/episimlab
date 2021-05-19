@@ -5,6 +5,7 @@ import attr
 import numpy as np
 import xarray as xr
 import pandas as pd
+from datetime import datetime as dt
 import matplotlib.pyplot as plt
 from pandas.core.indexes.datetimes import DatetimeIndex
 from scipy.optimize import least_squares
@@ -21,7 +22,7 @@ class FitBetaFromHospHeads:
     (provided) counts of Ih (hospitalized) compartment. Uses
     scipy.optimize.least_squares.
     """
-    model = attr.ib(type=Model)
+    model = attr.ib(type=Model, repr=False)
     data_fp = attr.ib(type=str, default='tests/data/ll_hosp_cumsum.csv')
     guess = attr.ib(type=float, default=0.035)
     config_fp = attr.ib(
@@ -106,12 +107,21 @@ class FitBetaFromHospHeads:
         assert 'step' in ih_pred.dims, f"'step' is not in {ih_pred.dims}"
 
         # Calculate residual
-        resi = abs((self.data - ih_pred).sum())
+        self.resi = (self.data - ih_pred).sum('vertex')
         # Save the last ih_pred
         self.data_pred = ih_pred
         # breakpoint()
-        return resi
+        return self.resi
     
+    def set_date_range(self, start: str = None, end: str = None):
+        """Sets attributes `start_date` and `end_date`, formatting args
+        using strptime.
+        """
+        if start is not None:
+            self.start_date = dt.strptime(start, '%Y-%m-%d') 
+        if end is not None:
+            self.end_date = dt.strptime(end, '%Y-%m-%d')
+
     # ---------------------------- Analyze Fit ---------------------------------
     
     def get_soln(self):
