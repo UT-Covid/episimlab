@@ -181,6 +181,7 @@ class Partition2Contact:
 
         return daily_pop
 
+    @profiler()
     def dask_partition(self):
 
         total = self.population_totals()
