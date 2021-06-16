@@ -12,9 +12,10 @@ from episimlab.setup import coords, counts
 @xs.process
 class InitCountsCustom(counts.InitCountsFromCensusCSV):
 
-    def set_ia(self):
-        self.counts.loc[dict(compartment='Ia', risk_group='low')] = 50.
+    initial_ia = xs.variable(dims=(), intent='in')
 
+    def set_ia(self):
+        self.counts.loc[dict(compartment='Ia', risk_group='low')] = self.initial_ia
 
 
 def partition_from_csv(**opts) -> xr.Dataset:
@@ -38,9 +39,7 @@ def partition_from_csv(**opts) -> xr.Dataset:
     # run model
     input_ds = xs.create_setup(
         model=model,
-        clocks={
-            'step': pd.date_range(start='3/11/2020', end='3/13/2020', freq='24H')
-        },
+        clocks={'step': pd.date_range(start=opts['start_date'], end=opts['end_date'], freq='24H')},
         input_vars=input_vars_with_proc,
         output_vars=dict(apply_counts_delta__counts='step')
     )
@@ -109,7 +108,7 @@ def run_model(input_ds: xr.Dataset, model: xs.Model) -> xr.Dataset:
     return out_ds
 
 
-def main(func_name, **opts):
+def main(**opts):
     partition_from_csv(**opts)
 
 
@@ -133,7 +132,12 @@ def get_opts() -> dict:
                         required=False, help='path to file containing populations of ZCTAs')
     parser.add_argument('--beta', type=float, default=1., required=False,
                         help='global transmission parameter') 
-
+    parser.add_argument('--initial-ia', type=float, default=50., required=False,
+                        help='initial size of the Ia compartment (low risk only)') 
+    parser.add_argument('--start-date', type=str, default='3/11/2020', required=False,
+                        help='starting date for the simulation, in string format of pandas.date_range') 
+    parser.add_argument('--end-date', type=str, default='3/13/2020', required=False,
+                        help='end date for the simulation, in string format of pandas.date_range') 
     return vars(parser.parse_args())
 
 
