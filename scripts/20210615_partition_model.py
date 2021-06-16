@@ -9,13 +9,21 @@ from episimlab.models import basic
 from episimlab.partition.partition import Partition2Contact
 from episimlab.setup import coords, counts
 
+@xs.process
+class InitCountsCustom(counts.InitCountsFromCensusCSV):
 
-def partition_from_csv():
+    def set_ia(self):
+        self.counts.loc[dict(compartment='Ia', risk_group='low')] = 50.
+
+
+
+def partition_from_csv() -> xr.Dataset:
     model = (basic
              .partition()
              .drop_processes(['setup_beta'])
              .update_processes(dict(
                  get_contact_xr=Partition2Contact, 
+                 setup_counts=InitCountsCustom
              ))
             )
     # breakpoint()
@@ -44,10 +52,9 @@ def partition_from_csv():
     )
     # breakpoint()
     out_ds = run_model(input_ds, model)
+    return out_ds
 
-
-
-def partition_from_nc():
+def partition_from_nc() -> xr.Dataset:
     model = (basic
              .partition()
              .drop_processes(['setup_beta'])
@@ -65,7 +72,7 @@ def partition_from_nc():
     for proc, var in model.input_vars:
         assert var in input_vars, f"model requires var {var}, but could not find in input var dict"
         input_vars_with_proc[f"{proc}__{var}"] = input_vars[var]
-    
+
     # run model
     input_ds = xs.create_setup(
         model=model,
@@ -77,6 +84,7 @@ def partition_from_nc():
     )
     # breakpoint()
     out_ds = run_model(input_ds, model)
+    return out_ds
 
 
 def run_model(input_ds: xr.Dataset, model: xs.Model) -> xr.Dataset:
