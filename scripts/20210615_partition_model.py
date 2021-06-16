@@ -17,7 +17,7 @@ class InitCountsCustom(counts.InitCountsFromCensusCSV):
 
 
 
-def partition_from_csv() -> xr.Dataset:
+def partition_from_csv(**opts) -> xr.Dataset:
     model = (basic
              .partition()
              .drop_processes(['setup_beta'])
@@ -28,13 +28,7 @@ def partition_from_csv() -> xr.Dataset:
             )
     # breakpoint()
 
-    input_vars = {
-        'config_fp': 'scripts/20210512_partition_model.yaml',
-        'travel_fp': 'data/20200311_travel.csv',
-        'contacts_fp': 'data/polymod_contacts.csv',
-        'census_counts_csv': 'data/2019_zcta_pop_5_age_groups.csv',
-        'beta': 1.
-    }
+    input_vars = opts.copy()
     # Reindex with `process__variable` keys
     input_vars_with_proc = dict()
     for proc, var in model.input_vars:
@@ -52,9 +46,25 @@ def partition_from_csv() -> xr.Dataset:
     )
     # breakpoint()
     out_ds = run_model(input_ds, model)
-    return out_ds
+    # return out_ds
+
+    # visualize
+    xr_viz(out_ds['apply_counts_delta__counts'], isel=dict(vertex=1),
+           sel=dict(compartment='Ia'))
+
+
+def xr_viz(data_array, sel=dict(), isel=dict(), timeslice=slice(0, None),
+           sum_over=['risk_group', 'age_group']):
+    """Uses DataArray.plot, which builds on mpl"""
+    assert isinstance(data_array, xr.DataArray)
+    isel.update({'step': timeslice})
+    da = data_array[isel].loc[sel].sum(dim=sum_over)
+    _ = da.plot.line(x='step', aspect=2, size=7)
+
 
 def partition_from_nc() -> xr.Dataset:
+    raise NotImplementedError
+
     model = (basic
              .partition()
              .drop_processes(['setup_beta'])
@@ -100,16 +110,30 @@ def run_model(input_ds: xr.Dataset, model: xs.Model) -> xr.Dataset:
 
 
 def main(func_name, **opts):
-    globals()[func_name]()
+    globals()[func_name](**opts)
 
 
 def get_opts() -> dict:
     """Get options from command line"""
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("-v", "--verbose", action="store_true", required=False, help="")
-    # parser.add_argument('file', type=argparse.FileType('r'), help="")
-    parser.add_argument("-f", "--func-name", type=str, required=True, help="",
-                        choices=['partition_from_nc', 'partition_from_csv'])
+    # parser.add_argument('', type=argparse.FileType('r'), help="")
+    parser.add_argument("-f", "--func-name", type=str, required=False, help="",
+                        choices=['partition_from_nc', 'partition_from_csv'],
+                        default='partition_from_csv')
+
+    parser.add_argument('--config-fp', default='scripts/20210512_partition_model.yaml', 
+                        type=str, required=False, help='path to YAML configuration file')
+    parser.add_argument('--travel-fp', default='data/20200311_travel.csv', 
+                        type=str, required=False, help='path to travel.csv file')
+    parser.add_argument('--contacts-fp', type=str, default='data/polymod_contacts.csv', 
+                        required=False, help='path to contacts.csv file')
+    parser.add_argument('--census-counts-csv', type=str, 
+                        default='data/2019_zcta_pop_5_age_groups.csv',
+                        required=False, help='path to file containing populations of ZCTAs')
+    parser.add_argument('--beta', type=float, default=1., required=False,
+                        help='global transmission parameter') 
+
     return vars(parser.parse_args())
 
 
