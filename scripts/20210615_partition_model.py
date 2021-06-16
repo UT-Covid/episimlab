@@ -110,7 +110,7 @@ def run_model(input_ds: xr.Dataset, model: xs.Model) -> xr.Dataset:
 
 
 def main(func_name, **opts):
-    globals()[func_name](**opts)
+    partition_from_csv(**opts)
 
 
 def get_opts() -> dict:
@@ -118,9 +118,9 @@ def get_opts() -> dict:
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("-v", "--verbose", action="store_true", required=False, help="")
     # parser.add_argument('', type=argparse.FileType('r'), help="")
-    parser.add_argument("-f", "--func-name", type=str, required=False, help="",
-                        choices=['partition_from_nc', 'partition_from_csv'],
-                        default='partition_from_csv')
+    # parser.add_argument("-f", "--func-name", type=str, required=False, help="",
+    #                     choices=['partition_from_nc', 'partition_from_csv'],
+    #                     default='partition_from_csv')
 
     parser.add_argument('--config-fp', default='scripts/20210512_partition_model.yaml', 
                         type=str, required=False, help='path to YAML configuration file')
