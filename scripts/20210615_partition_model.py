@@ -45,11 +45,7 @@ def partition_from_csv(**opts) -> xr.Dataset:
     )
     # breakpoint()
     out_ds = run_model(input_ds, model)
-    # return out_ds
-
-    # visualize
-    xr_viz(out_ds['apply_counts_delta__counts'], isel=dict(vertex=1),
-           sel=dict(compartment='Ia'))
+    return out_ds
 
 
 def xr_viz(data_array, sel=dict(), isel=dict(), timeslice=slice(0, None),
