@@ -4,12 +4,13 @@ import pandas as pd
 import xarray as xr
 import xsimlab as xs
 from matplotlib import pyplot as plt
-from episimlab import apply_counts_delta
+from episimlab.pytest_utils import profiler
 from episimlab.models import basic
 from episimlab.partition.partition import Partition2Contact
 from episimlab.setup import coords, counts
 
 
+@profiler(flavor='dask', log_dir='./logs', show_prof=True)
 def partition_from_csv():
     model = (basic
              .partition()
@@ -46,7 +47,7 @@ def partition_from_csv():
     out_ds = run_model(input_ds, model)
 
 
-
+@profiler(flavor='dask', log_dir='./logs', show_prof=True)
 def partition_from_nc():
     model = (basic
              .partition()
