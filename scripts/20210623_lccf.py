@@ -93,7 +93,7 @@ def xr_viz(data_array, sel=dict(), isel=dict(), timeslice=slice(0, None),
 
 
 def run_model(input_ds: xr.Dataset, model: xs.Model) -> xr.Dataset:
-    out_ds = input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
+    out_ds = input_ds.xsimlab.run(model=model, parallel=True, decoding=dict(mask_and_scale=False))
     cts = out_ds['apply_counts_delta__counts']
     # breakpoint()
 

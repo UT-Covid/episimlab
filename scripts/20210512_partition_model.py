@@ -71,7 +71,7 @@ def partition_from_nc():
     input_ds = xs.create_setup(
         model=model,
         clocks={
-            'step': pd.date_range(start='3/11/2020', end='6/1/2020', freq='24H')
+            'step': pd.date_range(start='3/11/2020', end='3/13/2020', freq='24H')
         },
         input_vars=input_vars_with_proc,
         output_vars=dict(apply_counts_delta__counts='step')
@@ -81,7 +81,7 @@ def partition_from_nc():
 
 
 def run_model(input_ds: xr.Dataset, model: xs.Model) -> xr.Dataset:
-    out_ds = input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
+    out_ds = input_ds.xsimlab.run(model=model, parallel=True, decoding=dict(mask_and_scale=False))
     cts = out_ds['apply_counts_delta__counts']
     # breakpoint()
 
