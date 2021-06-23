@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 import argparse
+import matplotlib
+matplotlib.use('agg')
 import pandas as pd
 import xarray as xr
 import xsimlab as xs
+import pandas as pd
 from matplotlib import pyplot as plt
 from episimlab.models import basic
 from episimlab.pytest_utils import profiler
@@ -19,7 +22,7 @@ class InitCountsCustom(counts.InitCountsFromCensusCSV):
         self.counts.loc[dict(compartment='Ia', risk_group='low')] = self.initial_ia
 
 
-@profiler(flavor='dask', log_dir='./logs', show_prof=True)
+@profiler(flavor='dask', log_dir='./logs', show_prof=False)
 def intra_city(**opts) -> xr.Dataset:
     model = (basic
              .partition()
@@ -47,17 +50,17 @@ def intra_city(**opts) -> xr.Dataset:
     )
     # breakpoint()
     out_ds = run_model(input_ds, model)
-    
+
     return out_ds
 
 
-@profiler(flavor='dask', log_dir='./logs', show_prof=True)
+@profiler(flavor='dask', log_dir='./logs', show_prof=False)
 def inter_city(**opts) -> xr.Dataset:
     model = (basic
              .partition()
              .drop_processes(['setup_beta'])
              .update_processes(dict(
-                 get_contact_xr=Partition2Contact, 
+                 get_contact_xr=Partition2Contact,
                  setup_counts=InitCountsCustom
              ))
             )
@@ -99,7 +102,7 @@ def run_model(input_ds: xr.Dataset, model: xs.Model) -> xr.Dataset:
 
     # plot
     cts.sum(['age_group', 'risk_group', 'vertex']).loc[dict()].plot.line(x='step')
-    plt.show()
+    # plt.show()
 
     return out_ds
 
