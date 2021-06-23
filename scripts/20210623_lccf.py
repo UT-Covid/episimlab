@@ -20,7 +20,39 @@ class InitCountsCustom(counts.InitCountsFromCensusCSV):
 
 
 @profiler(flavor='dask', log_dir='./logs', show_prof=True)
-def partition_from_csv(**opts) -> xr.Dataset:
+def intra_city(**opts) -> xr.Dataset:
+    model = (basic
+             .partition()
+             .drop_processes(['setup_beta'])
+             .update_processes(dict(
+                 get_contact_xr=Partition2Contact, 
+                 setup_counts=InitCountsCustom
+             ))
+            )
+    # breakpoint()
+
+    input_vars = opts.copy()
+    # Reindex with `process__variable` keys
+    input_vars_with_proc = dict()
+    for proc, var in model.input_vars:
+        assert var in input_vars, f"model requires var {var}, but could not find in input var dict"
+        input_vars_with_proc[f"{proc}__{var}"] = input_vars[var]
+    
+    # run model
+    input_ds = xs.create_setup(
+        model=model,
+        clocks={'step': pd.date_range(start=opts['start_date'], end=opts['end_date'], freq='24H')},
+        input_vars=input_vars_with_proc,
+        output_vars=dict(apply_counts_delta__counts='step')
+    )
+    # breakpoint()
+    out_ds = run_model(input_ds, model)
+    
+    return out_ds
+
+
+@profiler(flavor='dask', log_dir='./logs', show_prof=True)
+def inter_city(**opts) -> xr.Dataset:
     model = (basic
              .partition()
              .drop_processes(['setup_beta'])
@@ -73,7 +105,7 @@ def run_model(input_ds: xr.Dataset, model: xs.Model) -> xr.Dataset:
 
 
 def main(**opts):
-    partition_from_csv(**opts)
+    globals()[opts['func_name']](**opts)
 
 
 def get_opts() -> dict:
@@ -81,9 +113,9 @@ def get_opts() -> dict:
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("-v", "--verbose", action="store_true", required=False, help="")
     # parser.add_argument('', type=argparse.FileType('r'), help="")
-    # parser.add_argument("-f", "--func-name", type=str, required=False, help="",
-    #                     choices=['partition_from_nc', 'partition_from_csv'],
-    #                     default='partition_from_csv')
+    parser.add_argument("-f", "--func-name", type=str, required=False, help="",
+                        choices=['inter_city', 'intra_city'],
+                        default='intra_city')
 
     parser.add_argument('--config-fp', default='scripts/20210512_partition_model.yaml', 
                         type=str, required=False, help='path to YAML configuration file')
