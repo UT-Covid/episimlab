@@ -58,6 +58,9 @@ git:
 dist/$(PKG)-$(VERSION).tar.gz: tox.ini setup.py MANIFEST.in pyproject.toml | python
 	python setup.py sdist -q
 
+requirements.txt: 
+	poetry export --without-hashes > $@
+
 image: docker/Dockerfile dist/$(PKG)-$(VERSION).tar.gz requirements.txt | docker
 	cp $(word 2, $^) .
 	docker build --build-arg SDIST=$(PKG)-$(VERSION) \
