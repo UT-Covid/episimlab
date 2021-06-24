@@ -15,6 +15,7 @@ xarray = "^0.17.0"
 dask = {extras = ["dataframe", "distributed"], version = "^2021.4.0"} 
 xarray-simlab = "^0.5"
 matplotlib = "^3.4.1"
+bokeh = "^2.3.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.3"
