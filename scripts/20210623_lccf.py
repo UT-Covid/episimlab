@@ -120,14 +120,14 @@ def get_opts() -> dict:
                         choices=['inter_city', 'intra_city'],
                         default='intra_city')
 
-    parser.add_argument('--config-fp', default='scripts/20210512_partition_model.yaml', 
+    parser.add_argument('--config-fp', default='scripts/20210625_lccf.yaml', 
                         type=str, required=False, help='path to YAML configuration file')
-    parser.add_argument('--travel-fp', default='data/20200311_travel.csv', 
+    parser.add_argument('--travel-fp', default='data/lccf/travel0.csv', 
                         type=str, required=False, help='path to travel.csv file')
-    parser.add_argument('--contacts-fp', type=str, default='data/polymod_contacts.csv', 
+    parser.add_argument('--contacts-fp', type=str, default='data/lccf/contacts0.csv', 
                         required=False, help='path to contacts.csv file')
     parser.add_argument('--census-counts-csv', type=str, 
-                        default='data/2019_zcta_pop_5_age_groups.csv',
+                        default='data/lccf/census0.csv',
                         required=False, help='path to file containing populations of ZCTAs')
     parser.add_argument('--beta', type=float, default=1., required=False,
                         help='global transmission parameter') 

@@ -39,7 +39,10 @@ which python3
 python3 --version
 python3 -m pip freeze
 
-# Launch serial code...
-PYTHONPATH='.' python3 scripts/20210623_lccf.py
-
-deactivate
+# Launch script
+OPTS=""
+OPTS="$OPTS --config-fp scripts/20210625_lccf.yaml"
+OPTS="$OPTS --travel-fp data/lccf/travel0.csv"
+OPTS="$OPTS --contacts-fp data/lccf/contacts0.csv"
+OPTS="$OPTS --census-counts-csv data/lccf/census0.csv"
+PYTHONPATH='.' python3 scripts/20210623_lccf.py $OPTS
