@@ -107,6 +107,7 @@ venv.bak/
 !*.gitkeep
 *.DS_Store
 data
+safegraph_data
 !tests/data
 episimlab/**/*.html
 **.c
