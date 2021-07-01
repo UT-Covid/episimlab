@@ -62,7 +62,6 @@ requirements.txt:
 	poetry export --without-hashes > $@
 
 image: docker/Dockerfile dist/$(PKG)-$(VERSION).tar.gz requirements.txt | docker
-	cp $(word 2, $^) .
 	docker build --build-arg SDIST=$(PKG)-$(VERSION) \
 		--build-arg REQUIREMENTS=$(word 3, $^) \
 		-t $(IMAGE_DOCKER) -f $< .
