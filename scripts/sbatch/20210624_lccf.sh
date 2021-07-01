@@ -18,6 +18,7 @@ module load python3/3.7.0 gsl/2.6
 module list
 which python3
 python3 --version
+pwd
 
 # NOTE: build cython modules if not built. Only need to do this once,
 # so will not include in this script. Build using:
@@ -26,7 +27,6 @@ python3 --version
 # CC=$CCOMPILER make cython
 
 # venv with python dependencies if not installed
-pwd
 VENV=./virpy
 if [ ! -d $VENV ]; then
 	python3 -m venv $VENV
@@ -39,10 +39,11 @@ which python3
 python3 --version
 python3 -m pip freeze
 
-# Launch script
-OPTS=""
+# run script
+OPTS=
 OPTS="$OPTS --config-fp scripts/20210625_lccf.yaml"
 OPTS="$OPTS --travel-fp data/lccf/travel0.csv"
 OPTS="$OPTS --contacts-fp data/lccf/contacts0.csv"
 OPTS="$OPTS --census-counts-csv data/lccf/census0.csv"
+OPTS="$OPTS --n-cores-partition 8"
 PYTHONPATH='.' python3 scripts/20210623_lccf.py $OPTS
