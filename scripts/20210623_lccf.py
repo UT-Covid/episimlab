@@ -24,7 +24,7 @@ class InitCountsCustom(counts.InitCountsFromCensusCSV):
         self.counts.loc[dict(compartment='Ia', risk_group='low')] = self.initial_ia
 
 
-@profiler(flavor='dask', log_dir='./logs', show_prof=False)
+@profiler(flavor='dask', log_dir='./logs', show_prof=True)
 def intra_city(**opts) -> xr.Dataset:
     model = (basic
              .partition()
@@ -56,7 +56,7 @@ def intra_city(**opts) -> xr.Dataset:
     return out_ds
 
 
-@profiler(flavor='dask', log_dir='./logs', show_prof=False)
+@profiler(flavor='dask', log_dir='./logs', show_prof=True)
 def inter_city(**opts) -> xr.Dataset:
     model = (basic
              .partition()
@@ -111,8 +111,23 @@ def run_model(input_ds: xr.Dataset, model: xs.Model, n_cores: int) -> xr.Dataset
     return out_ds
 
 
+def parse_n_cores(arg_val: str) -> list:
+    """Parses arg value n cores. If integer, returns length 1 list where only
+    element is that integer. Else, try to parse, splitting with commas.
+    """
+    try:
+        return [int(arg_val)]
+    except ValueError:
+        return [int(val) for val in arg_val.split(',')]
+
+
 def main(**opts):
-    globals()[opts['func_name']](**opts)
+    # one job for each value of n_cores
+    n_cores_iters = parse_n_cores(opts['n_cores'])
+    for n_cores in n_cores_iters:
+        opts['n_cores'] = n_cores
+        print(f"Running {opts['func_name']} with {n_cores} threads...")
+        globals()[opts['func_name']](**opts)
 
 
 def get_opts() -> dict:
@@ -125,7 +140,9 @@ def get_opts() -> dict:
                         default='intra_city')
 
     parser.add_argument('--n-cores', default=1, 
-                        type=int, required=False, help='number of cores to use')
+                        type=str, required=False, help='number of cores to use. ' +
+                        'Can be an integer, or pass comma separated integers to ' +
+                        'run one job per integer')
     parser.add_argument('--config-fp', default='scripts/20210625_lccf.yaml', 
                         type=str, required=False, help='path to YAML configuration file')
     parser.add_argument('--travel-fp', default='data/lccf/travel0.csv', 
