@@ -51,7 +51,7 @@ def intra_city(**opts) -> xr.Dataset:
         output_vars=dict(apply_counts_delta__counts='step')
     )
     # breakpoint()
-    out_ds = run_model(input_ds, model, n_cores_partition=opts['n_cores_partition'])
+    out_ds = run_model(input_ds, model, n_cores=opts['n_cores'])
 
     return out_ds
 
@@ -83,7 +83,7 @@ def inter_city(**opts) -> xr.Dataset:
         output_vars=dict(apply_counts_delta__counts='step')
     )
     # breakpoint()
-    out_ds = run_model(input_ds, model, n_cores_partition=opts['n_cores_partition'])
+    out_ds = run_model(input_ds, model, n_cores=opts['n_cores'])
     
     return out_ds
 
@@ -97,9 +97,9 @@ def xr_viz(data_array, sel=dict(), isel=dict(), timeslice=slice(0, None),
     _ = da.plot.line(x='step', aspect=2, size=7)
 
 
-def run_model(input_ds: xr.Dataset, model: xs.Model, n_cores_partition: int) -> xr.Dataset:
+def run_model(input_ds: xr.Dataset, model: xs.Model, n_cores: int) -> xr.Dataset:
     
-    with dask.config.set(pool=ThreadPoolExecutor(n_cores_partition)):
+    with dask.config.set(pool=ThreadPoolExecutor(n_cores)):
         out_ds = input_ds.xsimlab.run(model=model, parallel=True, decoding=dict(mask_and_scale=False))
     cts = out_ds['apply_counts_delta__counts']
     # breakpoint()
@@ -124,8 +124,8 @@ def get_opts() -> dict:
                         choices=['inter_city', 'intra_city'],
                         default='intra_city')
 
-    parser.add_argument('--n-cores-partition', default=1, 
-                        type=int, required=False, help='number of cores to use for process Partition2Contact')
+    parser.add_argument('--n-cores', default=1, 
+                        type=int, required=False, help='number of cores to use')
     parser.add_argument('--config-fp', default='scripts/20210625_lccf.yaml', 
                         type=str, required=False, help='path to YAML configuration file')
     parser.add_argument('--travel-fp', default='data/lccf/travel0.csv', 
