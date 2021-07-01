@@ -45,5 +45,5 @@ OPTS="$OPTS --config-fp scripts/20210625_lccf.yaml"
 OPTS="$OPTS --travel-fp data/lccf/travel_pop1_rows1.csv"
 OPTS="$OPTS --contacts-fp data/lccf/contacts_pop1_rows1.csv"
 OPTS="$OPTS --census-counts-csv data/lccf/census_pop1_rows1.csv"
-OPTS="$OPTS --n-cores-partition 1,2,4,8,16,32"
+OPTS="$OPTS --n-cores 1,2,4,8,16,32"
 PYTHONPATH='.' python3 scripts/20210623_lccf.py $OPTS
