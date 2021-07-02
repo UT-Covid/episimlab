@@ -8,6 +8,8 @@ from .. import utils
 from ..pytest_utils import profiler
 import dask.dataframe as dd
 from datetime import datetime
+import dask
+from concurrent.futures import ThreadPoolExecutor
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -63,6 +65,7 @@ class Partition2Contact:
     travel_fp = xs.variable(intent='in')
     contacts_fp = xs.variable(intent='in')
     contact_xr = xs.variable(static=False, dims=DIMS, intent='out', global_name='contact_xr')
+    n_cores = xs.variable(static=True, intent='in')
 
     @xs.runtime(args=['step_delta', 'step_start', 'step_end'])
     def initialize(self, step_delta, step_start, step_end):
@@ -119,13 +122,14 @@ class Partition2Contact:
         self.all_dims = self.spatial_dims + self.age_dims
         self.non_spatial_dims = self.age_dims  # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
 
-        # Indexing on date, generate travel_df from travel_df_with_date
-        self.travel_df = self.get_travel_df()
+        with dask.config.set(pool=ThreadPoolExecutor(self.n_cores)):
+            # Indexing on date, generate travel_df from travel_df_with_date
+            self.travel_df = self.get_travel_df()
 
-        # initialize empty class members to hold intermediate results generated during workflow
-        self.prob_partitions = self.dask_partition()
-        self.contact_partitions = self.partitions_to_contacts(daily_timesteps=10)
-        self.contact_xr = self.build_contact_xr()
+            # initialize empty class members to hold intermediate results generated during workflow
+            self.prob_partitions = self.dask_partition()
+            self.contact_partitions = self.partitions_to_contacts(daily_timesteps=10)
+            self.contact_xr = self.build_contact_xr()
 
     @profiler()
     def load_travel_df(self):
