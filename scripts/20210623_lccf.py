@@ -11,6 +11,8 @@ from episimlab.models import basic
 from episimlab.pytest_utils import profiler
 from episimlab.partition.partition import Partition2Contact
 from episimlab.setup import counts
+import dask
+from concurrent.futures import ThreadPoolExecutor
 
 
 @xs.process
@@ -22,7 +24,7 @@ class InitCountsCustom(counts.InitCountsFromCensusCSV):
         self.counts.loc[dict(compartment='Ia', risk_group='low')] = self.initial_ia
 
 
-@profiler(flavor='dask', log_dir='./logs', show_prof=False)
+@profiler(flavor='dask', log_dir='./logs', show_prof=True)
 def intra_city(**opts) -> xr.Dataset:
     model = (basic
              .partition()
@@ -49,12 +51,12 @@ def intra_city(**opts) -> xr.Dataset:
         output_vars=dict(apply_counts_delta__counts='step')
     )
     # breakpoint()
-    out_ds = run_model(input_ds, model)
+    out_ds = run_model(input_ds, model, n_cores=opts['n_cores'])
 
     return out_ds
 
 
-@profiler(flavor='dask', log_dir='./logs', show_prof=False)
+@profiler(flavor='dask', log_dir='./logs', show_prof=True)
 def inter_city(**opts) -> xr.Dataset:
     model = (basic
              .partition()
@@ -81,7 +83,7 @@ def inter_city(**opts) -> xr.Dataset:
         output_vars=dict(apply_counts_delta__counts='step')
     )
     # breakpoint()
-    out_ds = run_model(input_ds, model)
+    out_ds = run_model(input_ds, model, n_cores=opts['n_cores'])
     
     return out_ds
 
@@ -95,8 +97,10 @@ def xr_viz(data_array, sel=dict(), isel=dict(), timeslice=slice(0, None),
     _ = da.plot.line(x='step', aspect=2, size=7)
 
 
-def run_model(input_ds: xr.Dataset, model: xs.Model) -> xr.Dataset:
-    out_ds = input_ds.xsimlab.run(model=model, parallel=True, decoding=dict(mask_and_scale=False))
+def run_model(input_ds: xr.Dataset, model: xs.Model, n_cores: int) -> xr.Dataset:
+    
+    with dask.config.set(pool=ThreadPoolExecutor(n_cores)):
+        out_ds = input_ds.xsimlab.run(model=model, parallel=True, decoding=dict(mask_and_scale=False))
     cts = out_ds['apply_counts_delta__counts']
     # breakpoint()
 
@@ -107,8 +111,23 @@ def run_model(input_ds: xr.Dataset, model: xs.Model) -> xr.Dataset:
     return out_ds
 
 
+def parse_n_cores(arg_val: str) -> list:
+    """Parses arg value n cores. If integer, returns length 1 list where only
+    element is that integer. Else, try to parse, splitting with commas.
+    """
+    try:
+        return [int(arg_val)]
+    except ValueError:
+        return [int(val) for val in arg_val.split(',')]
+
+
 def main(**opts):
-    globals()[opts['func_name']](**opts)
+    # one job for each value of n_cores
+    n_cores_iters = parse_n_cores(opts['n_cores'])
+    for n_cores in n_cores_iters:
+        opts['n_cores'] = n_cores
+        print(f"Running {opts['func_name']} with {n_cores} threads...")
+        globals()[opts['func_name']](**opts)
 
 
 def get_opts() -> dict:
@@ -120,6 +139,10 @@ def get_opts() -> dict:
                         choices=['inter_city', 'intra_city'],
                         default='intra_city')
 
+    parser.add_argument('--n-cores', default=1, 
+                        type=str, required=False, help='number of cores to use. ' +
+                        'Can be an integer, or pass comma separated integers to ' +
+                        'run one job per integer')
     parser.add_argument('--config-fp', default='scripts/20210625_lccf.yaml', 
                         type=str, required=False, help='path to YAML configuration file')
     parser.add_argument('--travel-fp', default='data/lccf/travel0.csv', 

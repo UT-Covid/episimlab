@@ -73,6 +73,7 @@ class InitCountsFromCensusCSV(InitDefaultCounts):
                )
         # sanity checks
         assert not dac.isnull().any()
+        # assert that all expected vertices are in the census CSV
         assert all(zcta in dac.coords['vertex'] for zcta in da.coords['vertex'].values)
 
         # breakpoint()
