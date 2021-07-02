@@ -108,6 +108,7 @@ class Partition2Contact:
         return self.travel_df
 
     # NOTE: step_start and step_end reversed due to xarray-simlab bug
+    @profiler(flavor='dask', log_dir='./logs', show_prof=False)
     @xs.runtime(args=['step_delta', 'step_end', 'step_start'])
     def run_step(self, step_delta, step_start, step_end):
         """Runs at every time step in the context of xsimlab.Model."""
@@ -123,6 +124,7 @@ class Partition2Contact:
         self.non_spatial_dims = self.age_dims  # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
 
         with dask.config.set(pool=ThreadPoolExecutor(self.n_cores)):
+            logging.debug(f"{self.n_cores=}")
             # Indexing on date, generate travel_df from travel_df_with_date
             self.travel_df = self.get_travel_df()
 

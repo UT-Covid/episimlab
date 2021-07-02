@@ -24,7 +24,8 @@ class InitCountsCustom(counts.InitCountsFromCensusCSV):
         self.counts.loc[dict(compartment='Ia', risk_group='low')] = self.initial_ia
 
 
-@profiler(flavor='dask', log_dir='./logs', show_prof=True)
+# @profiler(flavor='dask', log_dir='./logs', show_prof=True)
+@profiler()
 def intra_city(**opts) -> xr.Dataset:
     model = (basic
              .partition()
@@ -56,7 +57,8 @@ def intra_city(**opts) -> xr.Dataset:
     return out_ds
 
 
-@profiler(flavor='dask', log_dir='./logs', show_prof=True)
+# @profiler(flavor='dask', log_dir='./logs', show_prof=True)
+@profiler()
 def inter_city(**opts) -> xr.Dataset:
     model = (basic
              .partition()
