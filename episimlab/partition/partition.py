@@ -124,7 +124,7 @@ class Partition2Contact:
         self.non_spatial_dims = self.age_dims  # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
 
         with dask.config.set(pool=ThreadPoolExecutor(self.n_cores)):
-            logging.debug(f"{self.n_cores=}")
+            logging.debug(f"n_cores={self.n_cores}")
             # Indexing on date, generate travel_df from travel_df_with_date
             self.travel_df = self.get_travel_df()
 
