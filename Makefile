@@ -1,6 +1,6 @@
 PYTHON ?= python3
 PREF_SHELL ?= bash
-CC ?= gcc-11
+CC ?= gcc-10
 GITREF=$(shell git rev-parse --short HEAD)
 GITREF_FULL=$(shell git rev-parse HEAD)
 VERSION = $(shell python setup.py --version)
