@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "episimlab"
-version = "0.1.0"
+version = "1.0.0"
 description = "Framework for modular development of epidemiological models"
 authors = ["Ethan Ho <eho@tacc.utexas.edu>"]
 license = "MIT"
