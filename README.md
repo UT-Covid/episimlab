@@ -139,7 +139,7 @@ Preferred testing environment runs poetry virtual env within tox.
 # Default args
 tox
 # Pass args to pytest. In this case, we use 4-thread parallelism to run only the test_setup suite
-tox -- -n 4 tests/test_setup
+tox -- tests/test_setup
 ```
 
 [1]: https://www.gnu.org/software/gsl/
