@@ -52,7 +52,6 @@ repo_url = 'https://github.com/eho-tacc/episimlab'
 pkg_dir = 'episimlab'
 
 # Determines whether to cythonize extensions or compile from *.c
-# TODO: populate from command line option
 USE_CYTHON = True
 src_ext = '.pyx' if USE_CYTHON else '.c'
 
