@@ -94,7 +94,7 @@ if USE_CYTHON is True:
                            compiler_directives={'language_level': "3"})
 
 # Create version file
-VERSION = "0.1.0"
+VERSION = "1.0.0"
 with open(os.path.join(pkg_dir,'version.py'), 'w') as VF:
     cnt = """# THIS FILE IS GENERATED FROM SETUP.PY\nversion = '%s'"""
     VF.write(cnt%(VERSION))

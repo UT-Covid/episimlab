@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 import xsimlab as xs
 import xarray as xr
@@ -5,6 +6,7 @@ from .coords import InitDefaultCoords
 
 from ..apply_counts_delta import ApplyCountsDelta
 
+logging.basicConfig(level=logging.DEBUG)
 
 
 @xs.process
@@ -77,12 +79,17 @@ class InitCountsFromCensusCSV(InitDefaultCounts):
         da.loc[dict(compartment='S', risk_group='low')] = dac
         self.counts = da
         self.set_ia()
-    
+
+        # warning if detects no infected
+        if self.counts.loc[dict(compartment='Ia')].sum() < 1.:
+            logging.warning(f"Population of Ia compartment is less than 1. Did " +
+                          "you forget to set infected compartment?")
+
     def set_ia(self):
         """Sets Ia compartment to 50 for all vertices.
         """
         self.counts.loc[dict(compartment='Ia', risk_group='low')] = 50.
-    
+
     def read_census_csv(self) -> xr.DataArray:
         df = pd.read_csv(self.census_counts_csv)
         assert not df.isna().any().any(), ('found null values in df', df.isna().any())

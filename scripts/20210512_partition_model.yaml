@@ -1,5 +1,10 @@
+# integer seed for RNG
 seed_entropy: 12345
-sto_toggle: -1
+
+# when to turn stochastic on. -1 for never. 0 for always
+sto_toggle: 0
+
+# epi params
 symp_h_ratio_w_risk:
     - [0.0002791, 0.0002146, 0.0132154, 0.0285634, 0.0338733]
     - [0.002791, 0.002146, 0.132154, 0.285634, 0.338733]

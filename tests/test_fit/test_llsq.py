@@ -43,6 +43,7 @@ class TestLeastSqFitters:
         """Can fit heads in beds incidences. Primary use case.
         """
         fitter.ls_kwargs = dict(xtol=1e-3)
+        fitter.set_date_range(None, '2020-01-11')
         soln = fitter.run()
 
         assert isinstance(soln, OptimizeResult)
@@ -71,3 +72,10 @@ class TestLeastSqFitters:
     def test_can_get_default_model(self, fitter):
         model = fitter.get_default_model()
         assert isinstance(model, Model)
+
+    def test_can_set_date_range(self, fitter):
+        fitter.set_date_range(None, '2020-11-01')
+        assert not hasattr(fitter, 'start_date')
+        assert hasattr(fitter, 'end_date')
+        fitter.set_date_range('2020-04-01', '2020-11-01')
+        assert hasattr(fitter, 'start_date')

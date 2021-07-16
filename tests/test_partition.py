@@ -9,10 +9,10 @@ import xarray as xr
 import xsimlab as xs
 from itertools import product
 
-from episimlab.partition.partition import Partition
+
+from episimlab.partition.partition import Partition2Contact
 from episimlab.models import basic
 from episimlab.setup import epi
-
 
 
 @pytest.fixture
@@ -86,6 +86,7 @@ def legacy_results_toy(request):
         'phi_fp': os.path.join(base_dir, f'phi{idx}.npy'),
     }
 
+
 @pytest.fixture(params=[8, 9])
 def updated_results(request):
     base_dir = os.path.join('tests', 'data', 'partition_capture')
@@ -97,6 +98,7 @@ def updated_results(request):
         'tr_parts_fp': os.path.join(base_dir, f'tr_parts{idx}.csv'),
         'phi_fp': os.path.join(base_dir, f'phi{idx}.npy'),
     }
+
 
 class TestPartitionInModel:
 
@@ -110,15 +112,32 @@ class TestPartitionInModel:
         # breakpoint()
         return input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
 
-    def test_partition_in_model(self, step_clock):
+    def test_partition_from_nc(self, step_clock):
         model = basic.partition()
         input_vars = dict(
             read_config__config_fp='tests/config/example_v2.yaml',
-            # setup_coords__config_fp='tests/config/example_v2.yaml',
-            # setup_coords__travel_fp='tests/data/partition_capture/travel0.csv',
-            setup_coords__contact_da_fp='tests/data/20200311_contact_matrix.nc',
-            # setup_phi__travel_fp='tests/data/partition_capture/travel0.csv',
-            # setup_phi__contacts_fp='tests/data/partition_capture/contacts0.csv',
+            get_contact_xr__contact_da_fp='tests/data/20200311_contact_matrix.nc',
+        )
+        output_vars = dict(apply_counts_delta__counts='step')
+        result = self.run_model(model, step_clock, input_vars, output_vars)
+        assert isinstance(result, xr.Dataset)
+
+    # @pytest.mark.slow
+    @pytest.mark.skipif(not os.path.isfile("data/20200311_travel.csv"),
+                        reason="Requires data/20200311_travel.csv")
+    # @pytest.mark.skip
+    def test_partition_from_csv(self):
+        step_clock = {
+            'step': pd.date_range(
+                start='3/11/2020', end='3/13/2020', freq='24H'
+            )
+        }
+        model = basic.partition().update_processes(
+            dict(get_contact_xr=Partition2Contact))
+        input_vars = dict(
+            read_config__config_fp='tests/config/example_v2.yaml',
+            get_contact_xr__travel_fp='data/20200311_travel.csv',
+            get_contact_xr__contacts_fp='tests/data/polymod_contacts.csv',
         )
         output_vars = dict(apply_counts_delta__counts='step')
         result = self.run_model(model, step_clock, input_vars, output_vars)
@@ -132,29 +151,35 @@ class TestPartitioning:
 
     def test_partitioning(self, updated_results, counts_coords_toy):
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
-        proc = Partition(**inputs)
-        proc.initialize()
-        proc.run_step(step_delta=np.timedelta64(24, 'h'),
-                      step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
-                      step_end=np.datetime64('2020-03-12T00:00:00.000000000'),
-                      )
+        inputs.update({
+            # 'age_group': counts_coords_toy['age_group'],
+            # 'risk_group': counts_coords_toy['risk_group']
+        })
+        kw = dict(step_delta=np.timedelta64(24, 'h'),
+                  step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
+                  step_end=np.datetime64('2020-03-12T00:00:00.000000000'),)
+        proc = Partition2Contact(**inputs)
+        proc.initialize(**kw)
+        proc.run_step(**kw)
 
         tc_final = pd.read_csv(updated_results['tc_final_fp'], index_col=None)
         tr_part = pd.read_csv(updated_results['tr_parts_fp'], index_col=None)
 
         # test against legacy
-        pd.testing.assert_frame_equal(proc.prob_partitions, tr_part.drop('Unnamed: 0', axis=1))
-        pd.testing.assert_frame_equal(proc.contact_partitions, tc_final.drop('Unnamed: 0', axis=1))
+        pd.testing.assert_frame_equal(
+            proc.prob_partitions, tr_part.drop('Unnamed: 0', axis=1))
+        pd.testing.assert_frame_equal(
+            proc.contact_partitions, tc_final.drop('Unnamed: 0', axis=1))
 
     def test_phi(self, to_phi_da, updated_results, counts_coords_toy):
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
-        proc = Partition(**inputs)
-        proc.initialize()
-        proc.run_step(step_delta=np.timedelta64(24, 'h'),
-                      step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
-                      step_end=np.datetime64('2020-03-12T00:00:00.000000000'),
-                      )
-        
+        proc = Partition2Contact(**inputs)
+        kw = dict(step_delta=np.timedelta64(24, 'h'),
+                  step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
+                  step_end=np.datetime64('2020-03-12T00:00:00.000000000'),)
+        proc.initialize(**kw)
+        proc.run_step(**kw)
+
         # construct a DataArray from legacy phi
         phi = to_phi_da(updated_results['phi_fp'])
 
@@ -165,4 +190,5 @@ class TestPartitioning:
                 da = da.sortby(dim)
             return da
 
-        xr.testing.assert_allclose(sort_coords(proc.contact_xr), sort_coords(phi))
+        xr.testing.assert_allclose(sort_coords(
+            proc.contact_xr), sort_coords(phi))

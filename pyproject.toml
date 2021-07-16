@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "episimlab"
-version = "0.1.0"
+version = "1.0.0"
 description = "Framework for modular development of epidemiological models"
 authors = ["Ethan Ho <eho@tacc.utexas.edu>"]
 license = "MIT"
@@ -21,6 +21,7 @@ pytest = "^6.2.3"
 pytest-xdist = "^2.2.1"
 tox = "^3.23.0"
 pytest-pythonpath = "^0.7.3"
+bokeh = "^2.3.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
