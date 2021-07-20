@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 import argparse
-import matplotlib
-matplotlib.use('agg')
-import pandas as pd
 import xarray as xr
 import xsimlab as xs
 import pandas as pd
-from matplotlib import pyplot as plt
 from episimlab.models import basic
 from episimlab.pytest_utils import profiler
 from episimlab.partition.partition import Partition2Contact
@@ -24,7 +20,6 @@ class InitCountsCustom(counts.InitCountsFromCensusCSV):
         self.counts.loc[dict(compartment='Ia', risk_group='low')] = self.initial_ia
 
 
-@profiler(flavor='dask', log_dir='./logs', show_prof=True)
 def intra_city(**opts) -> xr.Dataset:
     model = (basic
              .partition()
@@ -56,15 +51,6 @@ def intra_city(**opts) -> xr.Dataset:
     return out_ds
 
 
-def xr_viz(data_array, sel=dict(), isel=dict(), timeslice=slice(0, None),
-           sum_over=['risk_group', 'age_group']):
-    """Uses DataArray.plot, which builds on mpl"""
-    assert isinstance(data_array, xr.DataArray)
-    isel.update({'step': timeslice})
-    da = data_array[isel].loc[sel].sum(dim=sum_over)
-    _ = da.plot.line(x='step', aspect=2, size=7)
-
-
 def run_model(input_ds: xr.Dataset, model: xs.Model, n_cores: int) -> xr.Dataset:
     
     with dask.config.set(pool=ThreadPoolExecutor(n_cores)):
@@ -79,22 +65,9 @@ def run_model(input_ds: xr.Dataset, model: xs.Model, n_cores: int) -> xr.Dataset
     return out_ds
 
 
-def parse_n_cores(arg_val: str) -> list:
-    """Parses arg value n cores. If integer, returns length 1 list where only
-    element is that integer. Else, try to parse, splitting with commas.
-    """
-    try:
-        return [int(arg_val)]
-    except ValueError:
-        return [int(val) for val in arg_val.split(',')]
-
-
 def main(**opts):
-    # one job for each value of n_cores
-    n_cores_iters = parse_n_cores(opts['n_cores'])
-    for n_cores in n_cores_iters:
-        opts['n_cores'] = n_cores
-        intra_city(**opts)
+
+    return intra_city(**opts)
 
 
 def get_opts() -> dict:
