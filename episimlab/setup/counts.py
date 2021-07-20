@@ -100,3 +100,56 @@ class InitCountsFromCensusCSV(InitDefaultCounts):
         da = xr.DataArray.from_series(df['group_pop'])
         da.coords['age_group'] = da.coords['age_group'].astype(str)
         return da
+
+
+@xs.process
+class InitCountsFromMidEpidemicCSV(InitDefaultCounts):
+    """Initializes counts from a census.gov formatted CSV file.
+    """
+    census_counts_csv = xs.variable(intent='in')
+
+    def initialize(self):
+        self.COUNTS_COORDS = {dim: getattr(self, dim) for dim in self.COUNTS_DIMS}
+        da = xr.DataArray(
+            data=0.,
+            dims=self.COUNTS_DIMS,
+            coords=self.COUNTS_COORDS
+        )
+        dac = (self
+            .read_census_csv()
+            .reindex(dict(
+            vertex=self.COUNTS_COORDS['vertex'],
+            age_group=self.COUNTS_COORDS['age_group']))
+            # .expand_dims(['compartment', 'risk_group'])
+            # .expand_dims(['risk_group'])
+            # .transpose('vertex', 'age_group', ...)
+        )
+        # sanity checks
+        assert not dac.isnull().any()
+        assert all(zcta in dac.coords['vertex'] for zcta in da.coords['vertex'].values)
+
+        # breakpoint()
+        da.loc[dict(compartment='S', risk_group='low')] = dac
+        self.counts = da
+        self.set_ia()
+
+        # warning if detects no infected
+        if self.counts.loc[dict(compartment='Ia')].sum() < 1.:
+            logging.warning(f"Population of Ia compartment is less than 1. Did " +
+                            "you forget to set infected compartment?")
+
+    def set_ia(self):
+        """Sets Ia compartment to 50 for all vertices.
+        """
+        self.counts.loc[dict(compartment='Ia', risk_group='low')] = 50.
+
+    def read_census_csv(self) -> xr.DataArray:
+        df = pd.read_csv(self.census_counts_csv)
+        assert not df.isna().any().any(), ('found null values in df', df.isna().any())
+        df.rename(columns={'GEOID': 'vertex', 'age_bin': 'age_group'}, inplace=True)
+        df.set_index(['vertex', 'age_group'], inplace=True)
+        # filter to zcta that we want to model in the simulation (vertex coords)
+        df = df.loc[self.COUNTS_COORDS['vertex']]
+        da = xr.DataArray.from_series(df['group_pop'])
+        da.coords['age_group'] = da.coords['age_group'].astype(str)
+        return da

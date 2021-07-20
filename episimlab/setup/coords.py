@@ -102,4 +102,3 @@ class InitCoordsFromTravel(InitDefaultCoords):
         self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
                             'Py2Iy', 'Iy2Ih', 'H2D']
-        
