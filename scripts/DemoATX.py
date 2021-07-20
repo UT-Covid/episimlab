@@ -56,38 +56,6 @@ def intra_city(**opts) -> xr.Dataset:
     return out_ds
 
 
-@profiler(flavor='dask', log_dir='./logs', show_prof=True)
-def inter_city(**opts) -> xr.Dataset:
-    model = (basic
-             .partition()
-             .drop_processes(['setup_beta'])
-             .update_processes(dict(
-                 get_contact_xr=Partition2Contact,
-                 setup_counts=InitCountsCustom
-             ))
-            )
-    # breakpoint()
-
-    input_vars = opts.copy()
-    # Reindex with `process__variable` keys
-    input_vars_with_proc = dict()
-    for proc, var in model.input_vars:
-        assert var in input_vars, f"model requires var {var}, but could not find in input var dict"
-        input_vars_with_proc[f"{proc}__{var}"] = input_vars[var]
-    
-    # run model
-    input_ds = xs.create_setup(
-        model=model,
-        clocks={'step': pd.date_range(start=opts['start_date'], end=opts['end_date'], freq='24H')},
-        input_vars=input_vars_with_proc,
-        output_vars=dict(apply_counts_delta__counts='step')
-    )
-    # breakpoint()
-    out_ds = run_model(input_ds, model, n_cores=opts['n_cores'])
-    
-    return out_ds
-
-
 def xr_viz(data_array, sel=dict(), isel=dict(), timeslice=slice(0, None),
            sum_over=['risk_group', 'age_group']):
     """Uses DataArray.plot, which builds on mpl"""
@@ -126,19 +94,13 @@ def main(**opts):
     n_cores_iters = parse_n_cores(opts['n_cores'])
     for n_cores in n_cores_iters:
         opts['n_cores'] = n_cores
-        print(f"Running {opts['func_name']} with {n_cores} threads...")
-        globals()[opts['func_name']](**opts)
+        intra_city(**opts)
 
 
 def get_opts() -> dict:
     """Get options from command line"""
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("-v", "--verbose", action="store_true", required=False, help="")
-    # parser.add_argument('', type=argparse.FileType('r'), help="")
-    parser.add_argument("-f", "--func-name", type=str, required=False, help="",
-                        choices=['inter_city', 'intra_city'],
-                        default='intra_city')
-
     parser.add_argument('--n-cores', default=1, 
                         type=str, required=False, help='number of cores to use. ' +
                         'Can be an integer, or pass comma separated integers to ' +
