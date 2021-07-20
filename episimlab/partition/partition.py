@@ -124,7 +124,7 @@ class Partition2Contact:
 
         # initialize empty class members to hold intermediate results generated during workflow
         self.prob_partitions = self.dask_partition()
-        self.contact_partitions = self.partitions_to_contacts(daily_timesteps=10)
+        self.contact_partitions = self.partitions_to_contacts(daily_timesteps=1)
         self.contact_xr = self.build_contact_xr()
 
     @profiler()
