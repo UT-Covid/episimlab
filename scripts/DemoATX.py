@@ -15,9 +15,17 @@ from concurrent.futures import ThreadPoolExecutor
 class InitCountsCustom(counts.InitCountsFromCensusCSV):
 
     initial_ia = xs.variable(dims=(), intent='in')
+    initial_vertex = xs.variable(dims=(), intent='in')
 
+    # todo: input validation on initial vertex
     def set_ia(self):
-        self.counts.loc[dict(compartment='Ia', risk_group='low')] = self.initial_ia
+        self.counts.loc[
+            dict(
+                compartment='Ia',
+                risk_group='low',
+                vertex=self.initial_vertex
+            )
+        ] = self.initial_ia
 
 
 def intra_city(**opts) -> xr.Dataset:
