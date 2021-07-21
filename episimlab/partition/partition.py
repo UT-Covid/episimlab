@@ -102,6 +102,7 @@ class Partition2Contact:
         self.travel_df = self.travel_df_with_date[mask]
         assert not self.travel_df.empty, \
             f'No travel data for date between {self.step_start} and {self.step_end}'
+        print(f'The date in Partition.get_travel_df is {self.travel_df["date"].unique()}')
         return self.travel_df
 
     # NOTE: step_start and step_end reversed due to xarray-simlab bug
