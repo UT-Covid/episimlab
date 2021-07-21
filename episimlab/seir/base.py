@@ -33,5 +33,5 @@ class BaseSEIR:
 
     def get_int_per_day(self, step_delta) -> float:
         int_per_day = get_int_per_day(step_delta)
-        assert(int_per_day == np.timedelta64(1, 'D'))
+        assert(int_per_day == 1.0)
         return get_int_per_day(step_delta)
