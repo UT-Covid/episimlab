@@ -73,19 +73,6 @@ def counts_basic(counts_dims, counts_coords, request):
 
 
 @pytest.fixture()
-def adj_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
-    """A MultiIndex mapping for an adj array"""
-    dims = ('vertex', 'age_group', 'risk_group', 'compartment')
-    coords = {
-        k: v for k, v in counts_coords.items()
-        if k in dims
-    }
-    shape = np.array([len(coords[d]) for d in dims])
-    data = np.arange(np.prod(shape)).reshape(shape)
-    return xr.DataArray(data=data, dims=dims, coords=coords)
-
-
-@pytest.fixture()
 def phi_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
     """A MultiIndex mapping for a phi array"""
     dims = ['vertex', 'age_group', 'risk_group']
@@ -97,24 +84,6 @@ def phi_grp_mapping(counts_dims, counts_coords) -> xr.DataArray:
     data = np.arange(np.prod(shape)).reshape(shape)
     return xr.DataArray(data=data, dims=dims, coords=coords)
 
-
-@pytest.fixture()
-def adj_t(counts_coords) -> xr.DataArray:
-    dims = ('vertex1', 'vertex2', 'age_group', 'risk_group', 'compartment')
-    # we assume that all the dimensions in counts are also dimensions
-    # on the adjacency matrix
-    coords = {
-        'vertex1': counts_coords['vertex'],
-        'vertex2': counts_coords['vertex']
-    }
-    coords.update({
-        dim: counts_coords[dim] for dim in ('age_group', 'risk_group', 'compartment')
-    })
-    return xr.DataArray(
-        data=0.1,
-        dims=dims,
-        coords=coords
-    )
 
 
 @pytest.fixture()
