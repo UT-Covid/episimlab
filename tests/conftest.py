@@ -42,7 +42,7 @@ def foi(request, counts_coords):
 @pytest.fixture(params=[
     'realistic',
     # 'mid_sim',
-    # 'ones'
+    'ones'
 ])
 def counts_basic(counts_dims, counts_coords, request):
     if request.param == 'realistic':
