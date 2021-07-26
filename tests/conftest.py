@@ -14,7 +14,7 @@ def counts_dims():
 
 @pytest.fixture(params=[
     3,
-    # 5
+    5
 ])
 def counts_coords(request):
     return {
