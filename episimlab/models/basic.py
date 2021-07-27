@@ -8,7 +8,8 @@ from ..foi import (
 from ..seir import (
     base as base_seir,
     brute_force as bf_seir,
-    bf_cython as bf_cython_seir
+    bf_cython as bf_cython_seir,
+    seir_with_foi as seir_with_foi_module
 )
 from .. import apply_counts_delta
 from ..partition.partition import NC2Contact, Contact2Phi
@@ -125,3 +126,37 @@ def partition():
                 get_contact_xr=NC2Contact, 
             ))
            )
+
+
+def seir_with_foi():
+    return xs.Model(dict(
+        # Random number generator
+        rng=seed.SeedGenerator,
+        sto=sto.InitStochasticFromToggle,
+
+        # Instantiate coords and counts array
+        setup_counts=counts.InitDefaultCounts,
+        setup_coords=coords.InitCoordsFromConfig,
+
+        # Instantiate params that inform epi params
+        read_config=ReadV1Config,
+
+        # Instantiate epidemiological parameters
+        setup_phi=phi.InitPhi,
+        setup_beta=epi.SetupDefaultBeta,
+        setup_eta=epi.SetupEtaFromAsympRate,
+        setup_gamma=epi.SetupStaticGamma,
+        setup_mu=epi.SetupStaticMuFromHtoD,
+        setup_nu=epi.SetupStaticNu,
+        setup_omega=epi.SetupStaticOmega,
+        setup_pi=epi.SetupStaticPi,
+        setup_rho=epi.SetupStaticRhoFromTri,
+        setup_sigma=epi.SetupStaticSigmaFromExposedPara,
+        setup_tau=epi.SetupTauFromAsympRate,
+
+        # foi=bf_foi.BaseFOI,
+        seir=seir_with_foi_module.SEIRwithFOI,
+
+        # Apply all changes made to counts
+        apply_counts_delta=apply_counts_delta.ApplyCountsDelta
+    ))
