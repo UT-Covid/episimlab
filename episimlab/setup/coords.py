@@ -102,4 +102,18 @@ class InitCoordsFromTravel(InitDefaultCoords):
         self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
                             'Py2Iy', 'Iy2Ih', 'H2D']
-        
+
+@xs.process
+class InitCoordsFromTravelVaccine(InitCoordsFromTravel):
+    """
+    Extending to initialize some additional compartments
+    """
+
+    def initialize(self):
+        for dim, coord in self.get_df_coords().items():
+            setattr(self, dim, coord)
+        self.risk_group = ['low', 'high']
+        self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
+                            'R', 'D', 'V', 'V2Ev', 'Ev2Pa', 'Ev2Py',
+                            'E2P', 'E2Py', 'P2I', 'Pa2Ia',
+                            'Py2Iy', 'Iy2Ih', 'H2R', 'H2D']

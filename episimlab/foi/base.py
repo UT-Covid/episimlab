@@ -28,3 +28,26 @@ class BaseFOI:
             dims=self.FOI_DIMS,
             coords={dim: getattr(self, dim) for dim in self.FOI_DIMS}
         )
+
+@xs.process
+class VaccineFOI:
+    """
+    """
+    FOI_DIMS = ('vertex', 'age_group', 'risk_group')
+
+    age_group = xs.global_ref('age_group')
+    risk_group = xs.global_ref('risk_group')
+    vertex = xs.global_ref('vertex')
+    compartment = xs.global_ref('compartment')
+
+    beta_arr = xs.variable(intent='in')
+    omega = xs.variable(dims=('age_group', 'compartment'), intent='in')
+
+    foi = xs.variable(dims=FOI_DIMS, intent='out')
+
+    def initialize(self):
+        self.foi = xr.DataArray(
+            data=0.,
+            dims=self.FOI_DIMS,
+            coords={dim: getattr(self, dim) for dim in self.FOI_DIMS}
+        )
