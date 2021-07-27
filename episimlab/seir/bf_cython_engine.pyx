@@ -320,6 +320,7 @@ def seir_with_foi(np.ndarray counts,
                      np.ndarray nu,
                      np.ndarray omega,
                      float mu,
+                     float beta,
                      float sigma,
                      float eta,
                      float tau,
@@ -337,7 +338,6 @@ def seir_with_foi(np.ndarray counts,
         double [:, :] pi_view = pi
         double [:, :] omega_view = omega
         double [:] nu_view = nu
-        double [:, :, :] foi_view = foi
         # GSL random number generator
         gsl_rng *rng = get_seeded_rng(int_seed)
 
@@ -396,7 +396,6 @@ cdef np.ndarray _seir_with_foi(double [:, :, :, :] counts_view,
             omega_y_2, common_term, deterministic
         # output state array. Note that the only 'value_type' we are about
         # is index 0, or 'count'
-        double [:, :] omega_view = omega
         np.ndarray compt_counts = np.nan * np.empty(
             (node_len, age_len, risk_len, compt_len), dtype=DTYPE_FLOAT)
         double [:, :, :, :] compt_v = compt_counts
@@ -409,8 +408,6 @@ cdef np.ndarray _seir_with_foi(double [:, :, :, :] counts_view,
         # epi params
         double gamma_a, gamma_y, gamma_h, nu, pi, \
             kappa, report_rate, rho_a, rho_y
-        # epi params for force of infection calculation
-        double deterministic
         # compartment counts
         double S, E, Pa, Py, Ia, Iy, Ih, R, D, E2P, E2Py, P2I, Pa2Ia, Py2Iy, \
             Iy2Ih, H2D
