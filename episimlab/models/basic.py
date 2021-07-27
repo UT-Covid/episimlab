@@ -116,16 +116,36 @@ def cy_seir_cy_foi_cy_adj():
 
 
 def partition():
-    model = minimum_viable()
-    return (model
-            # .drop_processes(['setup_phi'])
-            .update_processes(dict(
-                foi=bf_cython_foi.BruteForceCythonFOI,
-                seir=bf_cython_seir.BruteForceCythonSEIR,
-                setup_coords=Contact2Phi, 
-                get_contact_xr=NC2Contact, 
-            ))
-           )
+    return xs.Model(dict(
+        # Random number generator
+        rng=seed.SeedGenerator,
+        sto=sto.InitStochasticFromToggle,
+
+        # Instantiate coords and counts array
+        setup_counts=counts.InitDefaultCounts,
+        setup_coords=Contact2Phi, 
+        get_contact_xr=NC2Contact, 
+
+        # Instantiate params that inform epi params
+        read_config=ReadV1Config,
+
+        # Instantiate epidemiological parameters
+        setup_beta=epi.SetupDefaultBeta,
+        setup_eta=epi.SetupEtaFromAsympRate,
+        setup_gamma=epi.SetupStaticGamma,
+        setup_mu=epi.SetupStaticMuFromHtoD,
+        setup_nu=epi.SetupStaticNu,
+        setup_omega=epi.SetupStaticOmega,
+        setup_pi=epi.SetupStaticPi,
+        setup_rho=epi.SetupStaticRhoFromTri,
+        setup_sigma=epi.SetupStaticSigmaFromExposedPara,
+        setup_tau=epi.SetupTauFromAsympRate,
+
+        seir=seir_with_foi_module.SEIRwithFOI,
+
+        # Apply all changes made to counts
+        apply_counts_delta=apply_counts_delta.ApplyCountsDelta
+    ))
 
 
 def seir_with_foi():
