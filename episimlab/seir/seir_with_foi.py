@@ -24,7 +24,6 @@ class SEIRwithFOI(BaseSEIR):
     def run_step(self, step_delta):
         self.counts_delta_seir_arr = seir_with_foi(
             counts=self.counts.values,
-            foi=self.foi.values,
             phi_t=self.phi_t.values,
             # array type
             rho=self.rho.values,
