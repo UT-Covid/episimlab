@@ -9,9 +9,9 @@ from .bf_cython_engine import seir_with_foi
 class SEIRwithFOI(BaseSEIR):
     """Calculate change in `counts` due to SEIR transmission."""
 
-    beta = xs.foreign(BaseFOI, 'beta', intent='in')
-    omega = xs.foreign(BaseFOI, 'omega', intent='in')
-    phi_t = xs.foreign(InitPhi, 'phi_t', intent='in')
+    beta = xs.variable(intent='in', global_name='beta')
+    omega = xs.variable(dims=('age_group', 'compartment'), global_name='omega', intent='in')
+    phi_t = xs.global_ref('phi_t')
 
     counts_delta_seir = xs.variable(
         groups=['counts_delta'],

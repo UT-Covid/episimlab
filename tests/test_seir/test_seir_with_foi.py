@@ -7,12 +7,16 @@ from episimlab.seir.seir_with_foi import SEIRwithFOI
 class TestSEIRwithFOI:
 
     def test_can_run_step(self, foi, seed_entropy, stochastic, counts_basic,
-                          step_delta, epis):
+                          step_delta, epis, beta, omega, phi_t):
+        """
+        """
         inputs = {
             'counts': counts_basic,
-            'foi': foi,
             'seed_state': seed_entropy,
             'stochastic': stochastic,
+            'beta': beta,
+            'omega': omega,
+            'phi_t': phi_t,
         }
         inputs.update(epis)
         proc = SEIRwithFOI(**inputs)
