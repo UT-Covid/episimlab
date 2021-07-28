@@ -267,8 +267,7 @@ def stochastic(request):
 
 @pytest.fixture(params=[
     # int_per_day == 1
-    # TODO
-    # '24H',
+    '24H',
     # int_per_day == 2
     '12H'
 ])
