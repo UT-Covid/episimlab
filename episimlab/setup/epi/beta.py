@@ -11,7 +11,7 @@ from .base import BaseSetupEpi
 class SetupDefaultBeta(BaseSetupEpi):
     """
     """
-    beta = xs.foreign(BaseFOI, 'beta', intent='out')
+    beta = xs.global_ref('beta', intent='out')
 
     def initialize(self):
         self.beta = self.get_beta()

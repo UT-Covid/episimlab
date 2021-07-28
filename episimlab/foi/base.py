@@ -17,8 +17,8 @@ class BaseFOI:
     risk_group = xs.global_ref('risk_group')
     vertex = xs.global_ref('vertex')
 
-    beta = xs.variable(intent='in')
-    omega = xs.variable(dims=('age_group', 'compartment'), intent='in')
+    beta = xs.variable(intent='in', global_name='beta')
+    omega = xs.variable(dims=('age_group', 'compartment'), intent='in', global_name='omega')
 
     foi = xs.variable(dims=FOI_DIMS, intent='out')
 

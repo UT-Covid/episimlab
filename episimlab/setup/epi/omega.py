@@ -12,7 +12,7 @@ from .base import BaseSetupEpi
 class SetupDefaultOmega(BaseSetupEpi):
     """
     """
-    omega = xs.foreign(BaseFOI, 'omega', intent='out')
+    omega = xs.global_ref('omega', intent='out')
 
     def initialize(self):
         self.omega = self.get_omega()
