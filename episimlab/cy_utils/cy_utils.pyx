@@ -75,36 +75,37 @@ cdef double discrete_time_approx(double rate, double timestep) nogil:
 
         return 1. - (1. - rate)**(1. / timestep)
 
-# define "e" from complex numbers; see https://stackoverflow.com/questions/37757067/using-c-complex-functions-in-cython
-cdef extern from "<complex.h>" namespace "std":
-    double complex exp(double complex z)
-    float complex exp(float complex z)  # overload
-
-# aka inverse logit
-cdef double complex expit(double rate):
-
-    return exp(rate)/(exp(rate) + 1.0)
-
-cdef double complex sigmoid(double x):
-
-    return (2.0*expit(2.0*(x))-1.0)
-
-cdef double complex discrete_time_sigmoid_approx(double rate_param, double timestep):
-
-    dt = 1.0/timestep
-
-    return 1.0 - exp(log(1.0-(sigmoid(rate_param))) * dt)
-
-# TO DO: refactor
-cdef double BIN_dt(unsigned int N, float discrete_rate, gsl_rng *rng):
-
-    if N > 0.5:
-        count = gsl_ran_binomial(rng, discrete_rate, N)
-    else:
-        count = 0.0
-    return count
-
-cdef double calc_binom_pop_change(unsigned int N, float discrete_rate, gsl_rng *rng):
-
-    count = BIN_dt(N, discrete_rate, rng)
-    return count
+# # define "e" from complex numbers; see https://stackoverflow.com/questions/37757067/using-c-complex-functions-in-cython
+# cdef extern from "<complex.h>" namespace "std":
+#     double complex exp(double complex z)
+#     float complex exp(float complex z)  # overload
+#
+# # aka inverse logit
+# cdef double complex expit(double rate):
+#
+#     return exp(rate)/(exp(rate) + 1.0)
+#
+# cdef double complex sigmoid(double x):
+#
+#     return (2.0*expit(2.0*(x))-1.0)
+#
+# cdef double complex discrete_time_sigmoid_approx(double rate_param, double timestep):
+#
+#     # convert rates to probabilities and discretize for binomial transitions
+#     dt = 1.0/timestep
+#
+#     return 1.0 - exp(log(1.0-(sigmoid(rate_param))) * dt)
+#
+# # TO DO: refactor
+# cdef double BIN_dt(unsigned int N, float discrete_rate, gsl_rng *rng):
+#
+#     if N > 0.5:
+#         count = gsl_ran_binomial(rng, discrete_rate, N)
+#     else:
+#         count = 0.0
+#     return count
+#
+# cdef double calc_binom_pop_change(unsigned int N, float discrete_rate, gsl_rng *rng):
+#
+#     count = BIN_dt(N, discrete_rate, rng)
+#     return count
