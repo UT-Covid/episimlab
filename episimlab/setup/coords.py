@@ -24,6 +24,19 @@ class InitDefaultCoords:
                             'Py2Iy', 'Iy2Ih', 'H2D']
         self.vertex = range(3)
 
+@xs.process
+class InitVaccineCoordsVertex(InitDefaultCoords):
+    """Adds vaccine-related compartments with user specified-vertices"""
+
+    vertex = xs.index(dims='vertex', global_name='vertex')
+
+    def initialize(self):
+        self.age_group = ['0-4', '5-17', '18-49', '50-64', '65+']
+        self.risk_group = ['low', 'high']
+        self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
+                            'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
+                            'Py2Iy', 'Iy2Ih', 'H2D', 'V', 'EV', 'V2Ev', 'Ev2P']
+        self.vertex = range(3)
 
 @xs.process
 class InitCoordsExpectVertex(InitDefaultCoords):
