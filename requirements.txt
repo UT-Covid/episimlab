@@ -1,6 +1,60 @@
-numpy
-cython
-scipy
-xarray
-dask
--e git+https://github.com/benbovy/xarray-simlab.git@84cabf69f5eb4cc872b496b2f1b04584a7e2b2bd#egg=xarray_simlab
+asciitree==0.3.3; python_version >= "3.6" and python_version < "4"
+atomicwrites==1.4.0; python_version >= "3.6" and python_full_version < "3.0.0" and sys_platform == "win32" or sys_platform == "win32" and python_version >= "3.6" and python_full_version >= "3.4.0"
+attrs==21.2.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
+backports.entry-points-selectable==1.1.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "2.7"
+bokeh==2.3.3; python_version >= "3.6"
+click==8.0.1; python_version >= "3.7"
+cloudpickle==1.6.0; python_version >= "3.7"
+colorama==0.4.4; python_version >= "3.7" and python_full_version < "3.0.0" and sys_platform == "win32" and platform_system == "Windows" or sys_platform == "win32" and python_version >= "3.7" and python_full_version >= "3.5.0" and platform_system == "Windows"
+cycler==0.10.0; python_version >= "3.7"
+cython==0.29.24; (python_version >= "2.6" and python_full_version < "3.0.0") or (python_full_version >= "3.3.0")
+dask==2021.7.2; python_version >= "3.7"
+distlib==0.3.2; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
+distributed==2021.7.2; python_version >= "3.7"
+execnet==1.9.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
+fasteners==0.16.3; python_version >= "3.6" and python_version < "4"
+filelock==3.0.12; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
+fsspec==2021.7.0; python_version >= "3.7"
+graphviz==0.16; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
+heapdict==1.0.1; python_version >= "3.7"
+importlib-metadata==4.6.1; python_version < "3.8" and python_version >= "3.7" and (python_version >= "3.6" and python_full_version < "3.0.0" and python_version < "3.8" or python_full_version >= "3.5.0" and python_version < "3.8" and python_version >= "3.6") and (python_version >= "3.6" and python_full_version < "3.0.0" and python_version < "3.8" or python_full_version >= "3.4.0" and python_version >= "3.6" and python_version < "3.8")
+iniconfig==1.1.1; python_version >= "3.6"
+jinja2==3.0.1; python_version >= "3.6"
+kiwisolver==1.3.1; python_version >= "3.7"
+locket==0.2.1; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.7"
+markupsafe==2.0.1; python_version >= "3.6"
+matplotlib==3.4.2; python_version >= "3.7"
+msgpack==1.0.2; python_version >= "3.7"
+numcodecs==0.8.0; python_version >= "3.6" and python_version < "4"
+numpy==1.21.1; python_version >= "3.7"
+packaging==21.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.7"
+pandas==1.1.5; python_full_version >= "3.6.1" and python_version >= "3.7"
+partd==1.2.0; python_version >= "3.7"
+pillow==8.3.1; python_version >= "3.7"
+platformdirs==2.2.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
+pluggy==0.13.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
+psutil==5.8.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_version >= "3.7" and python_full_version >= "3.4.0"
+py==1.10.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
+pyparsing==2.4.7; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" and python_version >= "3.7"
+pytest-forked==1.3.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
+pytest-pythonpath==0.7.3
+pytest-xdist==2.3.0; python_version >= "3.6"
+pytest==6.2.4; python_version >= "3.6"
+python-dateutil==2.8.2; python_full_version >= "3.6.1" and python_version >= "3.7"
+pytz==2021.1; python_full_version >= "3.6.1" and python_version >= "3.7"
+pyyaml==5.4.1; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7"
+scipy==1.7.0; python_version >= "3.8" and python_version < "3.10"
+six==1.16.0; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4" or python_full_version >= "3.5.0" and python_version >= "3.7" and python_version < "4"
+sortedcontainers==2.4.0; python_version >= "3.7"
+tblib==1.7.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_version >= "3.7" and python_full_version >= "3.5.0"
+toml==0.10.2; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
+toolz==0.11.1; python_version >= "3.7"
+tornado==6.1
+tox==3.24.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
+typing-extensions==3.10.0.0; python_version < "3.8" and python_version >= "3.6"
+virtualenv==20.6.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
+xarray-simlab @ git+https://github.com/benbovy/xarray-simlab.git@master ; python_version >= "3.5"
+xarray==0.17.0; python_version >= "3.7"
+zarr==2.8.3; python_version >= "3.6" and python_version < "4"
+zict==2.0.0; python_version >= "3.7"
+zipp==3.5.0; python_version < "3.8" and python_version >= "3.6"
