@@ -48,4 +48,3 @@ class SEIRwithFOI(BaseSEIR):
             dims=self.counts.dims,
             coords=self.counts.coords
         )
-
