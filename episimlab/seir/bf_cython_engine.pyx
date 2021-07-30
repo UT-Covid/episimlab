@@ -231,7 +231,6 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                 new_S = S + d_S
                 if new_S < 0:
                     rate_S2E = S
-                    rate_S2E = 0
 
                 d_E = rate_S2E - rate_E2P
                 new_E = E + d_E
@@ -611,13 +610,13 @@ cdef np.ndarray _seir_with_foi(double [:, :, :, :] counts_view,
                 # ----------   Load new vals to state array  ---------------
 
                 # 'S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia', 'Py2Iy', 'Iy2Ih', 'H2D'
-                compt_v[n, a, r, 0] = new_S - S
-                compt_v[n, a, r, 1] = new_E - E
-                compt_v[n, a, r, 2] = new_Pa - Pa
-                compt_v[n, a, r, 3] = new_Py - Py
-                compt_v[n, a, r, 4] = new_Ia - Ia
-                compt_v[n, a, r, 5] = new_Iy - Iy
-                compt_v[n, a, r, 6] = new_Ih - Ih
-                compt_v[n, a, r, 7] = new_R - R
-                compt_v[n, a, r, 8] = new_D - D
+                compt_v[n, a, r, 0] = new_S
+                compt_v[n, a, r, 1] = new_E
+                compt_v[n, a, r, 2] = new_Pa
+                compt_v[n, a, r, 3] = new_Py
+                compt_v[n, a, r, 4] = new_Ia
+                compt_v[n, a, r, 5] = new_Iy
+                compt_v[n, a, r, 6] = new_Ih
+                compt_v[n, a, r, 7] = new_R
+                compt_v[n, a, r, 8] = new_D
     return compt_counts
