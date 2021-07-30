@@ -179,7 +179,6 @@ class BruteForceSEIR(BaseSEIR):
                 new_S = cts('S') + d_S
                 if new_S < 0:
                     rate_S2E = cts('S')
-                    rate_S2E = 0
 
                 d_E = rate_S2E - rate_E2P
                 new_E = cts('E') + d_E
