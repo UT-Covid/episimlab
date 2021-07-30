@@ -236,80 +236,72 @@ cdef np.ndarray _seir_with_foi(double [:, :, :, :] counts_view,
                 # why? deterministic N must be float. stochastic w/binomial: N must be unsigned int
 
                 # S -> E
-                new_E = calc_binom_pop_change(S, leaving_S_rate, stochastic)
+                new_E = S * leaving_S_rate
+                if stochastic == 1:
+                    new_E = gsl_ran_poisson(rng, new_E)
 
                 # V -> Ev, disregarding new vaccinations
-                new_Ev = calc_binom_pop_change(V, leaving_E_rate, stochastic)
+                new_Ev = V * leaving_E_rate
+                if stochastic == 1:
+                    new_Ev = gsl_ran_poisson(rng, new_Ev)
 
                 # E -> P and Ev -> P
-                discrete_sigma = discrete_time_sigmoid_approx(sigma, int_per_day)
+                discrete_sigma = discrete_time_approx(sigma, int_per_day)
+                leaving_E = E * discrete_sigma
+                leaving_EV = Ev * discrete_sigma
                 if stochastic == 1:
-                    leaving_E = calc_binom_pop_change(E, discrete_sigma)
-                    leaving_EV = calc_binom_pop_change(Ev, discrete_sigma)
-                else:
-                    leaving_E = E * discrete_sigma
-                    leaving_EV = Ev * discrete_sigma
+                    leaving_E = gsl_ran_poisson(rng, leaving_E)
+                    leaving_EV = gsl_ran_poisson(rng, leaving_Ev)
 
                 # split P to Pa, Py (note: tau is a proportion, not a rate)
+                E2Pa = leaving_E * (1-tau)
+                Ev2Pa = leaving_Ev * (1-tau_vacc)
                 if stochastic == 1:
-                    E2Pa = calc_binom_pop_change(leaving_E, (1-tau))
-                    Ev2Pa = calc_binom_pop_change(leaving_Ev, (1-tau_vacc))
-                else:
-                    E2Pa = leaving_E * (1-tau)
-                    Ev2Pa = leaving_Ev * (1-tau)
-
-                new_Pa =  E2Pa + Ev2Pa
+                    E2Pa = gsl_ran_poisson(rng, E2Pa)
+                    Ev2Pa = gsl_ran_poisson(rng, Ev2Pa)
+                new_Pa = E2Pa + Ev2Pa
                 new_Py = (leaving_E + leaving_EV) - new_Pa
 
                 # P -> I
-                discrete_rhoA = discrete_time_sigmoid_approx(rho_view[4], int_per_day)
-                discrete_rhoY = discrete_time_sigmoid_approx(rho_view[5], int_per_day)
-
+                discrete_rhoA = discrete_time_approx(rho_view[4], int_per_day)
+                discrete_rhoY = discrete_time_approx(rho_view[5], int_per_day)
+                new_Ia = Pa * discrete_rhoA
+                new_Iy = Py * discrete_rhoY
                 if stochastic == 1:
-                    new_Ia = calc_binom_pop_change(Pa, discrete_rhoA)
-                    new_Iy = calc_binom_pop_change(Py, discrete_rhoY)
+                    new_Ia = gsl_ran_poisson(rng, new_Ia)
+                    new_Iy = gsl_ran_poisson(rng, new_Iy)
                 else:
-                    new_Ia = Pa * discrete_rhoA
-                    new_Iy = Py * discrete_rhoY
 
                 # Ia -> R
-                discrete_gammaA = discrete_time_sigmoid_approx(gamma_view[4], int_per_day)
-
+                discrete_gammaA = discrete_time_approx(gamma_view[4], int_per_day)
+                recovering_Ia = Ia * discrete_gammaA
                 if stochastic == 1:
-                    recovering_Ia = calc_binom_pop_change(Ia, discrete_gammaA)
-                else:
-                    recovering_Ia = Ia * discrete_gammaA
+                    recovering_Ia = gsl_ran_poisson(rng, recovering_Ia)
 
                 # Iy -> R or IH
                 pi = pi_view[r, a]
                 leaving_Iy_rate = ((1.0 - pi) * gamma_Y + pi * eta)
-                discrete_leaving_Iy = discrete_time_sigmoid_approx(leaving_Iy_rate, int_per_day)
-
+                discrete_leaving_Iy = discrete_time_approx(leaving_Iy_rate, int_per_day)
+                leaving_Iy = Iy * discrete_leaving_Iy
                 if stochastic == 1:
-                    leaving_Iy = calc_binom_pop_change(Iy, discrete_leaving_Iy)
-                else:
-                    leaving_Iy = Iy * discrete_leaving_Iy
+                    leaving_Iy = gsl_ran_poisson(rng, leaving_Iy)
 
                 # split leaving Iy to R and H
+                new_Ih = leaving_Iy * (pi * eta / leaving_Iy_rate)
                 if stochastic == 1:
-                    new_Ih = calc_binom_pop_change(leaving_Iy, pi * eta / leaving_Iy_rate)
-                else:
-                    new_Ih = leaving_Iy * (pi * eta / leaving_Iy_rate)
-
+                    new_Ih = gsl_ran_poisson(rng, new_Ih)
                 recovering_Iy = leaving_Iy - new_Ih
 
                 # Ih -> R or D
                 nu = nu_view[a]
                 leaving_H_rate = nu * mu + (1.0 - nu) * gamma_h
-                discrete_leaving_H_rate = discrete_time_sigmoid_approx(leaving_H_rate, int_per_day)
+                discrete_leaving_H_rate = discrete_time_approx(leaving_H_rate, int_per_day)
 
+                leaving_H = Ih * discrete_leaving_H_rate
+                recovering_H = leaving_H * ((1 - nu) * gamma_H / leaving_H_rate)
                 if stochastic == 1:
-                    leaving_H = calc_binom_pop_change(Ih, discrete_leaving_H_rate)
-                    recovering_H = calc_binom_pop_change(leaving_H, (1 - nu) * gamma_H / leaving_H_rate)
-                else:
-                    leaving_H = Ih * discrete_leaving_H_rate
-                    recovering_H = leaving_H * ((1 - nu) * gamma_H / leaving_H_rate)
-
+                    leaving_H = gsl_ran_poisson(leaving_H)
+                    recovering_H = gsl_ran_poisson(recovering_H)
                 dying_H = leaving_H - recovering_H
 
                 # S -> V ### TO DO ###
@@ -318,18 +310,18 @@ cdef np.ndarray _seir_with_foi(double [:, :, :, :] counts_view,
                 # ----------   Load deltas to state array  ---------------
 
                 # 'S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia', 'Py2Iy', 'Iy2Ih', 'H2D', 'V', 'Ev'
-                compt_v[n, a, r, 0] = new_S
-                compt_v[n, a, r, 1] = new_E
-                compt_v[n, a, r, 2] = new_Pa
-                compt_v[n, a, r, 3] = new_Py
-                compt_v[n, a, r, 4] = new_Ia
-                compt_v[n, a, r, 5] = new_Iy
-                compt_v[n, a, r, 6] = new_Ih
-                compt_v[n, a, r, 7] = new_R
-                compt_v[n, a, r, 8] = new_D
+                compt_v[n, a, r, 0] = - new_E - new_Ev
+                compt_v[n, a, r, 1] = new_E - leaving_E
+                compt_v[n, a, r, 2] = new_Pa - new_Ia
+                compt_v[n, a, r, 3] = new_Py - new_Iy
+                compt_v[n, a, r, 4] = new_Ia - recovering_Ia
+                compt_v[n, a, r, 5] = new_Iy - leaving_Iy
+                compt_v[n, a, r, 6] = new_Ih - leaving_H
+                compt_v[n, a, r, 7] = recovering_Ia + recovering_Iy + recovering_H
+                compt_v[n, a, r, 8] = dying_H
 
                 # new vaccine-related compartments
-                compt_v[n, a, r, 16] = new_V - V
-                compt_v[n, a, r, 17] = new_Ev - Ev
+                compt_v[n, a, r, 16] = new_V - new_Ev
+                compt_v[n, a, r, 17] = new_Ev - leaving_Ev
 
     return compt_counts
