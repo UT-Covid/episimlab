@@ -118,13 +118,7 @@ class SEIR:
         """
         for priority, edges in self.edges_by_priority:
             assert edges, f"no edges with {priority=}"
-            if np.isinf(priority):
-                k = 1.
-            else:
-                k = self.calc_k(*edges)
-                # DEBUG
-                # if k.sum() != k.size:
-                    # print(f"{k=}")
+            k = 1. if np.isinf(priority) else self.calc_k(*edges)
             self.edge_to_tm(*edges, k=k)
 
     @property
