@@ -31,6 +31,25 @@ def group_dict_by_var(d: dict) -> dict:
 
 
 @xs.process
+class VaccRate:
+    """Provide a `rate_S2V`"""
+    rate_S2V = xs.variable(global_name='rate_S2V', groups=['tm'], intent='out')
+    vacc_prop = xs.variable(global_name="vacc_prop", intent="in")
+    state = xs.global_ref('state', intent='in')
+
+    def run_step(self):
+        # vaccinate a proportion of S every day
+        # self.rate_S2V = self.vacc_prop * self.S
+
+        # vaccinate a flat 20 doses per day
+        self.rate_S2V = 20
+    
+    @property
+    def S(self):
+        return self.state.loc[dict(compt='S')]
+
+
+@xs.process
 class RecoveryRate:
     """Provide a `rate_I2R`"""
     rate_I2R = xs.variable(global_name='rate_I2R', groups=['tm'], intent='out')
@@ -61,7 +80,7 @@ class InitComptGraph:
         g.add_edges_from([
             ('S', 'I', {"priority": 0, "color": "red"}),
             ('S', 'V', {"priority": 0, "color": "orange"}),
-            ('V', 'R', {"color": "orange"}),
+            ('V', 'R', {"priority": None, "color": "orange"}),
             ('I', 'R', {"priority": 1, "color": "blue"}),
         ])
         return g
@@ -98,7 +117,7 @@ class SEIR:
         return xr.zeros_like(self.state)
 
     @property
-    def edges_by_priority(self) -> tuple[tuple[str, str]]:
+    def edges_by_priority(self) -> tuple[tuple[float, tuple[str, str]]]:
         """Parses the `compt_graph` attribute into tuples of edges sorted
         by edges' `priority` attribute. 
         """
@@ -107,7 +126,7 @@ class SEIR:
         df.fillna(-1, inplace=True)
         df.loc[df.priority < 0, 'priority'] = float('inf')
         return tuple(
-            tuple((row.u, row.v) for i, row in grp.iterrows())
+            tuple((priority, tuple((row.u, row.v) for i, row in grp.iterrows())))
             for priority, grp in df.groupby('priority')
         )
 
@@ -115,27 +134,41 @@ class SEIR:
         """Iterate over edges in `compt_graph` in ascending order of `priority`.
         Apply each edge to the TM.
         """
-        # TODO: represent as tuples by prioirity
-        for edges in self.edges_by_priority:
-            for u, v in edges:
-                self.edge_to_tm(u, v)
+        for priority, edges in self.edges_by_priority:
+            assert edges, f"no edges with {priority=}"
+            if np.isinf(priority):
+                k = 1.
+            else:
+                k = self.calc_k(*edges)
+                if k.sum() != k.size:
+                    print(f"{k=}")
+            self.edge_to_tm(*edges, k=k)
 
-    def edge_to_tm(self, u, v) -> None:
-        """Applies to the transition matrix (TM) the weight of a directed edge 
-        from compartment `u` to compartment `v`. Find the element-wise
-        minimum of origin node state and weight of outgoing edge to ensure
-        that origin node state is always non-negative after edge weight has
-        been applied.
+    def calc_k(self, *edges) -> xr.DataArray:
+        """Find some scaling factor k such that origin node `u` will not be 
+        depleted if all `edges` (u, v) are applied simultaneously. All `edges`
+        must share the same origin node u.
         """
-        weight = xr.ufuncs.minimum(
-            # origin node weight
-            self.state.loc[dict(compt=u)],
-            # unadjusted edge weight
-            self.edge_weight(u, v)
-        )
-        # print(f"adjusted weight of edge from {u} to {v} is {weight}")
-        self.tm.loc[dict(compt=u)] -= weight
-        self.tm.loc[dict(compt=v)] += weight
+        u_set = tuple(set(u for u, v in edges))
+        assert len(u_set) == 1, f"edges do not share origin node: {edges=} {u_set=}"
+        sum_wt = sum(self.edge_weight(u, v) for u, v in edges)
+        u_state = self.state.loc[dict(compt=u_set[0])]
+        # set k to infinite if denominator is zero
+        k = (u_state / sum_wt).fillna(np.Inf)
+        # assert np.all(sum_wt), f"{u_state=}\n{sum_wt=}\n{k=}"
+        return xr.ufuncs.minimum(k, xr.ones_like(k))
+
+    def edge_to_tm(self, *edges, k=1.) -> None:
+        """Applies to the transition matrix (TM) the weight of directed edges
+        (u, v) from compartment `u` to compartment `v`. Scale edge weights by
+        `k` to ensure that population of origin node `u` is always non-negative
+        after edge weight has been applied.
+        """
+        for u, v in edges:
+            weight = k * self.edge_weight(u, v)
+            # print(f"adjusted weight of edge from {u} to {v} is {weight}")
+            self.tm.loc[dict(compt=u)] -= weight
+            self.tm.loc[dict(compt=v)] += weight
 
     def edge_weight(self, u, v):
         """Try to find an edge weight for (u, v) from `tm_subset`."""
@@ -187,8 +220,8 @@ class InitState:
             dims=self.dims,
             coords=self.coords
         )
-        self.state.loc[dict(compt='S')] = np.array([[1000, 900, 800, 700, 600]] * 2).T
-        self.state.loc[dict(compt='I')] = np.array([[100, 90, 80, 70, 60]] * 2).T
+        self.state.loc[dict(compt='S')] = np.array([[200, 200, 200, 200, 200]] * 2).T
+        self.state.loc[dict(compt='I')] = np.array([[20, 20, 20, 20, 20]] * 2).T
     
     @property
     def dims(self):
@@ -308,7 +341,8 @@ model = xs.Model({
     'seir': SEIR,
     'foi': FOI,
     'init_compt_graph': InitComptGraph,
-    'recovery_rate': RecoveryRate
+    'recovery_rate': RecoveryRate,
+    'vacc_rate': VaccRate
 })
 # model.visualize(show_inputs=True, show_variables=True)
 
@@ -321,6 +355,7 @@ in_ds = xs.create_setup(
     input_vars={
         'foi__beta': 0.08,
         'recovery_rate__gamma': 0.5,
+        'vacc_rate__vacc_prop': 0.5,
     },
     output_vars={
         'seir__state': 'step'
@@ -328,4 +363,4 @@ in_ds = xs.create_setup(
 )
 out_ds = in_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
 plot = out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
-
+plt.show()
