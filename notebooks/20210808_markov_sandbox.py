@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[14]:
-
-
 import numpy as np
 import xarray as xr
 from itertools import product
@@ -12,15 +9,6 @@ import pandas as pd
 import zarr
 import matplotlib.pyplot as plt
 import networkx as nx
-
-
-# # 20210808_sandbox
-# 
-# Add support for `priority` in edges.
-
-# # Utils
-
-# In[15]:
 
 
 def get_var_dims(process, name) -> tuple:
@@ -38,16 +26,8 @@ def get_var_dims(process, name) -> tuple:
     return tuple(var.metadata['dims'][0])
 
 
-# In[16]:
-
-
 def group_dict_by_var(d: dict) -> dict:
     return {k: d[(proc, k)] for (proc, k) in d}
-
-
-# # Define Processes
-
-# In[17]:
 
 
 @xs.process
@@ -63,9 +43,6 @@ class RecoveryRate:
     @property
     def I(self):
         return self.state.loc[dict(compt='I')]
-
-
-# In[18]:
 
 
 @xs.process
@@ -93,9 +70,6 @@ class InitComptGraph:
         self.compt_graph = self.get_compt_graph()
 
 
-# In[44]:
-
-
 @xs.process
 class SEIR:
     """Sums subsets of TM (in group `tm`) from many processes to output TM."""
@@ -119,7 +93,7 @@ class SEIR:
     def init_tm(self):
         """Initialize transition matrix (TM) as a matrix of zeros."""
         return xr.zeros_like(self.state)
-    
+
     @property
     def edges_by_priority(self):
         """Parses the `compt_graph` attribute into tuple of edges sorted
@@ -127,7 +101,7 @@ class SEIR:
         """
         edges = ((p, (u, v)) for u, v, p in self.compt_graph.edges.data('priority'))
         assert 0, edges
-        
+
     def apply_edges(self):
         """Iterate over edges in `compt_graph` in ascending order of `priority`.
         Apply each edge to the TM.
@@ -174,8 +148,6 @@ class SEIR:
         return group_dict_by_var(self._tm_subset)
 
 
-# In[45]:
-
 
 @xs.process
 class InitCoords:
@@ -191,8 +163,6 @@ class InitCoords:
         self.risk = ['low', 'high']
         self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
 
-
-# In[46]:
 
 
 @xs.process
@@ -218,8 +188,6 @@ class InitState:
     def coords(self):
         return group_dict_by_var(self._coords)
 
-
-# In[47]:
 
 
 @xs.process
@@ -286,8 +254,6 @@ class FOI:
         return {k: f"{k}{suffix}" for k in da.dims if k not in exclude}
 
 
-# In[48]:
-
 
 @xs.process
 class InitPhi:
@@ -324,10 +290,6 @@ class InitPhi:
         return f(f(data, coords), coords)
 
 
-# # Run Model
-
-# In[49]:
-
 
 model = xs.Model({
     'init_phi': InitPhi,
@@ -339,9 +301,6 @@ model = xs.Model({
     'recovery_rate': RecoveryRate
 })
 # model.visualize(show_inputs=True, show_variables=True)
-
-
-# In[50]:
 
 
 in_ds = xs.create_setup(
@@ -358,18 +317,5 @@ in_ds = xs.create_setup(
     }
 )
 out_ds = in_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
-
-
-# In[51]:
-
-
-out_ds
-
-
-# ## Plot Results
-
-# In[52]:
-
-
-out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
+plot = out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
 
