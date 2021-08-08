@@ -54,11 +54,14 @@ class InitComptGraph:
         g = nx.DiGraph()
         g.add_nodes_from([
             ('S', {"color": "red"}),
+            ('V', {"color": "orange"}),
             ('I', {"color": "blue"}),
             ('R', {"color": "green"}),
         ])
         g.add_edges_from([
             ('S', 'I', {"priority": 0, "color": "red"}),
+            ('S', 'V', {"priority": 0, "color": "orange"}),
+            ('V', 'R', {"color": "orange"}),
             ('I', 'R', {"priority": 1, "color": "blue"}),
         ])
         return g
@@ -95,21 +98,28 @@ class SEIR:
         return xr.zeros_like(self.state)
 
     @property
-    def edges_by_priority(self):
-        """Parses the `compt_graph` attribute into tuple of edges sorted
+    def edges_by_priority(self) -> tuple[tuple[str, str]]:
+        """Parses the `compt_graph` attribute into tuples of edges sorted
         by edges' `priority` attribute. 
         """
-        edges = ((p, (u, v)) for u, v, p in self.compt_graph.edges.data('priority'))
-        assert 0, edges
+        df = pd.DataFrame(data=self.compt_graph.edges.data('priority'), 
+                          columns=['u', 'v', 'priority'])
+        df.fillna(-1, inplace=True)
+        df.loc[df.priority < 0, 'priority'] = float('inf')
+        return tuple(
+            tuple((row.u, row.v) for i, row in grp.iterrows())
+            for priority, grp in df.groupby('priority')
+        )
 
     def apply_edges(self):
         """Iterate over edges in `compt_graph` in ascending order of `priority`.
         Apply each edge to the TM.
         """
         # TODO: represent as tuples by prioirity
-        for (u, v) in self.compt_graph.edges:
-            self.edge_to_tm(u, v)
-    
+        for edges in self.edges_by_priority:
+            for u, v in edges:
+                self.edge_to_tm(u, v)
+
     def edge_to_tm(self, u, v) -> None:
         """Applies to the transition matrix (TM) the weight of a directed edge 
         from compartment `u` to compartment `v`. Find the element-wise
@@ -126,7 +136,7 @@ class SEIR:
         # print(f"adjusted weight of edge from {u} to {v} is {weight}")
         self.tm.loc[dict(compt=u)] -= weight
         self.tm.loc[dict(compt=v)] += weight
-        
+
     def edge_weight(self, u, v):
         """Try to find an edge weight for (u, v) from `tm_subset`."""
         key = self.edge_weight_name(u, v)
@@ -136,11 +146,11 @@ class SEIR:
         else:
             weight = self.tm_subset[key]
         return weight
-    
+
     def edge_weight_name(self, u, v) -> str:
         """Key to look for when finding edge weights between nodes `u` and `v`."""
         return f"rate_{u}2{v}"
-    
+
     def get_tm_subset(self):
         """`_tm_subset` indexes on (`process_name`, `variable_name`), so we must convert
         keys to `variable_name`.
@@ -158,7 +168,7 @@ class InitCoords:
     vertex = xs.variable(global_name='vertex_coords', groups=['coords'], intent='out')
     
     def initialize(self):
-        self.compt = ['S', 'I', 'R'] 
+        self.compt = ['S', 'I', 'R', 'V'] 
         self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
         self.risk = ['low', 'high']
         self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
