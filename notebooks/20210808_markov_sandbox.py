@@ -105,32 +105,14 @@ class SEIR:
         """In particular, we need to ensure that `tm_subset` and `tm` refresh
         at every timestep.
         """
-        self.tm = self.init_tm()
-        self.tm_subset = self.get_tm_subset()
+        self.tm = xr.zeros_like(self.state)
+        self.tm_subset = group_dict_by_var(self._tm_subset)
         self.apply_edges()
 
     def finalize_step(self):
         self.state += self.tm
-        
-    def init_tm(self):
-        """Initialize transition matrix (TM) as a matrix of zeros."""
-        return xr.zeros_like(self.state)
 
-    @property
-    def edges_by_priority(self) -> tuple[tuple[float, tuple[str, str]]]:
-        """Parses the `compt_graph` attribute into tuples of edges sorted
-        by edges' `priority` attribute. 
-        """
-        df = pd.DataFrame(data=self.compt_graph.edges.data('priority'), 
-                          columns=['u', 'v', 'priority'])
-        df.fillna(-1, inplace=True)
-        df.loc[df.priority < 0, 'priority'] = float('inf')
-        return tuple(
-            tuple((priority, tuple((row.u, row.v) for i, row in grp.iterrows())))
-            for priority, grp in df.groupby('priority')
-        )
-
-    def apply_edges(self):
+    def apply_edges(self) -> None:
         """Iterate over edges in `compt_graph` in ascending order of `priority`.
         Apply each edge to the TM.
         """
@@ -140,9 +122,25 @@ class SEIR:
                 k = 1.
             else:
                 k = self.calc_k(*edges)
-                if k.sum() != k.size:
-                    print(f"{k=}")
+                # DEBUG
+                # if k.sum() != k.size:
+                    # print(f"{k=}")
             self.edge_to_tm(*edges, k=k)
+
+    @property
+    def edges_by_priority(self) -> tuple[tuple[float, tuple[str, str]]]:
+        """Parses the `compt_graph` attribute into tuples of edges sorted
+        by edges' `priority` attribute. Basically, only used in the
+        `apply_edges` method.
+        """
+        df = pd.DataFrame(data=self.compt_graph.edges.data('priority'), 
+                          columns=['u', 'v', 'priority'])
+        df.fillna(-1, inplace=True)
+        df.loc[df.priority < 0, 'priority'] = float('inf')
+        return tuple(
+            tuple((priority, tuple((row.u, row.v) for i, row in grp.iterrows())))
+            for priority, grp in df.groupby('priority')
+        )
 
     def calc_k(self, *edges) -> xr.DataArray:
         """Find some scaling factor k such that origin node `u` will not be 
@@ -184,13 +182,6 @@ class SEIR:
         """Key to look for when finding edge weights between nodes `u` and `v`."""
         return f"rate_{u}2{v}"
 
-    def get_tm_subset(self):
-        """`_tm_subset` indexes on (`process_name`, `variable_name`), so we must convert
-        keys to `variable_name`.
-        """
-        return group_dict_by_var(self._tm_subset)
-
-
 
 @xs.process
 class InitCoords:
@@ -213,7 +204,7 @@ class InitState:
     """Initialize state matrix"""
     _coords = xs.group_dict('coords')
     state = xs.global_ref('state', intent='out')
-    
+
     def initialize(self):
         self.state = xr.DataArray(
             data=0.,
@@ -222,11 +213,11 @@ class InitState:
         )
         self.state.loc[dict(compt='S')] = np.array([[200, 200, 200, 200, 200]] * 2).T
         self.state.loc[dict(compt='I')] = np.array([[20, 20, 20, 20, 20]] * 2).T
-    
+
     @property
     def dims(self):
         return get_var_dims(SEIR, 'state')
-    
+
     @property
     def coords(self):
         return group_dict_by_var(self._coords)
@@ -317,7 +308,7 @@ class InitPhi:
     
     @property
     def phi_dims(self):
-        return FOI.PHI_DIMS
+        return get_var_dims(FOI, 'phi')
     
     @property
     def phi_coords(self):
