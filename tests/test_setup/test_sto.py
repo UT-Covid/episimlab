@@ -4,10 +4,10 @@ import xarray as xr
 import numpy as np
 import logging
 
-from episimlab.setup.sto import InitStochasticFromToggle
+from episimlab.setup.sto import SetupStochasticFromToggle
 
 
-class TestInitStochasticFromToggle:
+class TestSetupStochasticFromToggle:
 
     @pytest.mark.parametrize('sto_toggle, step, expected', [
         (0., 0, True),
@@ -21,7 +21,7 @@ class TestInitStochasticFromToggle:
             'sto_toggle': sto_toggle,
         }
 
-        proc = InitStochasticFromToggle(**inputs)
+        proc = SetupStochasticFromToggle(**inputs)
         proc.run_step(step)
         result = proc.stochastic
 

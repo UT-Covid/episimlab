@@ -26,7 +26,7 @@ class SetupToyCoords:
 
 
 @xs.process
-class SetupCoordsFromTravel(InitDefaultCoords):
+class SetupCoordsFromTravel(SetupDefaultCoords):
     travel_fp = xs.variable(intent='in')
 
     def load_travel_df(self):

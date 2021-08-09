@@ -2,10 +2,10 @@ import pytest
 import logging
 import xarray as xr
 import numpy as np
-from episimlab.setup.phi import InitPhi
+from episimlab.setup.phi import SetupPhi
 
 
-class TestInitPhi:
+class TestSetupPhi:
 
     def test_can_run_step(self, counts_coords):
         inputs = {
@@ -14,7 +14,7 @@ class TestInitPhi:
             'risk_group': counts_coords['risk_group'],
             # 'compartment': counts_coords['compartment'],
         }
-        proc = InitPhi(**inputs)
+        proc = SetupPhi(**inputs)
         proc.initialize()
         proc.run_step(step=0)
         result = proc.phi

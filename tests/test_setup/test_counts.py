@@ -1,7 +1,7 @@
 import pytest
 import xarray as xr
 import pandas as pd
-from episimlab.setup.counts import InitCountsFromCensusCSV
+from episimlab.setup.counts import SetupCountsFromCensusCSV
 
 
 @pytest.fixture
@@ -9,7 +9,7 @@ def census_counts_csv():
     return 'tests/data/2019_zcta_pop_5_age_groups.csv'
 
 
-class TestInitCountsFromCensusCSV:
+class TestSetupCountsFromCensusCSV:
 
     def test_can_initialize(self, census_counts_csv, counts_coords):
         """
@@ -25,7 +25,7 @@ class TestInitCountsFromCensusCSV:
             'compartment': counts_coords['compartment'],
             'census_counts_csv': census_counts_csv,
         }
-        proc = InitCountsFromCensusCSV(**inputs)
+        proc = SetupCountsFromCensusCSV(**inputs)
         proc.initialize()
         result = proc.counts
         assert isinstance(result, xr.DataArray)

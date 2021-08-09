@@ -51,7 +51,7 @@ def partition_from_nc():
     model = (basic
              .partition()
              .drop_processes(['setup_beta'])
-             .update_processes(dict(setup_counts=counts.InitCountsFromCensusCSV))
+             .update_processes(dict(setup_counts=counts.SetupCountsFromCensusCSV))
             )
 
     input_vars = {

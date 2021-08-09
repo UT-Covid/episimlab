@@ -2,7 +2,7 @@ import logging
 import pandas as pd
 import xsimlab as xs
 import xarray as xr
-from .coords import InitDefaultCoords
+from .coords import SetupDefaultCoords
 
 from ..apply_counts_delta import ApplyCountsDelta
 
@@ -50,7 +50,7 @@ class SetupToyCounts:
 
 
 @xs.process
-class SetupCountsFromCensusCSV(InitDefaultCounts):
+class SetupCountsFromCensusCSV(SetupDefaultCounts):
     """Initializes counts from a census.gov formatted CSV file.
     """
     census_counts_csv = xs.variable(intent='in')

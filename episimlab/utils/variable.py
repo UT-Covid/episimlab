@@ -15,3 +15,7 @@ def get_var_dims(process, name) -> tuple:
     if var is None:
         raise AttributeError(f"process '{process}' has no attribute '{name}'")
     return tuple(var.metadata['dims'][0])
+
+
+def group_dict_by_var(d: dict) -> dict:
+    return {k: d[(proc, k)] for (proc, k) in d}

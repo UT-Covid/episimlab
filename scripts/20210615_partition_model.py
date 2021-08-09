@@ -10,7 +10,7 @@ from episimlab.partition.partition import Partition2Contact
 from episimlab.setup import coords, counts
 
 @xs.process
-class InitCountsCustom(counts.InitCountsFromCensusCSV):
+class SetupCountsCustom(counts.SetupCountsFromCensusCSV):
 
     initial_ia = xs.variable(dims=(), intent='in')
 
@@ -24,7 +24,7 @@ def partition_from_csv(**opts) -> xr.Dataset:
              .drop_processes(['setup_beta'])
              .update_processes(dict(
                  get_contact_xr=Partition2Contact, 
-                 setup_counts=InitCountsCustom
+                 setup_counts=SetupCountsCustom
              ))
             )
     # breakpoint()
@@ -63,7 +63,7 @@ def partition_from_nc() -> xr.Dataset:
     model = (basic
              .partition()
              .drop_processes(['setup_beta'])
-             .update_processes(dict(setup_counts=counts.InitCountsFromCensusCSV))
+             .update_processes(dict(setup_counts=counts.SetupCountsFromCensusCSV))
             )
 
     input_vars = {

@@ -4,7 +4,7 @@ import numpy as np
 import logging
 
 from ..foi.base import BaseFOI
-from ..setup.coords import InitDefaultCoords
+from ..setup.coords import SetupDefaultCoords
 from ..seir.base import BaseSEIR
 
 

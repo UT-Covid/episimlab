@@ -65,7 +65,7 @@ class RecoveryRate:
 
 
 @xs.process
-class InitComptGraph:
+class SetupComptGraph:
     """Generate a toy compartment graph"""
     compt_graph = xs.global_ref('compt_graph', intent='out')
 
@@ -182,7 +182,7 @@ class SEIR:
 
 
 @xs.process
-class InitCoords:
+class SetupCoords:
     """Initialize state coordinates"""
     compt = xs.variable(global_name='compt_coords', groups=['coords'], intent='out')
     age = xs.variable(global_name='age_coords', groups=['coords'], intent='out')
@@ -197,7 +197,7 @@ class InitCoords:
 
 
 @xs.process
-class InitState:
+class SetupState:
     """Initialize state matrix"""
     _coords = xs.group_dict('coords')
     state = xs.global_ref('state', intent='out')
@@ -287,7 +287,7 @@ class FOI:
 
 
 @xs.process
-class InitPhi:
+class SetupPhi:
     """Set value of phi (contacts per unit time)."""
     RANDOM_PHI_DATA = np.array([
         [0.89, 0.48, 0.31, 0.75, 0.07],
@@ -321,34 +321,37 @@ class InitPhi:
         return f(f(data, coords), coords)
 
 
+def markov():
+	model = xs.Model({
+		'init_phi': SetupPhi,
+		'init_coords': SetupCoords,
+		'init_state': SetupState,
+		'seir': SEIR,
+		'foi': FOI,
+		'init_compt_graph': SetupComptGraph,
+		'recovery_rate': RecoveryRate,
+		'vacc_rate': VaccRate
+	})
+	return model
+	# model.visualize(show_inputs=True, show_variables=True)
 
-model = xs.Model({
-    'init_phi': InitPhi,
-    'init_coords': InitCoords,
-    'init_state': InitState,
-    'seir': SEIR,
-    'foi': FOI,
-    'init_compt_graph': InitComptGraph,
-    'recovery_rate': RecoveryRate,
-    'vacc_rate': VaccRate
-})
-# model.visualize(show_inputs=True, show_variables=True)
 
-
-in_ds = xs.create_setup(
-    model=model,
-    clocks={
-        'step': pd.date_range(start='3/1/2020', end='3/15/2020', freq='24H')
-    },
-    input_vars={
-        'foi__beta': 0.08,
-        'recovery_rate__gamma': 0.5,
-        'vacc_rate__vacc_prop': 0.5,
-    },
-    output_vars={
-        'seir__state': 'step'
-    }
-)
-out_ds = in_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
-plot = out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
-plt.show()
+	'''
+	in_ds = xs.create_setup(
+		model=model,
+		clocks={
+			'step': pd.date_range(start='3/1/2020', end='3/15/2020', freq='24H')
+		},
+		input_vars={
+			'foi__beta': 0.08,
+			'recovery_rate__gamma': 0.5,
+			'vacc_rate__vacc_prop': 0.5,
+		},
+		output_vars={
+			'seir__state': 'step'
+		}
+	)
+	out_ds = in_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
+	plot = out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
+	# plt.show()
+	'''
