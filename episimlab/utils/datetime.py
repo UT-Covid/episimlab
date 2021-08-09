@@ -17,3 +17,17 @@ def get_int_per_day(step_delta) -> float:
     assert isinstance(step_delta, np.timedelta64), \
         f"`step_delta` is not datetime64: {step_delta} type is {type(step_delta)}"
     return np.timedelta64(1, 'D') / step_delta
+
+
+def discrete_time_approx(rate, timestep):
+    """
+    :param rate: daily rate
+    :param timestep: timesteps per day
+    :return: rate rescaled by time step
+    """
+    # if rate >= 1:
+        # return np.nan
+    # elif timestep == 0:
+        # return np.nan
+
+    return 1. - (1. - rate)**(1. / timestep)
