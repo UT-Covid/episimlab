@@ -1,20 +1,13 @@
 import xsimlab as xs
-import xarray as xr
-import numpy as np
 import logging
-
-from ..seir import base
-from ..foi.base import BaseFOI
-from ..seir.base import BaseSEIR
-from ..setup.coords import SetupDefaultCoords
 
 
 @xs.process
 class SetupStochasticFromToggle:
     """Switches on stochasticity after simulation has run `sto_toggle` steps.
     """
-    sto_toggle = xs.variable(static=True, intent='in')
-    stochastic = xs.foreign(BaseSEIR, 'stochastic', intent='out')
+    sto_toggle = xs.variable(static=True, global_name='sto_toggle', intent='in')
+    stochastic = xs.global_ref('stochastic', intent='out')
 
     def initialize(self):
         """Ensures that stochastic is set during initialization"""
@@ -28,5 +21,3 @@ class SetupStochasticFromToggle:
             self.stochastic = True
         else:
             self.stochastic = False
-        # logging.debug(f"self.stochastic: {self.stochastic}")
-        # logging.debug(f"self.sto_toggle: {self.sto_toggle}")

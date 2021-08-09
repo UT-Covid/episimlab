@@ -11,7 +11,7 @@ from .base import BaseSetupEpi
 class SetupDefaultTau(BaseSetupEpi):
     """Return a default value for tau.
     """
-    tau = xs.foreign(BaseSEIR, 'tau', intent='out')
+    tau = xs.global_ref('tau', intent='out')
 
     def initialize(self):
         self.tau = self.get_tau()

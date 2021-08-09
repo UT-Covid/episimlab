@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..coords import SetupDefaultCoords
+from ..coords import SetupToyCoords
 from ...apply_counts_delta import ApplyCountsDelta
 
 

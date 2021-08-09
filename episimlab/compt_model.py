@@ -1,6 +1,8 @@
+import numpy as np
 import xarray as xr
 import xsimlab as xs
 import pandas as pd
+from .utils import group_dict_by_var
 
 
 @xs.process
@@ -36,7 +38,7 @@ class ComptModel:
             self.edge_to_tm(*edges, k=k)
 
     @property
-    def edges_by_priority(self) -> tuple[tuple[float, tuple[str, str]]]:
+    def edges_by_priority(self) -> tuple:
         """Parses the `compt_graph` attribute into tuples of edges sorted
         by edges' `priority` attribute. Basically, only used in the
         `apply_edges` method.

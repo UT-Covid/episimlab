@@ -1,32 +1,24 @@
-import yaml
-import numpy as np
 import pandas as pd
 import xsimlab as xs
-import xarray as xr
 
 
 @xs.process
 class SetupToyCoords:
-    """Example process that generates coordinates for each dimension
-    in the counts array (except time).
-    """
-
-    age_group = xs.index(dims='age_group', global_name='age_group')
-    risk_group = xs.index(dims='risk_group', global_name='risk_group')
-    compartment = xs.index(dims='compartment', global_name='compartment')
-    vertex = xs.index(dims='vertex', global_name='vertex')
-
+    """Initialize state coordinates"""
+    compt = xs.variable(global_name='compt_coords', groups=['coords'], intent='out')
+    age = xs.variable(global_name='age_coords', groups=['coords'], intent='out')
+    risk = xs.variable(global_name='risk_coords', groups=['coords'], intent='out')
+    vertex = xs.variable(global_name='vertex_coords', groups=['coords'], intent='out')
+    
     def initialize(self):
-        self.age_group = ['0-4', '5-17', '18-49', '50-64', '65+']
-        self.risk_group = ['low', 'high']
-        self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
-                            'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
-                            'Py2Iy', 'Iy2Ih', 'H2D']
-        self.vertex = range(3)
+        self.compt = ['S', 'I', 'R', 'V'] 
+        self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
+        self.risk = ['low', 'high']
+        self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
 
 
 @xs.process
-class SetupCoordsFromTravel(SetupDefaultCoords):
+class SetupCoordsFromTravel(SetupToyCoords):
     travel_fp = xs.variable(intent='in')
 
     def load_travel_df(self):
@@ -41,18 +33,17 @@ class SetupCoordsFromTravel(SetupDefaultCoords):
 
     def get_df_coords(self) -> dict:
         df = self.load_travel_df()
-        age_group = pd.unique(df[['age', 'age_dest']].values.ravel('K'))
+        age = pd.unique(df[['age', 'age_dest']].values.ravel('K'))
         vertex = pd.unique(df[['source', 'destination']].values.ravel('K'))
-        # breakpoint()
         return dict(
-            age_group=age_group,
+            age=age,
             vertex=vertex
         )
 
     def initialize(self):
         for dim, coord in self.get_df_coords().items():
             setattr(self, dim, coord)
-        self.risk_group = ['low', 'high']
+        self.risk = ['low', 'high']
         self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
                             'Py2Iy', 'Iy2Ih', 'H2D']

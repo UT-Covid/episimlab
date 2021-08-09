@@ -14,37 +14,6 @@ from ..compt_model import ComptModel
 from ..utils import get_var_dims, group_dict_by_var
 
 
-class MarkovToy(EpiModel):
-    TAGS = ('SIR', '')
-    PROCESSES = {
-        'setup_phi': SetupPhi,
-        'setup_coords': SetupCoords,
-        'setup_state': SetupState,
-        'seir': ComptModel,
-        'foi': FOI,
-        'setup_compt_graph': SetupComptGraph,
-        'recovery_rate': RecoveryRate,
-    }
-    RUNNER_DEFAULTS = dict(
-        clocks={
-            'step': pd.date_range(start='3/1/2020', end='3/15/2020', freq='24H')
-        },
-        input_vars={
-            'foi__beta': 0.08,
-            'recovery_rate__gamma': 0.5,
-            'vacc_rate__vacc_prop': 0.5,
-        },
-        output_vars={
-            'seir__state': 'step'
-        }
-    )
-
-    def plot(self, show=True):
-        plot = out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
-        if show:
-            plt.show()
-
-
 @xs.process
 class VaccRate:
     """Provide a `rate_S2V`"""
@@ -110,10 +79,10 @@ class SetupComptGraph:
 @xs.process
 class SetupCoords:
     """Initialize state coordinates"""
-    compt = xs.variable(global_name='compt_coords', groups=['coords'], intent='out')
-    age = xs.variable(global_name='age_coords', groups=['coords'], intent='out')
-    risk = xs.variable(global_name='risk_coords', groups=['coords'], intent='out')
-    vertex = xs.variable(global_name='vertex_coords', groups=['coords'], intent='out')
+    compt = xs.index(dims=('compt'), global_name='compt_coords', groups=['coords'])
+    age = xs.index(dims=('age'), global_name='age_coords', groups=['coords'])
+    risk = xs.index(dims=('risk'), global_name='risk_coords', groups=['coords'])
+    vertex = xs.index(dims=('vertex'), global_name='vertex_coords', groups=['coords'])
     
     def initialize(self):
         self.compt = ['S', 'I', 'R', 'V'] 
@@ -179,3 +148,33 @@ class SetupPhi:
     def extend_phi_dims(self, data, coords) -> np.ndarray:
         f = lambda data, coords: np.stack([data] * len(coords), axis=-1)
         return f(f(data, coords), coords)
+
+
+class MarkovToy(EpiModel):
+    TAGS = ('SIR', )
+    PROCESSES = {
+        'setup_phi': SetupPhi,
+        'setup_coords': SetupCoords,
+        'setup_state': SetupState,
+        'seir': ComptModel,
+        'foi': FOI,
+        'setup_compt_graph': SetupComptGraph,
+        'recovery_rate': RecoveryRate,
+    }
+    RUNNER_DEFAULTS = dict(
+        clocks={
+            'step': pd.date_range(start='3/1/2020', end='3/15/2020', freq='24H')
+        },
+        input_vars={
+            'foi__beta': 0.08,
+            'recovery_rate__gamma': 0.5,
+        },
+        output_vars={
+            'seir__state': 'step'
+        }
+    )
+
+    def plot(self, show=True):
+        plot = out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
+        if show:
+            plt.show()

@@ -2,24 +2,25 @@ import logging
 import pandas as pd
 import xsimlab as xs
 import xarray as xr
-from .coords import SetupDefaultCoords
+from .coords import SetupToyCoords
 
-from ..apply_counts_delta import ApplyCountsDelta
+from ..utils import get_var_dims
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 @xs.process
-class SetupToyCounts:
+class SetupToyState:
 
     # COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
     COUNTS_DIMS = ApplyCountsDelta.COUNTS_DIMS
 
-    counts = xs.foreign(ApplyCountsDelta, 'counts', intent='out')
-    age_group = xs.global_ref('age_group')
-    risk_group = xs.global_ref('risk_group')
-    compartment = xs.global_ref('compartment')
-    vertex = xs.global_ref('vertex')
+    counts = xs.global_ref('counts', intent='out')
+    _coords = xs.group_dict('coords')
+
+    @property
+    def coords(self):
+        return get_var_dims(self._coords)
 
     def initialize(self):
         self.counts = self.realistic_counts_basic()

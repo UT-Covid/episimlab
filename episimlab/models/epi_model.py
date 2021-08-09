@@ -1,6 +1,7 @@
 import pandas as pd
+import xarray as xr
 import xsimlab as xs
-from matplotlib.pyplot import plt
+from matplotlib import pyplot as plt
 
 
 class EpiModel(xs.Model):
@@ -19,12 +20,8 @@ class EpiModel(xs.Model):
 
     def __init__(self, processes: dict = None):
         if processes is None:
-            processes = EpiModel.PROCESSES.copy()
+            processes = self.PROCESSES.copy()
         super(EpiModel, self).__init__(processes)
-        assert not hasattr(self, 'processes')
-        assert not hasattr(self, 'input_vars')
-        assert not hasattr(self, 'output_vars')
-        assert not hasattr(self, 'clocks')
         assert not hasattr(self, 'in_ds')
         assert not hasattr(self, 'out_ds')
     
@@ -33,8 +30,7 @@ class EpiModel(xs.Model):
         self.out_ds = self.in_ds.xsimlab.run(model=self)
         return self.out_ds
 
-    @property
-    def default_in_ds(self, **kwargs) -> xs.Dataset:
+    def default_in_ds(self, **kwargs) -> xr.Dataset:
         setup_kw = self.RUNNER_DEFAULTS.copy()
         setup_kw.update(kwargs)
         return xs.create_setup(model=self, **setup_kw)
