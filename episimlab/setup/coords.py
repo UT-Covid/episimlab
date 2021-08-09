@@ -6,7 +6,7 @@ import xarray as xr
 
 
 @xs.process
-class InitDefaultCoords:
+class SetupToyCoords:
     """Example process that generates coordinates for each dimension
     in the counts array (except time).
     """
@@ -26,53 +26,7 @@ class InitDefaultCoords:
 
 
 @xs.process
-class InitCoordsExpectVertex(InitDefaultCoords):
-    """InitDefaultCoords but allows user to pass `vertex_labels`."""
-    vertex_labels = xs.variable(dims='vertex', intent='in')
-
-    def initialize(self):
-        self.age_group = ['0-4', '5-17', '18-49', '50-64', '65+']
-        self.risk_group = ['low', 'high']
-        self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
-                            'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
-                            'Py2Iy', 'Iy2Ih', 'H2D']
-        self.vertex = self.vertex_labels
-
-
-@xs.process
-class InitCoordsFromConfig(InitDefaultCoords):
-    """InitDefaultCoords but allows user to pass all coordinates in YAML
-    file at `config_fp`.
-    """
-    config_fp = xs.variable(static=True, intent='in')
-
-    def initialize(self):
-        coords = self.get_config()['coords']
-        assert isinstance(coords, dict)
-        for dim, coord in coords.items():
-            setattr(self, dim, coord)
-    
-    def get_config(self) -> dict:
-        with open(self.config_fp, 'r') as f:
-            return yaml.safe_load(f)
-
-
-@xs.process
-class InitCoordsExceptVertex:
-    age_group = xs.index(dims='age_group', global_name='age_group')
-    risk_group = xs.index(dims='risk_group', global_name='risk_group')
-    compartment = xs.index(dims='compartment', global_name='compartment')
-
-    def initialize(self):
-        self.age_group = ['<5', '5-17', '18-49', '50-64', '65+']
-        self.risk_group = ['low', 'high']
-        self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
-                            'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
-                            'Py2Iy', 'Iy2Ih', 'H2D']
-
-
-@xs.process
-class InitCoordsFromTravel(InitDefaultCoords):
+class SetupCoordsFromTravel(InitDefaultCoords):
     travel_fp = xs.variable(intent='in')
 
     def load_travel_df(self):

@@ -10,7 +10,7 @@ from ..setup.coords import InitDefaultCoords
 
 
 @xs.process
-class InitStochasticFromToggle:
+class SetupStochasticFromToggle:
     """Switches on stochasticity after simulation has run `sto_toggle` steps.
     """
     sto_toggle = xs.variable(static=True, intent='in')

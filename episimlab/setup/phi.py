@@ -3,7 +3,7 @@ import xarray as xr
 
 
 @xs.process
-class InitPhi:
+class SetupToyPhi:
     """
     """
     DIMS = ('vertex1', 'vertex2',
@@ -27,10 +27,3 @@ class InitPhi:
     @xs.runtime(args='step')
     def run_step(self, step):
         pass
-
-
-@xs.process
-class InitPartitionedPhi:
-    """
-    """
-    DIMS = {'loca'}

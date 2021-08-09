@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 @xs.process
-class InitDefaultCounts:
+class SetupToyCounts:
 
     # COUNTS_DIMS = ('vertex', 'age_group', 'risk_group', 'compartment')
     COUNTS_DIMS = ApplyCountsDelta.COUNTS_DIMS
@@ -50,7 +50,7 @@ class InitDefaultCounts:
 
 
 @xs.process
-class InitCountsFromCensusCSV(InitDefaultCounts):
+class SetupCountsFromCensusCSV(InitDefaultCounts):
     """Initializes counts from a census.gov formatted CSV file.
     """
     census_counts_csv = xs.variable(intent='in')
