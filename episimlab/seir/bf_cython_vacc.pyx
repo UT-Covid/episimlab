@@ -48,7 +48,7 @@ def seir_with_foi(np.ndarray counts,
                      np.ndarray omega,
                      float mu,
                      float beta,
-                     float beta_vacc
+                     float beta_vacc,
                      float sigma,
                      float eta,
                      float tau,
@@ -270,7 +270,6 @@ cdef np.ndarray _seir_with_foi(double [:, :, :, :] counts_view,
                 if stochastic == 1:
                     new_Ia = gsl_ran_poisson(rng, new_Ia)
                     new_Iy = gsl_ran_poisson(rng, new_Iy)
-                else:
 
                 # Ia -> R
                 discrete_gammaA = discrete_time_approx(gamma_view[4], int_per_day)

@@ -30,12 +30,12 @@ cdef gsl_rng *get_seeded_rng(int int_seed) nogil:
     return rng
 
 # binomial distribution from GSL lib
-cdef extern from "gsl/gsl_randist.h" nogil:
-    unsigned int gsl_ran_binomial(gsl_rng * r, double p, unsigned int n)
+#cdef extern from "gsl/gsl_randist.h" nogil:
+#    unsigned int gsl_ran_binomial(gsl_rng * r, double p, unsigned int n)
 
 # logarithm (base e)
-cdef extern from "math.h":
-    double complex log(double complex x) nogil
+#cdef extern from "math.h":
+#    double complex log(double complex x) nogil
 
 def discrete_time_approx_wrapper(float rate, float timestep):
     """Thin Python wrapper around the below C function
