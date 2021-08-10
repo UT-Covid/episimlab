@@ -83,6 +83,9 @@ extensions = [
               **gsl_lib),
     Extension('episimlab.foi.bf_cython_engine',
               sources=[f"episimlab/foi/bf_cython_engine.pyx"],
+              **gsl_lib),
+    Extension('episimlab.seir.bf_cython_vacc',
+              sources=[f"episimlab/seir/bf_cython_vacc.pyx"],
               **gsl_lib)
 
 ]
