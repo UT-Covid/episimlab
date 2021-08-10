@@ -28,9 +28,3 @@ class InitPhi:
     def run_step(self, step):
         pass
 
-
-@xs.process
-class InitPartitionedPhi:
-    """
-    """
-    DIMS = {'loca'}
