@@ -18,52 +18,87 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 @xs.process
-class VaccRate:
-    """Provide a `rate_S2V`"""
-    rate_S2V = xs.variable(global_name='rate_S2V', groups=['tm'], intent='out')
-    vacc_prop = xs.variable(global_name="vacc_prop", intent="in")
+class RateE2Py:
+    """Provide a `rate_E2Py`"""
+    rate_E2Py = xs.variable(global_name='rate_E2Py', groups=['tm'], intent='out')
+    gamma = xs.variable(global_name='gamma', intent='in')
     state = xs.global_ref('state', intent='in')
 
     def run_step(self):
-        # vaccinate a proportion of S every day
-        # self.rate_S2V = self.vacc_prop * self.S
-
-        # vaccinate a flat 20 doses per day
-        self.rate_S2V = 20
-    
-    @property
-    def S(self):
-        return self.state.loc[dict(compt='S')]
+        raise NotImplemented()
+        self.rate_E2Py = self.gamma * self.state.loc[dict(compt='Py')]
 
 
 @xs.process
-class RecoveryRate:
+class RateE2Pa:
+    """Provide a `rate_E2Pa`"""
+    rate_E2Pa = xs.variable(global_name='rate_E2Pa', groups=['tm'], intent='out')
+    gamma = xs.variable(global_name='gamma', intent='in')
+    state = xs.global_ref('state', intent='in')
+
+    def run_step(self):
+        raise NotImplemented()
+        self.rate_E2Pa = self.gamma * self.Iy
+   
+
+@xs.process
+class RateE2P:
+    """Provide a `rate_E2P`"""
+    rate_E2P = xs.variable(global_name='rate_E2P', groups=['tm'], intent='out')
+    gamma = xs.variable(global_name='gamma', intent='in')
+    state = xs.global_ref('state', intent='in')
+
+    def run_step(self):
+        raise NotImplemented()
+        self.rate_E2P = self.gamma * self.Iy
+   
+
+@xs.process
+class RateIy2D:
+    """Provide a `rate_Iy2D`"""
+    rate_Iy2D = xs.variable(global_name='rate_Iy2D', groups=['tm'], intent='out')
+    gamma = xs.variable(global_name='gamma', intent='in')
+    state = xs.global_ref('state', intent='in')
+
+    def run_step(self):
+        raise NotImplemented()
+        self.rate_Iy2D = self.gamma * self.Iy
+   
+
+@xs.process
+class RateIy2R:
+    """Provide a `rate_Iy2R`"""
+    rate_Iy2R = xs.variable(global_name='rate_Iy2R', groups=['tm'], intent='out')
+    gamma = xs.variable(global_name='gamma', intent='in')
+    state = xs.global_ref('state', intent='in')
+
+    def run_step(self):
+        raise NotImplemented()
+        self.rate_Iy2R = self.gamma * self.Iy
+
+
+@xs.process
+class RateIa2R:
     """Provide a `rate_Ia2R`"""
     rate_Ia2R = xs.variable(global_name='rate_Ia2R', groups=['tm'], intent='out')
     gamma = xs.variable(global_name='gamma', intent='in')
     state = xs.global_ref('state', intent='in')
 
     def run_step(self):
+        raise NotImplemented()
         self.rate_Ia2R = self.gamma * self.Ia
-    
-    @property
-    def Ia(self):
-        return self.state.loc[dict(compt='Ia')]
 
 
 @xs.process
-class FOI(BaseFOI):
+class RateS2E(BaseFOI):
     """FOI that provides a `rate_S2E`"""
     TAGS = ('model::NineComptV1', 'FOI')
     PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
     rate_S2E = xs.variable(intent='out', groups=['tm'])
 
     def run_step(self):
+        raise NotImplemented()
         self.rate_S2E = self.foi
-    
-    @property
-    def I(self):
-        return self.state.loc[dict(compt='Ia')]
 
 
 @xs.process
@@ -145,21 +180,6 @@ class SetupState:
 
 
 @xs.process
-class FOI(BaseFOI):
-    """FOI that provides a `rate_S2E`"""
-    TAGS = ('FOI',)
-    PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
-    rate_S2E = xs.variable(intent='out', groups=['tm'])
-
-    def run_step(self):
-        self.rate_S2E = self.foi
-    
-    @property
-    def I(self):
-        return self.state.loc[dict(compt='Ia')]
-
-
-@xs.process
 class SetupPhi:
     """Set value of phi (contacts per unit time)."""
     RANDOM_PHI_DATA = np.array([
@@ -171,27 +191,28 @@ class SetupPhi:
     ]) 
     phi = xs.global_ref('phi', intent='out')
     _coords = xs.group_dict('coords')
-        
+
     @property
     def coords(self):
         return group_dict_by_var(self._coords)
-    
+
     @property
     def phi_dims(self):
         return get_var_dims(FOI, 'phi')
-    
+
     @property
     def phi_coords(self):
         return {dim: self.coords[dim.rstrip('01')] for dim in self.phi_dims}
-    
+
     def initialize(self):
         data = self.extend_phi_dims(self.RANDOM_PHI_DATA, self.coords['risk'])
         data = self.extend_phi_dims(data, self.coords['vertex'])
         self.phi = xr.DataArray(data=data, dims=self.phi_dims, coords=self.phi_coords)
-    
+
     def extend_phi_dims(self, data, coords) -> np.ndarray:
         f = lambda data, coords: np.stack([data] * len(coords), axis=-1)
         return f(f(data, coords), coords)
+
 
 
 class NineComptV1(EpiModel):
@@ -223,18 +244,29 @@ class NineComptV1(EpiModel):
         'setup_phi': SetupPhi,
         'setup_coords': SetupCoords,
         'setup_state': SetupState,
-        'seir': ComptModel,
-        'foi': FOI,
         'setup_compt_graph': SetupComptGraph,
-        'recovery_rate': RecoveryRate,
+        'compt_model': ComptModel,
+
+        # all the expected edge weights
+        'rate_Ia2R': RateIa2R,
+        'rate_S2E': RateS2E,
+        'rate_E2Pa': RateE2Pa,
+        'rate_E2Py': RateE2Py,
+        'rate_Pa2Ia': RatePa2Ia,
+        'rate_Py2Iy': RatePy2Iy,
+        'rate_Ia2R': RateIa2R,
+        'rate_Iy2R': RateIy2R,
+        'rate_Iy2Ih': RateIy2Ih,
+        'rate_Ih2R': RateIh2R,
+        'rate_Ih2D': RateIh2D,
     }
     RUNNER_DEFAULTS = dict(
         clocks={
             'step': pd.date_range(start='3/1/2020', end='3/15/2020', freq='24H')
         },
         input_vars={
-            'foi__beta': 0.08,
-            'recovery_rate__gamma': 0.5,
+            'rate_S2E__beta': 0.08,
+            'rate_Ia2R__gamma': 0.5,
         },
         output_vars={
             'seir__state': 'step'
