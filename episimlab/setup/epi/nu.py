@@ -3,29 +3,12 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ...seir.base import BaseSEIR
-from .base import BaseSetupEpi
+from ..compt_model import ComptModel
+from ..utils import group_dict_by_var, get_var_dims, trim_data_to_coords
 
 
 @xs.process
-class SetupDefaultNu(BaseSetupEpi):
-    """
-    """
-    nu = xs.foreign(BaseSEIR, 'nu', intent='out')
-
-    def initialize(self):
-        self.nu = self.get_nu()
-
-    def get_nu(self):
-        data = np.array([0.02878229, 0.09120554, 0.02241002, 0.07886779, 0.17651128])
-        dims = ['age_group']
-        coords = [(k, self.counts_coords[k]) for k in dims]
-        data = self.trim_data_to_coords(data, coords)
-        return xr.DataArray(data=data, dims=dims, coords=coords)
-
-
-@xs.process
-class SetupStaticNu(SetupDefaultNu):
+class SetupStaticNu:
     """Calculate nu after sampling once from this triangular distibution,
     at the beginning of the simulation.
     """

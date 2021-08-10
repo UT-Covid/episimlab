@@ -5,6 +5,7 @@ import logging
 
 from ...seir.base import BaseSEIR
 from .base import BaseSetupEpi
+from ..utils import trim_data_to_coords
 
 
 @xs.process
@@ -23,7 +24,7 @@ class SetupDefaultPi(BaseSetupEpi):
         ])
         dims = ['risk_group', 'age_group']
         coords = [(k, self.counts_coords[k]) for k in dims]
-        data = self.trim_data_to_coords(data, coords)
+        data = trim_data_to_coords(data, coords)
         return xr.DataArray(data=data, dims=dims, coords=coords)
 
 

@@ -8,6 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import networkx as nx
 
+# from ..setup import epi
 from .epi_model import EpiModel
 from ..foi import FOI
 from ..compt_model import ComptModel
@@ -50,7 +51,7 @@ class RecoveryRate:
 
 @xs.process
 class SetupComptGraph:
-    """Generate a toy compartment graph"""
+    """Generate a 13-node compartment graph"""
     compt_graph = xs.global_ref('compt_graph', intent='out')
 
     def get_compt_graph(self) -> nx.DiGraph:
@@ -150,8 +151,31 @@ class SetupPhi:
         return f(f(data, coords), coords)
 
 
-class MarkovToy(EpiModel):
-    TAGS = ('SIR', 'compartments::3')
+class ThirteenComptV1(EpiModel):
+    """Thirteen-compartment SEIR model with partitioning from Episimlab V1"""
+    TAGS = ('SEIR', 'compartments::13')
+    # _PROCESSES = dict(
+    #     # Random number generator
+    #     # rng=seed.SeedGenerator,
+    #     # sto=sto.SetupStochasticFromToggle,
+
+    #     # Instantiate coords and counts array
+    #     setup_state=SetupState,
+    #     setup_coords=SetupCoords,
+
+    #     # Instantiate epidemiological parameters
+    #     setup_beta=epi.SetupDefaultBeta,
+    #     setup_eta=epi.SetupEtaFromAsympRate,
+    #     setup_gamma=epi.SetupStaticGamma,
+    #     setup_mu=epi.SetupStaticMuFromHtoD,
+    #     setup_nu=epi.SetupStaticNu,
+    #     setup_omega=epi.SetupStaticOmega,
+    #     setup_pi=epi.SetupStaticPi,
+    #     setup_rho=epi.SetupStaticRhoFromTri,
+    #     setup_sigma=epi.SetupStaticSigmaFromExposedPara,
+    #     setup_tau=epi.SetupTauFromAsympRate,
+    #     # setup_phi=Contact2Phi, 
+    # )
     PROCESSES = {
         'setup_phi': SetupPhi,
         'setup_coords': SetupCoords,
