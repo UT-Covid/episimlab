@@ -267,10 +267,7 @@ def stochastic(request):
 
 @pytest.fixture(params=[
     # int_per_day == 1
-    # TODO
-    # '24H',
-    # int_per_day == 2
-    '12H'
+    '24H'
 ])
 def step_clock(request):
     return {
@@ -281,11 +278,7 @@ def step_clock(request):
 
 
 @pytest.fixture(params=[
-    # int_per_day == 1
-    # TODO
-    # 24,
-    # int_per_day == 2
-    12
+    24
 ])
 def step_delta(request):
     try:
