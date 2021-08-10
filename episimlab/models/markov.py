@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 from .epi_model import EpiModel
-from ..foi import FOI
+from ..foi import BaseFOI
 from ..compt_model import ComptModel
 from ..utils import get_var_dims, group_dict_by_var
 
@@ -113,6 +113,17 @@ class SetupState:
     @property
     def coords(self):
         return group_dict_by_var(self._coords)
+
+
+@xs.process
+class FOI(BaseFOI):
+    """FOI that provides a `rate_S2I`"""
+    TAGS = ('FOI',)
+    PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
+    rate_S2I = xs.variable(intent='out', groups=['tm'])
+
+    def run_step(self):
+        self.rate_S2I = self.foi
 
 
 @xs.process

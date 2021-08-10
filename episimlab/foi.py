@@ -3,7 +3,7 @@ import xsimlab as xs
 
 
 @xs.process
-class FOI:
+class BaseFOI:
     """Base class for calculating force of infection (FOI)."""
     TAGS = ('FOI',)
     PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
@@ -12,14 +12,6 @@ class FOI:
     state = xs.global_ref('state', intent='in')
     beta = xs.variable(global_name='beta', intent='in')
     _coords = xs.group_dict('coords')
-    rate_S2I = xs.variable(intent='out', groups=['tm'])
-    
-    def run_step(self):
-        self.rate_S2I = self.foi
-        
-    @property
-    def coords(self) -> dict:
-        return group_dict_by_var(self._coords)
 
     @property
     def phi_dims(self):
@@ -40,8 +32,8 @@ class FOI:
     def foi(self) -> xr.DataArray:
         zero_suffix = self.suffixed_dims(self.state[dict(compt=0)], '0')
         one_suffix = self.suffixed_dims(self.state[dict(compt=0)], '1')
-        S = self.state.loc[dict(compt='S')].rename(zero_suffix)
-        I = self.state.loc[dict(compt='I')].rename(one_suffix)
+        S = self.S.rename(zero_suffix)
+        I = self.I.rename(one_suffix)
         N = self.state.sum('compt').rename(one_suffix)
         foi = ((self.beta * self.phi * S * I / N)
                # sum over coords that are not compt
@@ -49,6 +41,14 @@ class FOI:
                # like .rename({'age0': 'age', 'risk0': 'risk'})
                .rename({v: k for k, v in zero_suffix.items()}))
         return foi
+    
+    @property
+    def I(self):
+        return self.state.loc[dict(compt='I')]
+
+    @property
+    def S(self):
+        return self.state.loc[dict(compt='S')]
 
     def suffixed_dims(self, da: xr.DataArray, suffix: str,
                       exclude: list = None) -> xr.DataArray:
@@ -57,18 +57,7 @@ class FOI:
 
 
 @xs.process
-class SIRFOI(FOI):
-    """FOI that provides a `rate_S2I`"""
-    TAGS = ('model::SIR', 'FOI')
-    PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
-    rate_S2I = xs.variable(intent='out', groups=['tm'])
-
-    def run_step(self):
-        self.rate_S2I = self.foi
-
-
-@xs.process
-class BruteForceFOI(FOI):
+class BruteForceFOI(BaseFOI):
     """Calculate force of infection (FOI) using naive for looping.
     Similar to BruteForceFOI process in Episimlab v1
     """

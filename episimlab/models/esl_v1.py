@@ -10,7 +10,7 @@ import networkx as nx
 
 # from ..setup import epi
 from .epi_model import EpiModel
-from ..foi import FOI
+from ..foi import BaseFOI
 from ..compt_model import ComptModel
 from ..utils import get_var_dims, group_dict_by_var
 
@@ -36,37 +36,63 @@ class VaccRate:
 
 @xs.process
 class RecoveryRate:
-    """Provide a `rate_I2R`"""
-    rate_I2R = xs.variable(global_name='rate_I2R', groups=['tm'], intent='out')
+    """Provide a `rate_Ia2R`"""
+    rate_Ia2R = xs.variable(global_name='rate_Ia2R', groups=['tm'], intent='out')
     gamma = xs.variable(global_name='gamma', intent='in')
     state = xs.global_ref('state', intent='in')
 
     def run_step(self):
-        self.rate_I2R = self.gamma * self.I
+        self.rate_Ia2R = self.gamma * self.Ia
+    
+    @property
+    def Ia(self):
+        return self.state.loc[dict(compt='Ia')]
+
+
+@xs.process
+class FOI(BaseFOI):
+    """FOI that provides a `rate_S2E`"""
+    TAGS = ('model::NineComptV1', 'FOI')
+    PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
+    rate_S2E = xs.variable(intent='out', groups=['tm'])
+
+    def run_step(self):
+        self.rate_S2E = self.foi
     
     @property
     def I(self):
-        return self.state.loc[dict(compt='I')]
+        return self.state.loc[dict(compt='Ia')]
 
 
 @xs.process
 class SetupComptGraph:
-    """Generate a 13-node compartment graph"""
+    """Generate a 9-node compartment graph"""
     compt_graph = xs.global_ref('compt_graph', intent='out')
 
     def get_compt_graph(self) -> nx.DiGraph:
         g = nx.DiGraph()
         g.add_nodes_from([
             ('S', {"color": "red"}),
-            # ('V', {"color": "orange"}),
-            ('I', {"color": "blue"}),
+            ('E', {"color": "black"}),
+            ('Pa', {"color": "orange"}),
+            ('Py', {"color": "blue"}),
+            ('Ia', {"color": "green"}),
+            ('Iy', {"color": "purple"}),
+            ('Ih', {"color": "yellow"}),
             ('R', {"color": "green"}),
+            ('D', {"color": "blue"}),
         ])
         g.add_edges_from([
-            ('S', 'I', {"priority": 0, "color": "red"}),
-            # ('S', 'V', {"priority": 0, "color": "orange"}),
-            # ('V', 'R', {"priority": None, "weight": 0., "color": "orange"}),
-            ('I', 'R', {"priority": 1, "color": "blue"}),
+            ('S', 'E', {"priority": 0}),
+            ('E', 'Pa', {"priority": 1}),
+            ('E', 'Py', {"priority": 1}),
+            ('Pa', 'Ia', {"priority": 2}),
+            ('Py', 'Iy', {"priority": 3}),
+            ('Ia', 'R', {"priority": 4}),
+            ('Iy', 'R', {"priority": 5}),
+            ('Iy', 'Ih', {"priority": 5}),
+            ('Ih', 'R', {"priority": 6}),
+            ('Ih', 'D', {"priority": 6}),
         ])
         return g
     
@@ -86,7 +112,7 @@ class SetupCoords:
     vertex = xs.index(dims=('vertex'), global_name='vertex_coords', groups=['coords'])
     
     def initialize(self):
-        self.compt = ['S', 'I', 'R', 'V'] 
+        self.compt = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D'] 
         self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
         self.risk = ['low', 'high']
         self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
@@ -105,7 +131,7 @@ class SetupState:
             coords=self.coords
         )
         self.state.loc[dict(compt='S')] = np.array([[200, 200, 200, 200, 200]] * 2).T
-        self.state.loc[dict(compt='I')] = np.array([[20, 20, 20, 20, 20]] * 2).T
+        self.state.loc[dict(compt='Ia')] = np.array([[20, 20, 20, 20, 20]] * 2).T
 
     @property
     def dims(self):
@@ -114,6 +140,21 @@ class SetupState:
     @property
     def coords(self):
         return group_dict_by_var(self._coords)
+
+
+@xs.process
+class FOI(BaseFOI):
+    """FOI that provides a `rate_S2E`"""
+    TAGS = ('FOI',)
+    PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
+    rate_S2E = xs.variable(intent='out', groups=['tm'])
+
+    def run_step(self):
+        self.rate_S2E = self.foi
+    
+    @property
+    def I(self):
+        return self.state.loc[dict(compt='Ia')]
 
 
 @xs.process
@@ -151,9 +192,9 @@ class SetupPhi:
         return f(f(data, coords), coords)
 
 
-class ThirteenComptV1(EpiModel):
-    """Thirteen-compartment SEIR model with partitioning from Episimlab V1"""
-    TAGS = ('SEIR', 'compartments::13')
+class NineComptV1(EpiModel):
+    """Nine-compartment SEIR model with partitioning from Episimlab V1"""
+    TAGS = ('SEIR', 'compartments::9')
     # _PROCESSES = dict(
     #     # Random number generator
     #     # rng=seed.SeedGenerator,
