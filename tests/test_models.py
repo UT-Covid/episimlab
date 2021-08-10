@@ -12,7 +12,8 @@ from episimlab.models import MarkovToy, NineComptV1
 ])
 def test_model_sanity(model_type):
     """Tests models with a handful of sanity checks."""
-    result = model_type().run_with_defaults()
+    model = model_type()
+    result = model.run_with_defaults()
     assert isinstance(result, xr.Dataset)
     state = result['seir__state']
 
@@ -30,3 +31,5 @@ def test_model_sanity(model_type):
     S_final = state[dict(step=-1)].loc[dict(compt="S")]
     S_change = (S_final - S_init).sum()
     assert abs(S_change) > 1e-8
+
+    model.plot()

@@ -13,6 +13,8 @@ from .epi_model import EpiModel
 from ..foi import BaseFOI
 from ..compt_model import ComptModel
 from ..utils import get_var_dims, group_dict_by_var
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 
 @xs.process
@@ -240,6 +242,6 @@ class NineComptV1(EpiModel):
     )
 
     def plot(self, show=True):
-        plot = out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
+        plot = self.out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
         if show:
             plt.show()

@@ -186,6 +186,6 @@ class MarkovToy(EpiModel):
     )
 
     def plot(self, show=True):
-        plot = out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
+        plot = self.out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
         if show:
             plt.show()
