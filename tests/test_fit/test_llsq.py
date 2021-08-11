@@ -61,7 +61,7 @@ class TestLeastSqFitters:
         """
         fitter.vertex_labels = range(3)
         fitter.ls_kwargs = dict(xtol=1e-3)
-        fitter.step_clock = pd.date_range(start='2/1/2020', end='4/1/2020', freq='12H')
+        fitter.step_clock = pd.date_range(start='2/1/2020', end='4/1/2020', freq='24H')
         fitter.data = 0.
         soln = fitter.fit()
 
