@@ -231,13 +231,15 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                 new_S = S + d_S
                 if new_S < 0:
                     rate_S2E = S
-                    rate_S2E = 0
+                    new_S = 0
+                    d_S = -rate_S2E  # solves to -S
 
                 d_E = rate_S2E - rate_E2P
                 new_E = E + d_E
                 if new_E < 0:
                     rate_E2P = E + rate_S2E
                     new_E = 0
+                    d_E = rate_S2E - rate_E2P  # solves to d_E = -E
 
                 new_E2P = rate_E2P
                 new_E2Py = tau * rate_E2P
@@ -253,6 +255,7 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                     rate_Pa2Ia = Pa + (1 - tau) * rate_E2P
                     new_Pa = 0
                     new_Pa2Ia = rate_Pa2Ia
+                    d_Pa = (1 - tau) * rate_E2P - rate_Pa2Ia  # solves to d_Pa = -Pa
 
                 d_Py = tau * rate_E2P - rate_Py2Iy
                 new_Py = Py + d_Py
@@ -261,22 +264,24 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                     rate_Py2Iy = Py + tau * rate_E2P
                     new_Py = 0
                     new_Py2Iy = rate_Py2Iy
+                    d_Py = tau * rate_E2P - rate_Py2Iy  # solves to d_Py = -Py
 
                 new_P2I = new_Pa2Ia + new_Py2Iy
-
                 d_Ia = rate_Pa2Ia - rate_Ia2R
                 new_Ia = Ia + d_Ia
                 if new_Ia < 0:
                     rate_Ia2R = Ia + rate_Pa2Ia
                     new_Ia = 0
+                    d_Ia = rate_Pa2Ia - rate_Ia2R  # solves to d_Ia = -Ia
 
                 d_Iy = rate_Py2Iy - rate_Iy2R - rate_Iy2Ih
                 new_Iy = Iy + d_Iy
                 if new_Iy < 0:
                     rate_Iy2R = (Iy + rate_Py2Iy) * rate_Iy2R / \
-                        (rate_Iy2R + rate_Iy2Ih)
+                                (rate_Iy2R + rate_Iy2Ih)
                     rate_Iy2Ih = Iy + rate_Py2Iy - rate_Iy2R
                     new_Iy = 0
+                    d_Iy = rate_Py2Iy - rate_Iy2R - rate_Iy2Ih  # solves to d_Iy = -Iy
 
                 new_Iy2Ih = rate_Iy2Ih
                 if new_Iy2Ih < 0:
@@ -286,29 +291,31 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                 new_Ih = Ih + d_Ih
                 if new_Ih < 0:
                     rate_Ih2R = (Ih + rate_Iy2Ih) * rate_Ih2R / \
-                        (rate_Ih2R + rate_Ih2D)
+                                (rate_Ih2R + rate_Ih2D)
                     rate_Ih2D = Ih + rate_Iy2Ih - rate_Ih2R
                     new_Ih = 0
+                    d_Ih = rate_Iy2Ih - rate_Ih2R - rate_Ih2D  # solves to d_Ih = -Ih
 
                 d_R = rate_Ia2R + rate_Iy2R + rate_Ih2R
                 new_R = R + d_R
 
                 d_D = rate_Ih2D
                 new_H2D = rate_Ih2D
+
                 new_D = D + d_D
 
                 # ----------   Load new vals to state array  ---------------
 
                 # 'S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia', 'Py2Iy', 'Iy2Ih', 'H2D'
-                compt_v[n, a, r, 0] = new_S - S
-                compt_v[n, a, r, 1] = new_E - E
-                compt_v[n, a, r, 2] = new_Pa - Pa
-                compt_v[n, a, r, 3] = new_Py - Py
-                compt_v[n, a, r, 4] = new_Ia - Ia
-                compt_v[n, a, r, 5] = new_Iy - Iy
-                compt_v[n, a, r, 6] = new_Ih - Ih
-                compt_v[n, a, r, 7] = new_R - R
-                compt_v[n, a, r, 8] = new_D - D
+                compt_v[n, a, r, 0] = d_S
+                compt_v[n, a, r, 1] = d_E
+                compt_v[n, a, r, 2] = d_Pa
+                compt_v[n, a, r, 3] = d_Py
+                compt_v[n, a, r, 4] = d_Ia
+                compt_v[n, a, r, 5] = d_Iy
+                compt_v[n, a, r, 6] = d_Ih
+                compt_v[n, a, r, 7] = d_R
+                compt_v[n, a, r, 8] = d_D
 
                 compt_v[n, a, r, 9] = new_E2P
                 compt_v[n, a, r, 10] = new_E2Py
@@ -552,7 +559,7 @@ cdef np.ndarray _seir_with_foi(double [:, :, :, :] counts_view,
                 if new_S < 0:
                     rate_S2E = S
                     new_S = 0
-                    d_S = -S
+                    d_S = -rate_S2E # solves to -S
 
                 d_E = rate_S2E - rate_E2P
                 new_E = E + d_E
