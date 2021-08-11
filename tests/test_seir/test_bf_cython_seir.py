@@ -26,12 +26,7 @@ class TestBruteForceCythonSEIR:
         assert isinstance(result, xr.DataArray)
 
         # check that there are no NaNs
-        # transition compartments used for tracking are 
-        # exempted from the NaN check
-        compt_xsititon = [c for c in result.coords['compartment'].values if '2' in c]
-        compt_not_xsititon = [c for c in result.coords['compartment'].values if '2' not in c]
-        assert result.loc[dict(compartment=compt_xsititon)].isnull().all()
-        assert not result.loc[dict(compartment=compt_not_xsititon)].isnull().any()
+        assert not result.isnull().any()
 
     # Python and Cython use different RNG
     # so it's useless to compare them even with the same seed

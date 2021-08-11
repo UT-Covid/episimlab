@@ -25,7 +25,11 @@ class TestBruteForceSEIR:
         for _ in range(n_steps):
             proc.run_step(step_delta)
             census = proc.counts_delta_seir.sel(dict(compartment=census_compt))
-            assert abs(census.sum()) <= 1e-8
+            try:
+                assert abs(census.sum()) <= 1e-8
+            except AssertionError:
+                compt_sums = {compt: proc.counts_delta_seir.sel(dict(compartment=compt)).sum() for compt in census_compt}
+                print('Breakpoint')
 
         result = proc.counts_delta_seir
 
