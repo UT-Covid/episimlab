@@ -180,17 +180,18 @@ class BruteForceSEIR(BaseSEIR):
                 if new_S < 0:
                     rate_S2E = cts('S')
                     new_S = 0
-                    #rate_S2E = 0
+                    d_S = -rate_S2E
 
                 d_E = rate_S2E - rate_E2P
                 new_E = cts('E') + d_E
                 if new_E < 0:
                     rate_E2P = cts('E') + rate_S2E
                     new_E = 0
+                    d_E = rate_S2E - rate_E2P
 
                 new_E2P = rate_E2P
                 new_E2Py = self.tau * rate_E2P
-                if new_E2Py < 0:
+                if new_E2P < 0:
                     rate_E2P = 0
                     new_E2P = 0
                     new_E2Py = 0
@@ -202,6 +203,7 @@ class BruteForceSEIR(BaseSEIR):
                     rate_Pa2Ia = cts('Pa') + (1 - self.tau) * rate_E2P
                     new_Pa = 0
                     new_Pa2Ia = rate_Pa2Ia
+                    d_Pa = (1 - self.tau) * rate_E2P - rate_Pa2Ia
 
                 d_Py = self.tau * rate_E2P - rate_Py2Iy
                 new_Py = cts('Py') + d_Py
@@ -210,6 +212,7 @@ class BruteForceSEIR(BaseSEIR):
                     rate_Py2Iy = cts('Py') + self.tau * rate_E2P
                     new_Py = 0
                     new_Py2Iy = rate_Py2Iy
+                    d_Py = self.tau * rate_E2P - rate_Py2Iy
 
                 new_P2I = new_Pa2Ia + new_Py2Iy
 
@@ -218,6 +221,7 @@ class BruteForceSEIR(BaseSEIR):
                 if new_Ia < 0:
                     rate_Ia2R = cts('Ia') + rate_Pa2Ia
                     new_Ia = 0
+                    d_Ia = rate_Pa2Ia - rate_Ia2R
 
                 d_Iy = rate_Py2Iy - rate_Iy2R - rate_Iy2Ih
                 new_Iy = cts('Iy') + d_Iy
@@ -226,6 +230,7 @@ class BruteForceSEIR(BaseSEIR):
                         (rate_Iy2R + rate_Iy2Ih)
                     rate_Iy2Ih = cts('Iy') + rate_Py2Iy - rate_Iy2R
                     new_Iy = 0
+                    d_Iy = rate_Py2Iy - rate_Iy2R - rate_Iy2Ih
 
                 new_Iy2Ih = rate_Iy2Ih
                 if new_Iy2Ih < 0:
@@ -238,6 +243,7 @@ class BruteForceSEIR(BaseSEIR):
                         (rate_Ih2R + rate_Ih2D)
                     rate_Ih2D = cts('Ih') + rate_Iy2Ih - rate_Ih2R
                     new_Ih = 0
+                    d_Ih = rate_Iy2Ih - rate_Ih2R - rate_Ih2D
 
                 d_R = rate_Ia2R + rate_Iy2R + rate_Ih2R
                 new_R = cts('R') + d_R
@@ -248,15 +254,15 @@ class BruteForceSEIR(BaseSEIR):
 
                 # -------------------- Load into output array -----------------
 
-                self.counts_delta_seir.loc[idx('S')] = new_S - cts('S')
-                self.counts_delta_seir.loc[idx('E')] = new_E - cts('E')
-                self.counts_delta_seir.loc[idx('Pa')] = new_Pa - cts('Pa')
-                self.counts_delta_seir.loc[idx('Py')] = new_Py - cts('Py')
-                self.counts_delta_seir.loc[idx('Ia')] = new_Ia - cts('Ia')
-                self.counts_delta_seir.loc[idx('Iy')] = new_Iy - cts('Iy')
-                self.counts_delta_seir.loc[idx('Ih')] = new_Ih - cts('Ih')
-                self.counts_delta_seir.loc[idx('R')] = new_R - cts('R')
-                self.counts_delta_seir.loc[idx('D')] = new_D - cts('D')
+                self.counts_delta_seir.loc[idx('S')] = d_S
+                self.counts_delta_seir.loc[idx('E')] = d_E
+                self.counts_delta_seir.loc[idx('Pa')] = d_Pa
+                self.counts_delta_seir.loc[idx('Py')] = d_Py
+                self.counts_delta_seir.loc[idx('Ia')] = d_Ia
+                self.counts_delta_seir.loc[idx('Iy')] = d_Iy
+                self.counts_delta_seir.loc[idx('Ih')] = d_Ih
+                self.counts_delta_seir.loc[idx('R')] = d_R
+                self.counts_delta_seir.loc[idx('D')] = d_D
 
                 self.counts_delta_seir.loc[idx('E2P')] = new_E2P
                 self.counts_delta_seir.loc[idx('E2Py')] = new_E2Py
