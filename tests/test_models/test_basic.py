@@ -40,7 +40,7 @@ class TestBasicModels:
         basic.cy_seir_cy_foi(),
     ))
     def test_sanity(self, epis, model, input_vars, counts_basic, output_vars,
-                    step_clock):
+                    step_clock, census_compt):
         """Tests models with a handful of sanity checks."""
         result = self.run_model(model, step_clock, input_vars, output_vars)
         assert isinstance(result, xr.Dataset)
@@ -52,7 +52,9 @@ class TestBasicModels:
 
         # ensure that the total population has not changed between
         # first and last timepoints
-        net_change = (counts[dict(step=0)] - counts[dict(step=-1)]).sum()
+        start_step = counts['step'][0]
+        stop_step = counts['step'][-1]
+        net_change = (counts.sel(dict(compartment=census_compt, step=start_step)) - counts.sel(dict(compartment=census_compt, step=stop_step))).sum()
         assert abs(net_change) <= 1e-8
 
         # ensure that S compt has changed between first and last timesteps
