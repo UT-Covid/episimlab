@@ -419,3 +419,8 @@ def config_dict(seed_entropy, sto_toggle, counts_basic, tri_h2r, symp_h_ratio,
         'tri_py2iy': tri_py2iy,
         'coords': counts_coords
     }
+
+@pytest.fixture()
+def census_compt():
+    """ compartments containing population census (not incidence) """
+    return ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D']
