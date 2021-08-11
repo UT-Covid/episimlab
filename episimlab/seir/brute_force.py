@@ -256,3 +256,11 @@ class BruteForceSEIR(BaseSEIR):
                 self.counts_delta_seir.loc[idx('Ih')] = new_Ih - cts('Ih')
                 self.counts_delta_seir.loc[idx('R')] = new_R - cts('R')
                 self.counts_delta_seir.loc[idx('D')] = new_D - cts('D')
+
+                self.counts_delta_seir.loc[idx('E2P')] = new_E2P
+                self.counts_delta_seir.loc[idx('E2Py')] = new_E2Py
+                self.counts_delta_seir.loc[idx('P2I')] = new_P2I
+                self.counts_delta_seir.loc[idx('Pa2Ia')] = new_Pa2Ia
+                self.counts_delta_seir.loc[idx('Py2Iy')] = new_Py2Iy
+                self.counts_delta_seir.loc[idx('Iy2Ih')] = new_Iy2Ih
+                self.counts_delta_seir.loc[idx('H2D')] = new_H2D

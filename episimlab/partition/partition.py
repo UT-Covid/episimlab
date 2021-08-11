@@ -102,6 +102,7 @@ class Partition2Contact:
         self.travel_df = self.travel_df_with_date[mask]
         assert not self.travel_df.empty, \
             f'No travel data for date between {self.step_start} and {self.step_end}'
+        print(f'The date in Partition.get_travel_df is {self.travel_df["date"].unique()}')
         return self.travel_df
 
     # NOTE: step_start and step_end reversed due to xarray-simlab bug
@@ -124,7 +125,7 @@ class Partition2Contact:
 
         # initialize empty class members to hold intermediate results generated during workflow
         self.prob_partitions = self.dask_partition()
-        self.contact_partitions = self.partitions_to_contacts(daily_timesteps=10)
+        self.contact_partitions = self.partitions_to_contacts(daily_timesteps=1)
         self.contact_xr = self.build_contact_xr()
 
     @profiler()

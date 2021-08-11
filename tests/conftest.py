@@ -235,9 +235,7 @@ def stochastic(request):
 
 @pytest.fixture(params=[
     # int_per_day == 1
-    '24H',
-    # int_per_day == 2
-    '12H'
+    '24H'
 ])
 def step_clock(request):
     return {
@@ -248,10 +246,7 @@ def step_clock(request):
 
 
 @pytest.fixture(params=[
-    # int_per_day == 1
-    24,
-    # int_per_day == 2
-    12
+    24
 ])
 def step_delta(request):
     try:
@@ -392,3 +387,8 @@ def config_dict(seed_entropy, sto_toggle, counts_basic, tri_h2r, symp_h_ratio,
         'tri_py2iy': tri_py2iy,
         'coords': counts_coords
     }
+
+@pytest.fixture()
+def census_compt():
+    """ compartments containing population census (not incidence) """
+    return ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D']
