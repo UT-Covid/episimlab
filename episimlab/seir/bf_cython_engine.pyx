@@ -309,4 +309,13 @@ cdef np.ndarray _brute_force_SEIR(double [:, :, :, :] counts_view,
                 compt_v[n, a, r, 6] = new_Ih - Ih
                 compt_v[n, a, r, 7] = new_R - R
                 compt_v[n, a, r, 8] = new_D - D
+
+                compt_v[n, a, r, 9] = new_E2P
+                compt_v[n, a, r, 10] = new_E2Py
+                compt_v[n, a, r, 11] = new_P2I
+                compt_v[n, a, r, 12] = new_Pa2Ia
+                compt_v[n, a, r, 13] = new_Py2Iy
+                compt_v[n, a, r, 14] = new_Iy2Ih
+                compt_v[n, a, r, 15] = new_H2D
+
     return compt_counts
