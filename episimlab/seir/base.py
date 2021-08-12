@@ -32,4 +32,6 @@ class BaseSEIR:
     rho = xs.variable(dims=('compartment'))
 
     def get_int_per_day(self, step_delta) -> float:
+        int_per_day = get_int_per_day(step_delta)
+        assert(int_per_day == 1.0)
         return get_int_per_day(step_delta)

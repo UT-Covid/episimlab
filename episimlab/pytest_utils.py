@@ -105,9 +105,6 @@ def xr_plot(data_array, sel=dict(), isel=dict(), timeslice=slice(0, 100),
 
 def plotter(flavor='mpl', log_dir='./logs', log_stub=None, plotter_kwargs=dict()):
     """
-    TODO
-    WORK IN PROGRESS
-
     Decorates `func` with function that plots DataArray. This function
     returns a decorator, so use like:
 

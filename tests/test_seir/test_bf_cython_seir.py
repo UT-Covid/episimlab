@@ -25,8 +25,8 @@ class TestBruteForceCythonSEIR:
         # logging.debug(f"result: {result}")
         assert isinstance(result, xr.DataArray)
 
-        # TODO
-        # assert not result.isnull().any()
+        # check that there are no NaNs
+        assert not result.isnull().any()
 
     # Python and Cython use different RNG
     # so it's useless to compare them even with the same seed
