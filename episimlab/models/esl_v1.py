@@ -18,6 +18,63 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 @xs.process
+class RateIh2D:
+    """Provide a `rate_Ih2D`"""
+    rate_Ih2D = xs.variable(global_name='rate_Ih2D', groups=['tm'], intent='out')
+    gamma = xs.variable(global_name='gamma', intent='in')
+    state = xs.global_ref('state', intent='in')
+
+    def run_step(self):
+        raise NotImplemented()
+        self.rate_Ih2D = self.gamma * self.state.loc[dict(compt='Py')]
+
+@xs.process
+class RateIh2R:
+    """Provide a `rate_Ih2R`"""
+    rate_Ih2R = xs.variable(global_name='rate_Ih2R', groups=['tm'], intent='out')
+    gamma = xs.variable(global_name='gamma', intent='in')
+    state = xs.global_ref('state', intent='in')
+
+    def run_step(self):
+        raise NotImplemented()
+        self.rate_Ih2R = self.gamma * self.state.loc[dict(compt='Py')]
+
+@xs.process
+class RateIy2Ih:
+    """Provide a `rate_Iy2Ih`"""
+    rate_Iy2Ih = xs.variable(global_name='rate_Iy2Ih', groups=['tm'], intent='out')
+    gamma = xs.variable(global_name='gamma', intent='in')
+    state = xs.global_ref('state', intent='in')
+
+    def run_step(self):
+        raise NotImplemented()
+        self.rate_Iy2Ih = self.gamma * self.state.loc[dict(compt='Py')]
+
+@xs.process
+class RatePy2Iy:
+    """Provide a `rate_Py2Iy`"""
+    rate_Py2Iy = xs.variable(global_name='rate_Py2Iy', groups=['tm'], intent='out')
+    gamma = xs.variable(global_name='gamma', intent='in')
+    state = xs.global_ref('state', intent='in')
+
+    def run_step(self):
+        raise NotImplemented()
+        self.rate_Py2Iy = self.gamma * self.state.loc[dict(compt='Py')]
+
+
+@xs.process
+class RatePa2Ia:
+    """Provide a `rate_Pa2Ia`"""
+    rate_Pa2Ia = xs.variable(global_name='rate_Pa2Ia', groups=['tm'], intent='out')
+    gamma = xs.variable(global_name='gamma', intent='in')
+    state = xs.global_ref('state', intent='in')
+
+    def run_step(self):
+        raise NotImplemented()
+        self.rate_Pa2Ia = self.gamma * self.state.loc[dict(compt='Py')]
+
+
+@xs.process
 class RateE2Py:
     """Provide a `rate_E2Py`"""
     rate_E2Py = xs.variable(global_name='rate_E2Py', groups=['tm'], intent='out')
@@ -269,11 +326,11 @@ class NineComptV1(EpiModel):
             'rate_Ia2R__gamma': 0.5,
         },
         output_vars={
-            'seir__state': 'step'
+            'compt_model__state': 'step'
         }
     )
 
     def plot(self, show=True):
-        plot = self.out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
+        plot = self.out_ds['compt_model__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
         if show:
             plt.show()
