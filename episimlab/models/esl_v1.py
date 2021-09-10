@@ -18,15 +18,61 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 @xs.process
+class SetupNuDefault:
+    """Provide a default value for nu"""
+    DIMS = ['age']
+    nu = xs.variable(dims=DIMS, global_name='nu', intent='out')
+    _coords = xs.group_dict('coords')
+
+    @property
+    def dims(self):
+        return self.DIMS
+
+    @property
+    def coords(self):
+        return {k: v for k, v in group_dict_by_var(self._coords).items()
+                if k in self.dims}
+
+    def initialize(self):
+        self.nu  = xr.DataArray(
+            [0.02878229, 0.09120554, 0.02241002, 0.07886779, 0.17651128],
+            dims=self.dims, coords=self.coords) 
+
+
+@xs.process
+class SetupPiDefault:
+    """Provide a default value for pi"""
+    DIMS = ('risk', 'age')
+    pi = xs.variable(dims=DIMS, global_name='pi', intent='out')
+    _coords = xs.group_dict('coords')
+
+    @property
+    def dims(self):
+        return self.DIMS
+
+    @property
+    def coords(self):
+        return {k: v for k, v in group_dict_by_var(self._coords).items()
+                if k in self.dims}
+
+    def initialize(self):
+        self.pi = xr.DataArray(np.array([
+            [5.92915812e-04, 4.55900959e-04, 2.78247788e-02, 5.95202276e-02, 7.03344654e-02],
+            [5.91898663e-03, 4.55299354e-03, 2.57483139e-01, 5.07631836e-01, 5.84245731e-01]]), 
+            dims=self.dims, coords=self.coords) 
+
+
+@xs.process
 class RateIy2Ih:
     """Provide a `rate_Iy2Ih`"""
     rate_Iy2Ih = xs.variable(global_name='rate_Iy2Ih', groups=['tm'], intent='out')
-    pi = xs.variable(global_name='pi', intent='in')
     eta = xs.variable(global_name='eta', intent='in')
+    pi = xs.global_ref('pi', intent='in')
     state = xs.global_ref('state', intent='in')
+    int_per_day = xs.global_ref('int_per_day', intent='in')
 
     def run_step(self):
-        self.rate_Iy2Ih = self.pi * dta(self.eta) * self.state.loc[dict(compt='Iy')]
+        self.rate_Iy2Ih = self.pi * dta(self.eta, self.int_per_day) * self.state.loc[dict(compt='Iy')]
 
 
 @xs.process
@@ -34,11 +80,12 @@ class RateIh2D:
     """Provide a `rate_Ih2D`"""
     rate_Ih2D = xs.variable(global_name='rate_Ih2D', groups=['tm'], intent='out')
     mu = xs.variable(global_name='mu', intent='in')
-    nu = xs.variable(global_name='nu', intent='in')
+    nu = xs.global_ref('nu', intent='in')
     state = xs.global_ref('state', intent='in')
+    int_per_day = xs.global_ref('int_per_day', intent='in')
 
     def run_step(self):
-        self.rate_Ih2D = self.nu * dta(self.mu) * self.state.loc[dict(compt='Ih')]
+        self.rate_Ih2D = self.nu * dta(self.mu, self.int_per_day) * self.state.loc[dict(compt='Ih')]
 
 
 @xs.process
@@ -46,11 +93,12 @@ class RateIh2R:
     """Provide a `rate_Ih2R`"""
     rate_Ih2R = xs.variable(global_name='rate_Ih2R', groups=['tm'], intent='out')
     gamma_Ih = xs.variable(global_name='gamma_Ih', intent='in')
-    nu = xs.variable(global_name='nu', intent='in')
+    nu = xs.global_ref('nu', intent='in')
     state = xs.global_ref('state', intent='in')
+    int_per_day = xs.global_ref('int_per_day', intent='in')
 
     def run_step(self):
-        self.rate_Ih2R = (1 - self.nu) * dta(self.gamma_Ih) * self.state.loc[dict(compt='Ih')]
+        self.rate_Ih2R = (1 - self.nu) * dta(self.gamma_Ih, self.int_per_day) * self.state.loc[dict(compt='Ih')]
 
 
 @xs.process
@@ -100,36 +148,39 @@ class RateE2Pa:
 @xs.process
 class RateE2P:
     """Provide a `rate_E2P`"""
-    rate_E2P = xs.variable(global_name='rate_E2P', groups=['tm'], intent='out')
+    rate_E2P = xs.variable(global_name='rate_E2P', intent='out')
     sigma = xs.variable(global_name='sigma', intent='in')
     state = xs.global_ref('state', intent='in')
+    int_per_day = xs.global_ref('int_per_day', intent='in')
 
     def run_step(self):
-        self.rate_E2Py = dta(self.sigma) * self.state.loc[dict(compt='E')]
+        self.rate_E2P = dta(self.sigma, self.int_per_day) * self.state.loc[dict(compt='E')]
    
 
 @xs.process
 class RateIy2R:
     """Provide a `rate_Iy2R`"""
     rate_Iy2R = xs.variable(global_name='rate_Iy2R', groups=['tm'], intent='out')
-    gamma = xs.variable(global_name='gamma', intent='in')
+    gamma_Iy = xs.variable(global_name='gamma_Iy', intent='in')
+    pi = xs.global_ref('pi', intent='in')
     state = xs.global_ref('state', intent='in')
 
     def run_step(self):
-        raise NotImplemented()
-        self.rate_Iy2R = self.gamma * self.Iy
+        self.rate_Iy2R = (
+            self.gamma_Iy * 
+            self.state.loc[dict(compt='Iy')] *
+            (1 - self.pi))
 
 
 @xs.process
 class RateIa2R:
     """Provide a `rate_Ia2R`"""
     rate_Ia2R = xs.variable(global_name='rate_Ia2R', groups=['tm'], intent='out')
-    gamma = xs.variable(global_name='gamma', intent='in')
+    gamma_Ia = xs.variable(global_name='gamma_Ia', intent='in')
     state = xs.global_ref('state', intent='in')
 
     def run_step(self):
-        raise NotImplemented()
-        self.rate_Ia2R = self.gamma * self.Ia
+        self.rate_Ia2R = self.gamma_Ia * self.state.loc[dict(compt='Ia')]
 
 
 @xs.process
@@ -139,9 +190,16 @@ class RateS2E(BaseFOI):
     PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
     rate_S2E = xs.variable(intent='out', groups=['tm'])
 
+    @property
+    def I(self):
+        return self.state.loc[dict(compt=['Ia', 'Iy', 'Pa', 'Py'])]
+
+    @property
+    def S(self):
+        return self.state.loc[dict(compt='S')]
+
     def run_step(self):
-        raise NotImplemented()
-        self.rate_S2E = self.foi
+        self.rate_S2E = self.foi.sum('compt')
 
 
 @xs.process
@@ -241,7 +299,7 @@ class SetupPhi:
 
     @property
     def phi_dims(self):
-        return get_var_dims(FOI, 'phi')
+        return get_var_dims(BaseFOI, 'phi')
 
     @property
     def phi_coords(self):
@@ -291,11 +349,14 @@ class NineComptV1(EpiModel):
         'compt_model': ComptModel,
         'int_per_day': IntPerDay,
 
+        # default values for N-D epi parameters
+        'setup_pi': SetupPiDefault,
+        'setup_nu': SetupNuDefault,
+
         # used for RateE2Pa and RateE2Py
         'rate_E2P': RateE2P,
 
         # all the expected edge weights
-        'rate_Ia2R': RateIa2R,
         'rate_S2E': RateS2E,
         'rate_E2Pa': RateE2Pa,
         'rate_E2Py': RateE2Py,
@@ -312,20 +373,17 @@ class NineComptV1(EpiModel):
             'step': pd.date_range(start='3/1/2020', end='3/15/2020', freq='24H')
         },
         input_vars={
-            'rate_S2E__beta': 0.08,
-            'rate_Ia2R__gamma': 0.5,
-            'rate_E2P__sigma': None, 
-            'rate_Ih2D__mu': None, 
-            'rate_Ih2D__nu': None, 
-            'rate_Py2Iy__rho_Iy': None, 
-            'rate_E2Py__tau': None, 
-            'rate_Ih2R__gamma_Ih': None, 
-            'rate_Ih2R__nu': None, 
-            'rate_Iy2R__gamma': None, 
-            'rate_E2Pa__tau': None, 
-            'rate_Iy2Ih__pi': None, 
-            'rate_Iy2Ih__eta': None, 
-            'rate_Pa2Ia__rho_Ia': None,
+            'rate_S2E__beta': 0.035,
+            'rate_E2P__sigma': 0.34482759, 
+            'rate_Py2Iy__rho_Iy': 0.43478261, 
+            'rate_Pa2Ia__rho_Ia': 0.43478261,
+            'rate_Ih2R__gamma_Ih': 0.09118541, 
+            'rate_Iy2R__gamma_Iy': 0.25, 
+            'rate_Ia2R__gamma_Ia': 0.25, 
+            'rate_E2Py__tau': 0.57, 
+            'rate_E2Pa__tau': 0.57, 
+            'rate_Ih2D__mu': 0.128, 
+            'rate_Iy2Ih__eta': 0.169492, 
         },
         output_vars={
             'compt_model__state': 'step'
