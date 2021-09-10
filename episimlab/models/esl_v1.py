@@ -269,7 +269,7 @@ class SetupState:
             coords=self.coords
         )
         self.state.loc[dict(compt='S')] = np.array([[200, 200, 200, 200, 200]] * 2).T
-        self.state.loc[dict(compt='Ia')] = np.array([[20, 20, 20, 20, 20]] * 2).T
+        self.state.loc[dict(compt='Ia')] = np.array([[5, 5, 5, 5, 5]] * 2).T
 
     @property
     def dims(self):
@@ -319,28 +319,6 @@ class SetupPhi:
 class NineComptV1(EpiModel):
     """Nine-compartment SEIR model with partitioning from Episimlab V1"""
     TAGS = ('SEIR', 'compartments::9')
-    # _PROCESSES = dict(
-    #     # Random number generator
-    #     # rng=seed.SeedGenerator,
-    #     # sto=sto.SetupStochasticFromToggle,
-
-    #     # Instantiate coords and counts array
-    #     setup_state=SetupState,
-    #     setup_coords=SetupCoords,
-
-    #     # Instantiate epidemiological parameters
-    #     setup_beta=epi.SetupDefaultBeta,
-    #     setup_eta=epi.SetupEtaFromAsympRate,
-    #     setup_gamma=epi.SetupStaticGamma,
-    #     setup_mu=epi.SetupStaticMuFromHtoD,
-    #     setup_nu=epi.SetupStaticNu,
-    #     setup_omega=epi.SetupStaticOmega,
-    #     setup_pi=epi.SetupStaticPi,
-    #     setup_rho=epi.SetupStaticRhoFromTri,
-    #     setup_sigma=epi.SetupStaticSigmaFromExposedPara,
-    #     setup_tau=epi.SetupTauFromAsympRate,
-    #     # setup_phi=Contact2Phi, 
-    # )
     PROCESSES = {
         'setup_phi': SetupPhi,
         'setup_coords': SetupCoords,
@@ -370,7 +348,7 @@ class NineComptV1(EpiModel):
     }
     RUNNER_DEFAULTS = dict(
         clocks={
-            'step': pd.date_range(start='3/1/2020', end='3/15/2020', freq='24H')
+            'step': pd.date_range(start='3/1/2020', end='5/1/2020', freq='24H')
         },
         input_vars={
             'rate_S2E__beta': 0.035,
