@@ -1,6 +1,7 @@
 import datetime as dt
 import numpy as np
 import pandas as pd
+import xsimlab as xs
 
 
 def dt64_to_day_of_week(dt64) -> int:
@@ -25,9 +26,14 @@ def discrete_time_approx(rate, timestep):
     :param timestep: timesteps per day
     :return: rate rescaled by time step
     """
-    # if rate >= 1:
-        # return np.nan
-    # elif timestep == 0:
-        # return np.nan
-
     return 1. - (1. - rate)**(1. / timestep)
+
+
+@xs.process
+class IntPerDay:
+    """Provide an interval per day `int_per_day`"""
+    int_per_day = xs.variable(global_name='int_per_day', intent='out')
+
+    @xs.runtime(args='step_delta')
+    def run_step(self, step_delta):
+        self.int_per_day = get_int_per_day(step_delta=step_delta)

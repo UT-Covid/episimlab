@@ -12,114 +12,100 @@ import networkx as nx
 from .epi_model import EpiModel
 from ..foi import BaseFOI
 from ..compt_model import ComptModel
-from ..utils import get_var_dims, group_dict_by_var
+from ..utils import get_var_dims, group_dict_by_var, discrete_time_approx as dta, IntPerDay
 import logging
 logging.basicConfig(level=logging.DEBUG)
+
+
+@xs.process
+class RateIy2Ih:
+    """Provide a `rate_Iy2Ih`"""
+    rate_Iy2Ih = xs.variable(global_name='rate_Iy2Ih', groups=['tm'], intent='out')
+    pi = xs.variable(global_name='pi', intent='in')
+    eta = xs.variable(global_name='eta', intent='in')
+    state = xs.global_ref('state', intent='in')
+
+    def run_step(self):
+        self.rate_Iy2Ih = self.pi * dta(self.eta) * self.state.loc[dict(compt='Iy')]
 
 
 @xs.process
 class RateIh2D:
     """Provide a `rate_Ih2D`"""
     rate_Ih2D = xs.variable(global_name='rate_Ih2D', groups=['tm'], intent='out')
-    gamma = xs.variable(global_name='gamma', intent='in')
+    mu = xs.variable(global_name='mu', intent='in')
+    nu = xs.variable(global_name='nu', intent='in')
     state = xs.global_ref('state', intent='in')
 
     def run_step(self):
-        raise NotImplemented()
-        self.rate_Ih2D = self.gamma * self.state.loc[dict(compt='Py')]
+        self.rate_Ih2D = self.nu * dta(self.mu) * self.state.loc[dict(compt='Ih')]
+
 
 @xs.process
 class RateIh2R:
     """Provide a `rate_Ih2R`"""
     rate_Ih2R = xs.variable(global_name='rate_Ih2R', groups=['tm'], intent='out')
-    gamma = xs.variable(global_name='gamma', intent='in')
+    gamma_Ih = xs.variable(global_name='gamma_Ih', intent='in')
+    nu = xs.variable(global_name='nu', intent='in')
     state = xs.global_ref('state', intent='in')
 
     def run_step(self):
-        raise NotImplemented()
-        self.rate_Ih2R = self.gamma * self.state.loc[dict(compt='Py')]
+        self.rate_Ih2R = (1 - self.nu) * dta(self.gamma_Ih) * self.state.loc[dict(compt='Ih')]
 
-@xs.process
-class RateIy2Ih:
-    """Provide a `rate_Iy2Ih`"""
-    rate_Iy2Ih = xs.variable(global_name='rate_Iy2Ih', groups=['tm'], intent='out')
-    gamma = xs.variable(global_name='gamma', intent='in')
-    state = xs.global_ref('state', intent='in')
-
-    def run_step(self):
-        raise NotImplemented()
-        self.rate_Iy2Ih = self.gamma * self.state.loc[dict(compt='Py')]
 
 @xs.process
 class RatePy2Iy:
     """Provide a `rate_Py2Iy`"""
     rate_Py2Iy = xs.variable(global_name='rate_Py2Iy', groups=['tm'], intent='out')
-    gamma = xs.variable(global_name='gamma', intent='in')
+    rho_Iy = xs.variable(global_name='rho_Iy', intent='in')
     state = xs.global_ref('state', intent='in')
 
     def run_step(self):
-        raise NotImplemented()
-        self.rate_Py2Iy = self.gamma * self.state.loc[dict(compt='Py')]
+        self.rate_Py2Iy = self.rho_Iy * self.state.loc[dict(compt='Py')]
 
 
 @xs.process
 class RatePa2Ia:
     """Provide a `rate_Pa2Ia`"""
     rate_Pa2Ia = xs.variable(global_name='rate_Pa2Ia', groups=['tm'], intent='out')
-    gamma = xs.variable(global_name='gamma', intent='in')
+    rho_Ia = xs.variable(global_name='rho_Ia', intent='in')
     state = xs.global_ref('state', intent='in')
 
     def run_step(self):
-        raise NotImplemented()
-        self.rate_Pa2Ia = self.gamma * self.state.loc[dict(compt='Py')]
+        self.rate_Pa2Ia = self.rho_Ia * self.state.loc[dict(compt='Pa')]
 
 
 @xs.process
 class RateE2Py:
     """Provide a `rate_E2Py`"""
     rate_E2Py = xs.variable(global_name='rate_E2Py', groups=['tm'], intent='out')
-    gamma = xs.variable(global_name='gamma', intent='in')
-    state = xs.global_ref('state', intent='in')
+    tau = xs.variable(global_name='tau', intent='in')
+    rate_E2P = xs.global_ref('rate_E2P', intent='in')
 
     def run_step(self):
-        raise NotImplemented()
-        self.rate_E2Py = self.gamma * self.state.loc[dict(compt='Py')]
+        self.rate_E2Py = self.tau * self.rate_E2P
 
 
 @xs.process
 class RateE2Pa:
     """Provide a `rate_E2Pa`"""
     rate_E2Pa = xs.variable(global_name='rate_E2Pa', groups=['tm'], intent='out')
-    gamma = xs.variable(global_name='gamma', intent='in')
-    state = xs.global_ref('state', intent='in')
+    tau = xs.variable(global_name='tau', intent='in')
+    rate_E2P = xs.global_ref('rate_E2P', intent='in')
 
     def run_step(self):
-        raise NotImplemented()
-        self.rate_E2Pa = self.gamma * self.Iy
-   
+        self.rate_E2Pa = (1 - self.tau) * self.rate_E2P
+
 
 @xs.process
 class RateE2P:
     """Provide a `rate_E2P`"""
     rate_E2P = xs.variable(global_name='rate_E2P', groups=['tm'], intent='out')
-    gamma = xs.variable(global_name='gamma', intent='in')
+    sigma = xs.variable(global_name='sigma', intent='in')
     state = xs.global_ref('state', intent='in')
 
     def run_step(self):
-        raise NotImplemented()
-        self.rate_E2P = self.gamma * self.Iy
-   
-
-@xs.process
-class RateIy2D:
-    """Provide a `rate_Iy2D`"""
-    rate_Iy2D = xs.variable(global_name='rate_Iy2D', groups=['tm'], intent='out')
-    gamma = xs.variable(global_name='gamma', intent='in')
-    state = xs.global_ref('state', intent='in')
-
-    def run_step(self):
-        raise NotImplemented()
-        self.rate_Iy2D = self.gamma * self.Iy
+        self.rate_E2Py = dta(self.sigma) * self.state.loc[dict(compt='E')]
    
 
 @xs.process
@@ -303,6 +289,10 @@ class NineComptV1(EpiModel):
         'setup_state': SetupState,
         'setup_compt_graph': SetupComptGraph,
         'compt_model': ComptModel,
+        'int_per_day': IntPerDay,
+
+        # used for RateE2Pa and RateE2Py
+        'rate_E2P': RateE2P,
 
         # all the expected edge weights
         'rate_Ia2R': RateIa2R,
@@ -324,6 +314,18 @@ class NineComptV1(EpiModel):
         input_vars={
             'rate_S2E__beta': 0.08,
             'rate_Ia2R__gamma': 0.5,
+            'rate_E2P__sigma': None, 
+            'rate_Ih2D__mu': None, 
+            'rate_Ih2D__nu': None, 
+            'rate_Py2Iy__rho_Iy': None, 
+            'rate_E2Py__tau': None, 
+            'rate_Ih2R__gamma_Ih': None, 
+            'rate_Ih2R__nu': None, 
+            'rate_Iy2R__gamma': None, 
+            'rate_E2Pa__tau': None, 
+            'rate_Iy2Ih__pi': None, 
+            'rate_Iy2Ih__eta': None, 
+            'rate_Pa2Ia__rho_Ia': None,
         },
         output_vars={
             'compt_model__state': 'step'
