@@ -15,7 +15,7 @@ def test_model_sanity(model_type):
     model = model_type()
     result = model.run_with_defaults()
     assert isinstance(result, xr.Dataset)
-    state = result['seir__state']
+    state = result['compt_model__state']
 
     # ensure that no coords are null
     for coord in result.coords.values():

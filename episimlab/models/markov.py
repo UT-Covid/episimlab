@@ -167,7 +167,7 @@ class MarkovToy(EpiModel):
         'setup_phi': SetupPhi,
         'setup_coords': SetupCoords,
         'setup_state': SetupState,
-        'seir': ComptModel,
+        'compt_model': ComptModel,
         'foi': FOI,
         'setup_compt_graph': SetupComptGraph,
         'recovery_rate': RecoveryRate,
@@ -181,11 +181,11 @@ class MarkovToy(EpiModel):
             'recovery_rate__gamma': 0.5,
         },
         output_vars={
-            'seir__state': 'step'
+            'compt_model__state': 'step'
         }
     )
 
     def plot(self, show=True):
-        plot = self.out_ds['seir__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
+        plot = self.out_ds['compt_model__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
         if show:
             plt.show()
