@@ -299,13 +299,15 @@ class PhiLinker:
     """
     phi_t = xs.global_ref('phi_t', intent='in')
     phi = xs.global_ref('phi', intent='out')
-    # phi = xs.foreign(RateS2E, 'phi', intent='out')
 
     def initialize(self):
-        self.phi = self.phi_t
+        self.phi = self.convert_phi_t()
 
     def run_step(self):
-        self.phi = self.phi_t
+        self.phi = self.convert_phi_t()
+    
+    def convert_phi_t(self):
+        return self.phi_t
 
 
 class PartitionV1(EpiModel):
@@ -314,7 +316,7 @@ class PartitionV1(EpiModel):
     PROCESSES = {
         'get_contact_xr': GetContactXR,
         'setup_phi': SetupPhi,
-        'setup_coords': SetupCoords,
+        # 'setup_coords': SetupCoords,
         'setup_state': SetupState,
         'setup_compt_graph': SetupComptGraph,
         'compt_model': ComptModel,
@@ -348,7 +350,7 @@ class PartitionV1(EpiModel):
             'step': pd.date_range(start='3/1/2020', end='5/1/2020', freq='24H')
         },
         input_vars={
-            'rate_S2E__beta': 0.035,
+            'rate_S2E__beta': 0.35,
             'rate_E2P__sigma': 0.34482759, 
             'rate_Py2Iy__rho_Iy': 0.43478261, 
             'rate_Pa2Ia__rho_Ia': 0.43478261,
