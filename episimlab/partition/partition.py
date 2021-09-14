@@ -57,7 +57,7 @@ def legacy_mapping(col_type, table):
 
 @xs.process
 class Partition2Contact:
-    DIMS = ('vertex1', 'vertex2', 'age_group1', 'age_group2',)
+    DIMS = ('vertex0', 'vertex1', 'age0', 'age1',)
     travel_fp = xs.variable(intent='in')
     contacts_fp = xs.variable(intent='in')
     contact_xr = xs.variable(static=False, dims=DIMS, intent='out', global_name='contact_xr')
@@ -148,15 +148,15 @@ class Partition2Contact:
         return contact_dict
     
     @property
-    def age_group(self, recalc=False) -> list:
+    def age(self, recalc=False) -> list:
         """Gets age group from join on travel_df and baseline_contact_df"""
-        if not hasattr(self, '_age_group') or recalc is True:
+        if not hasattr(self, '_age') or recalc is True:
             assert hasattr(self, 'baseline_contact_df')
             assert hasattr(self, 'travel_df')
             ag_from_contacts = set(self.baseline_contact_df[['age1', 'age2']].values.ravel('K'))
             ag_from_travel = set(self.travel_df.age.unique())
-            self._age_group = ag_from_contacts.union(ag_from_travel)
-        return list(self._age_group)
+            self._age = ag_from_contacts.union(ag_from_travel)
+        return list(self._age)
 
     def population_totals(self):
 
@@ -296,16 +296,16 @@ class Partition2Contact:
         contact_xarray = contact_xarray.squeeze().drop('variable')
         contact_xarray = contact_xarray.rename(
             {
-                'i': 'vertex1',
-                'j': 'vertex2',
-                'age_i': 'age_group1',
-                'age_j': 'age_group2',
+                'i': 'vertex0',
+                'j': 'vertex1',
+                'age_i': 'age0',
+                'age_j': 'age1',
             }
         )
 
         # convert coords from dtype object
-        contact_xarray.coords['age_group1'] = contact_xarray.coords['age_group1'].astype(str).values
-        contact_xarray.coords['age_group2'] = contact_xarray.coords['age_group2'].astype(str).values
+        contact_xarray.coords['age0'] = contact_xarray.coords['age0'].astype(str).values
+        contact_xarray.coords['age1'] = contact_xarray.coords['age1'].astype(str).values
 
         #contact_xarray = contact_xarray.reset_coords(names='partitioned_per_capita_contacts', drop=True)
         return contact_xarray
@@ -333,9 +333,9 @@ class Partition2Contact:
 
         # age dimensions and coordinates
         if self.age_dims:
-            arr_dims.extend([len(self.age_group), len(self.age_group)])  # age by source and destination
-            coords['age_i'] = self.age_group
-            coords['age_j'] = self.age_group
+            arr_dims.extend([len(self.age), len(self.age)])  # age by source and destination
+            coords['age_i'] = self.age
+            coords['age_j'] = self.age
 
         new_da = xr.DataArray(
             data=0.,
@@ -344,7 +344,7 @@ class Partition2Contact:
         )
 
         # for now we are ignoring the possible demographic dimension
-        for n1, a1, n2, a2 in product(*[nodes, self.age_group] * 2):
+        for n1, a1, n2, a2 in product(*[nodes, self.age] * 2):
             subset = self.contact_partitions[(self.contact_partitions['i'] == n1) \
                 & (self.contact_partitions['j'] == n2) \
                 & (self.contact_partitions['age_i'] == a1) \
@@ -366,14 +366,14 @@ class Partition2Contact:
 @xs.process
 class Contact2Phi:
     """Given array `contact_xr`, coerces to `phi_t` array."""
-    PHI_DIMS = ('vertex1', 'vertex2',
-                'age_group1', 'age_group2',
-                'risk_group1', 'risk_group2')
+    PHI_DIMS = ('vertex0', 'vertex1',
+                'age0', 'age1',
+                'risk0', 'risk1')
 
-    age_group = xs.index(dims='age_group', global_name='age_group')
-    risk_group = xs.index(dims='risk_group', global_name='risk_group')
-    compartment = xs.index(dims='compartment', global_name='compartment')
-    vertex = xs.index(dims='vertex', global_name='vertex')
+    age = xs.index(dims='age', global_name='age', groups=['coords'])
+    risk = xs.index(dims='risk', global_name='risk', groups=['coords'])
+    compt = xs.index(dims='compt', global_name='compt', groups=['coords'])
+    vertex = xs.index(dims='vertex', global_name='vertex', groups=['coords'])
 
     contact_xr = xs.global_ref('contact_xr', intent='in')
     phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
@@ -384,8 +384,8 @@ class Contact2Phi:
 
     def run_step(self):
         # set age group and vertex coords
-        self.age_group = self.contact_xr.coords['age_group1'].values
-        self.vertex = self.contact_xr.coords['vertex1'].values
+        self.age = self.contact_xr.coords['age0'].values
+        self.vertex = self.contact_xr.coords['vertex0'].values
 
         self.get_phi()
 
@@ -395,16 +395,16 @@ class Contact2Phi:
 
         # broadcast into phi_array
         # TODO: refactor
-        self.phi_t.loc[dict(risk_group1='low', risk_group2='low')] = self.contact_xr
-        self.phi_t.loc[dict(risk_group1='low', risk_group2='high')] = self.contact_xr
-        self.phi_t.loc[dict(risk_group1='high', risk_group2='high')] = self.contact_xr
-        self.phi_t.loc[dict(risk_group1='high', risk_group2='low')] = self.contact_xr
+        self.phi_t.loc[dict(risk0='low', risk1='low')] = self.contact_xr
+        self.phi_t.loc[dict(risk0='low', risk1='high')] = self.contact_xr
+        self.phi_t.loc[dict(risk0='high', risk1='high')] = self.contact_xr
+        self.phi_t.loc[dict(risk0='high', risk1='low')] = self.contact_xr
         assert not self.phi_t.isnull().any()
 
     def initialize_misc_coords(self):
         """Set up coords besides vertex and age group."""
-        self.risk_group = ['low', 'high']
-        self.compartment = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
+        self.risk = ['low', 'high']
+        self.compt = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
                             'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
                             'Py2Iy', 'Iy2Ih', 'H2D']
 
@@ -414,7 +414,7 @@ class NC2Contact:
     """Reads DataArray from NetCDF file at `contact_da_fp`, and sets attr
     `contact_xr`.
     """
-    DIMS = ('vertex1', 'vertex2', 'age_group1', 'age_group2',)
+    DIMS = ('vertex0', 'vertex1', 'age0', 'age1',)
     contact_da_fp = xs.variable(intent='in')
     contact_xr = xs.variable(dims=DIMS, intent='out', global_name='contact_xr')
 
@@ -422,14 +422,14 @@ class NC2Contact:
         da = (xr
               .open_dataarray(self.contact_da_fp)
               .rename({
-                  'vertex_i': 'vertex1',
-                  'vertex_j': 'vertex2',
-                  'age_i': 'age_group1',
-                  'age_j': 'age_group2',
+                  'vertex_i': 'vertex0',
+                  'vertex_j': 'vertex1',
+                  'age_i': 'age0',
+                  'age_j': 'age1',
                })
              )
-        da.coords['age_group1'] = da.coords['age_group1'].astype(str)
-        da.coords['age_group2'] = da.coords['age_group2'].astype(str)
+        da.coords['age0'] = da.coords['age0'].astype(str)
+        da.coords['age1'] = da.coords['age1'].astype(str)
         assert isinstance(da, xr.DataArray)
 
         self.contact_xr = da
