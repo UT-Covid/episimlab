@@ -8,7 +8,8 @@ from episimlab.models import MarkovToy, NineComptV1
 
 @pytest.mark.parametrize('model_type', [
     MarkovToy, 
-    NineComptV1
+    NineComptV1,
+    PartitionV1
 ])
 def test_model_sanity(model_type):
     """Tests models with a handful of sanity checks."""
@@ -32,4 +33,4 @@ def test_model_sanity(model_type):
     S_change = (S_final - S_init).sum()
     assert abs(S_change) > 1e-8
 
-    model.plot()
+    # model.plot()
