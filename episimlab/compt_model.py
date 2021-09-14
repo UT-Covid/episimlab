@@ -76,8 +76,16 @@ class ComptModel:
         for u, v in edges:
             weight = k * self.edge_weight(u, v)
             # print(f"adjusted weight of edge from {u} to {v} is {weight}")
-            self.tm.loc[dict(compt=u)] -= weight
-            self.tm.loc[dict(compt=v)] += weight
+            try:
+                self.tm.loc[dict(compt=u)] -= weight
+                self.tm.loc[dict(compt=v)] += weight
+            except ValueError:
+                logging.error(
+                    f"Error while applying weight for edge {(u, v)}. "
+                    f"Transition matrix expects matrix with coords:\n "
+                    f"{self.tm.loc[dict(compt=u)].coords}\n...but weight "
+                    f"has coords:\n {weight.coords}.")
+                raise
 
     def edge_weight(self, u, v):
         """Try to find an edge weight for (u, v) in `tm_subset`, then
