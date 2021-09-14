@@ -13,6 +13,7 @@ from .epi_model import EpiModel
 from ..foi import BaseFOI
 from ..compt_model import ComptModel
 from ..utils import get_var_dims, group_dict_by_var, discrete_time_approx as dta, IntPerDay
+from ..partition.partition import NC2Contact, Contact2Phi
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -281,51 +282,46 @@ class SetupState:
 
 
 @xs.process
-class SetupPhi:
+class SetupPhi(Contact2Phi):
     """Set value of phi (contacts per unit time)."""
-    RANDOM_PHI_DATA = np.array([
-        [0.89, 0.48, 0.31, 0.75, 0.07],
-        [0.64, 0.69, 0.13, 0.00, 0.05],
-        [0.46, 0.58, 0.19, 0.16, 0.11],
-        [0.53, 0.36, 0.26, 0.35, 0.13],
-        [0.68, 0.70, 0.36, 0.23, 0.28]
-    ]) 
+    pass
+
+
+@xs.process
+class GetContactXR(NC2Contact):
+    pass
+
+
+@xs.process
+class PhiLinker:
+    """Simple process that passes value of `phi_t` to `phi` for compatibility
+    with ESL v1 partition processes.
+    """
+    phi_t = xs.global_ref('phi_t', intent='in')
     phi = xs.global_ref('phi', intent='out')
-    _coords = xs.group_dict('coords')
-
-    @property
-    def coords(self):
-        return group_dict_by_var(self._coords)
-
-    @property
-    def phi_dims(self):
-        return get_var_dims(BaseFOI, 'phi')
-
-    @property
-    def phi_coords(self):
-        return {dim: self.coords[dim.rstrip('01')] for dim in self.phi_dims}
+    # phi = xs.foreign(RateS2E, 'phi', intent='out')
 
     def initialize(self):
-        data = self.extend_phi_dims(self.RANDOM_PHI_DATA, self.coords['risk'])
-        data = self.extend_phi_dims(data, self.coords['vertex'])
-        self.phi = xr.DataArray(data=data, dims=self.phi_dims, coords=self.phi_coords)
+        self.phi = self.phi_t
 
-    def extend_phi_dims(self, data, coords) -> np.ndarray:
-        f = lambda data, coords: np.stack([data] * len(coords), axis=-1)
-        return f(f(data, coords), coords)
+    def run_step(self):
+        self.phi = self.phi_t
 
 
-
-class NineComptV1(EpiModel):
+class PartitionV1(EpiModel):
     """Nine-compartment SEIR model with partitioning from Episimlab V1"""
-    TAGS = ('SEIR', 'compartments::9')
+    TAGS = ('SEIR', 'compartments::9', 'contact-partitioning')
     PROCESSES = {
+        'get_contact_xr': GetContactXR,
         'setup_phi': SetupPhi,
         'setup_coords': SetupCoords,
         'setup_state': SetupState,
         'setup_compt_graph': SetupComptGraph,
         'compt_model': ComptModel,
         'int_per_day': IntPerDay,
+
+        # DEBUG
+        'phi_linker': PhiLinker,
 
         # default values for N-D epi parameters
         'setup_pi': SetupPiDefault,
@@ -346,6 +342,7 @@ class NineComptV1(EpiModel):
         'rate_Ih2R': RateIh2R,
         'rate_Ih2D': RateIh2D,
     }
+
     RUNNER_DEFAULTS = dict(
         clocks={
             'step': pd.date_range(start='3/1/2020', end='5/1/2020', freq='24H')
@@ -362,6 +359,7 @@ class NineComptV1(EpiModel):
             'rate_E2Pa__tau': 0.57, 
             'rate_Ih2D__mu': 0.128, 
             'rate_Iy2Ih__eta': 0.169492, 
+            'get_contact_xr__contact_da_fp': 'tests/data/20200311_contact_matrix.nc'
         },
         output_vars={
             'compt_model__state': 'step'

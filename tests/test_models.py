@@ -3,12 +3,12 @@ import xarray as xr
 import xsimlab as xs
 import numpy as np
 import logging
-from episimlab.models import MarkovToy, NineComptV1
+from episimlab.models import MarkovToy, NineComptV1, PartitionV1
 
 
 @pytest.mark.parametrize('model_type', [
-    MarkovToy, 
-    NineComptV1,
+    # MarkovToy, 
+    # NineComptV1,
     PartitionV1
 ])
 def test_model_sanity(model_type):
