@@ -4,8 +4,6 @@ import xarray as xr
 import xsimlab as xs
 import numpy as np
 from itertools import product
-from .. import utils
-from ..pytest_utils import profiler
 import dask.dataframe as dd
 from datetime import datetime
 
@@ -127,7 +125,6 @@ class Partition2Contact:
         self.contact_partitions = self.partitions_to_contacts(daily_timesteps=10)
         self.contact_xr = self.build_contact_xr()
 
-    @profiler()
     def load_travel_df(self):
 
         tdf = pd.read_csv(self.travel_fp)
@@ -181,7 +178,6 @@ class Partition2Contact:
 
         return daily_pop
 
-    @profiler()
     def dask_partition(self):
 
         total = self.population_totals()
@@ -422,7 +418,6 @@ class NC2Contact:
     contact_da_fp = xs.variable(intent='in')
     contact_xr = xs.variable(dims=DIMS, intent='out', global_name='contact_xr')
 
-    @profiler()
     def initialize(self):
         da = (xr
               .open_dataarray(self.contact_da_fp)
