@@ -1,6 +1,7 @@
 import numpy as np
 import xsimlab as xs
 import xarray as xr
+from ..utils import group_dict_by_var, get_var_dims
 
 
 @xs.process

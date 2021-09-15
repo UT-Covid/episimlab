@@ -9,14 +9,35 @@ import xarray as xr
 
 @pytest.fixture()
 def counts_dims():
+    raise DeprecationWarning()
     return ['vertex', 'age_group', 'risk_group', 'compartment']
+
+
+@pytest.fixture
+def dims():
+    return ('vertex', 'age', 'risk', 'compt')
 
 
 @pytest.fixture(params=[
     3,
     # 5
 ])
+def coords(request):
+    return {
+        ('proc_name', 'vertex'): list(range(request.param)),
+        ('proc_name', 'age'): ['0-4', '5-17', '18-49', '50-64', '65+'],
+        ('proc_name', 'risk'): ['low', 'high'],
+        ('proc_name', 'compt'): ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
+                        'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
+                        'Py2Iy', 'Iy2Ih', 'H2D']
+    }
+
+@pytest.fixture(params=[
+    3,
+    # 5
+])
 def counts_coords(request):
+    raise DeprecationWarning()
     return {
         'vertex': list(range(request.param)),
         'age_group': ['0-4', '5-17', '18-49', '50-64', '65+'],
