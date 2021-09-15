@@ -3,16 +3,14 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ...seir.base import BaseSEIR
-from .base import BaseSetupEpi
 from ...utils.rng import get_rng
 
 
 @xs.process
-class SetupDefaultSigma(BaseSetupEpi):
+class SetupDefaultSigma:
     """Returns a static, scalar default value for sigma.
     """
-    sigma = xs.foreign(BaseSEIR, 'sigma', intent='out')
+    sigma = xs.global_ref('sigma', intent='out')
 
     def initialize(self):
         self.sigma = self.get_sigma()
@@ -27,9 +25,9 @@ class SetupStaticSigmaFromExposedPara(SetupDefaultSigma):
     after sampling once from this triangular distibution, at the beginning of
     the simulation.
     """
-    tri_exposed_para = xs.variable(dims=('value'), static=True, intent='in')
-    stochastic = xs.foreign(BaseSEIR, 'stochastic', intent='in')
-    seed_state = xs.foreign(BaseSEIR, 'seed_state', intent='in')
+    tri_exposed_para = xs.variable(global_name='tri_exposed_para', dims=('value'), static=True, intent='in')
+    stochastic = xs.global_ref('stochastic', intent='in')
+    seed_state = xs.global_ref('seed_state', intent='in')
 
     def get_sigma(self):
         """Sample from triangular distribution if stochastic, or return the

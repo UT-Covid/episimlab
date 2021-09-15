@@ -15,14 +15,13 @@ class TestSetupSigma:
         (True, 0.3884560589524496),
         (False, 0.3448275862068966),
     ))
-    def test_can_setup_static(self, counts_coords, tri_exposed_para, stochastic,
+    def test_can_setup_static(self, tri_exposed_para, stochastic,
                               seed_state, expected):
-        inputs = counts_coords.copy()
-        inputs.update({
+        inputs = {
             'tri_exposed_para': tri_exposed_para,
             'stochastic': stochastic,
             'seed_state': seed_state,
-        })
+        }
 
         proc = SetupStaticSigmaFromExposedPara(**inputs)
         proc.initialize()
@@ -37,13 +36,12 @@ class TestSetupSigma:
         (True, 0.3884560589524496, 10),
     ))
     def test_can_setup_dynamic(self, tri_exposed_para, stochastic, n_steps,
-                               counts_coords, seed_state, expected):
-        inputs = counts_coords.copy()
-        inputs.update({
+                               seed_state, expected):
+        inputs = {
             'tri_exposed_para': tri_exposed_para,
             'stochastic': stochastic,
             'seed_state': seed_state,
-        })
+        }
 
         proc = SetupDynamicSigmaFromExposedPara(**inputs)
         proc.initialize()
