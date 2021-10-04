@@ -9,21 +9,13 @@ from ...utils.rng import get_rng
 @xs.process
 class SetupDefaultGamma:
     """Provide default values for `gamma` for compartments Ia, Iy, and Ih."""
-
-    gamma = xs.global_ref('gamma', intent='out')
+    gamma_Ih = xs.global_ref('gamma_Ih', intent='out')
+    gamma_Ia = xs.global_ref('gamma_Ia', intent='out')
+    gamma_Iy = xs.global_ref('gamma_Iy', intent='out')
 
     def initialize(self):
-        self.gamma = self.get_gamma()
-
-    def get_gamma(self) -> xr.DataArray:
-        dims = ["compartment"]
-        da = xr.DataArray(
-            data=0.,
-            dims=dims,
-            coords={k: self.counts_coords[k] for k in dims}
-        )
-        da.loc[dict(compartment=['Ia', 'Iy', 'Ih'])] = [0.25, 0.25, 0.09118541]
-        return da
+        self.gamma_Ih = 0.09118541
+        self.gamma_Ia = 0.25
 
 
 @xs.process
@@ -72,3 +64,16 @@ class SetupGammaIa:
         and gamma_Iy are exactly the same at each timestep.
         """
         self.gamma_Ia = self.get_gamma_Ia()
+
+@xs.process
+class SetupGammaIy:
+    """Set gamma for Iy equal to gamma for Ia
+    """
+    gamma_Ia = xs.global_ref('gamma_Ia', intent='in')
+    gamma_Iy = xs.global_ref('gamma_Iy', intent='out')
+
+    def initialize(self):
+        self.gamma_Iy = self.gamma_Ia
+    
+    def run_step(self):
+        self.gamma_Iy = self.gamma_Ia
