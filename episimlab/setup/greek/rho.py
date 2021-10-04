@@ -3,64 +3,35 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ...seir.base import BaseSEIR
-from .base import BaseSetupEpi
 from ...utils.rng import get_rng
 
 
 @xs.process
-class SetupDefaultRho(BaseSetupEpi):
-    """
-    """
-
-    rho = xs.foreign(BaseSEIR, 'rho', intent='out')
+class SetupDefaultRho:
+    """Provide a default value for rho_Ia and rho_Iy."""
+    rho_Ia = xs.global_ref('rho_Ia', intent='out')
+    rho_Iy = xs.global_ref('rho_Iy', intent='out')
 
     def initialize(self):
-        self.rho = self.get_rho()
-
-    def get_rho(self):
-        dims = ['compartment']
-        return xr.DataArray(
-            data=0.43478261,
-            dims=dims,
-            coords={k: self.counts_coords[k] for k in dims}
-        )
+        self.rho_Ia = 0.43478261
+        self.rho_Iy = 0.43478261
 
 
 @xs.process
-class SetupStaticRhoFromTri(SetupDefaultRho):
-    """Given a length 3 iterable input `tri_exposed_para`, calculate rho
-    after sampling once from this triangular distibution, at the beginning of
-    the simulation.
-    """
-    tri_pa2ia = xs.variable(dims=(), static=True, intent='in')
-    tri_py2iy = xs.variable(dims=(), static=True, intent='in')
+class SetupRhoIa:
+    """Calculate rho for compartment Ia."""
+    tri_Pa2Ia = xs.variable(global_name='tri_Pa2Ia', static=True, intent='in')
+    rho_Ia = xs.global_ref('rho_Ia', intent='out')
 
-    def get_rho(self) -> xr.DataArray:
-        dims = ["compartment"]
-        da = xr.DataArray(
-            data=0.,
-            dims=dims,
-            coords={k: self.counts_coords[k] for k in dims}
-        )
-        da.loc[dict(compartment=['Ia', 'Iy'])] = [
-            self.get_rho_a(),
-            self.get_rho_y(),
-        ]
-        return da
-
-    def get_rho_y(self) -> float:
-        return 1 / self.tri_py2iy
-
-    def get_rho_a(self) -> float:
-        return 1 / self.tri_pa2ia
+    def initialize(self):
+        self.rho_Ia = 1 / self.tri_Pa2Ia
 
 
 @xs.process
-class SetupDynamicRhoFromTri(SetupStaticRhoFromTri):
-    """Like SetupStaticRho, but the triangular distibution is sampled
-    to calculate rho at every step.
-    """
+class SetupRhoIy:
+    """Calculate rho for compartment Iy."""
+    tri_Py2Iy = xs.variable(global_name='tri_Py2Iy', static=True, intent='in')
+    rho_Iy = xs.global_ref('rho_Iy', intent='out')
 
-    def run_step(self):
-        self.rho = self.get_rho()
+    def initialize(self):
+        self.rho_Iy = 1 / self.tri_Py2Iy

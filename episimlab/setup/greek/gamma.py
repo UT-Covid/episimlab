@@ -21,19 +21,19 @@ class SetupDefaultGamma:
 @xs.process
 class SetupGammaIh:
     """Draws `gamma` for compartment Ih from a triangular distribution
-    defined by 3-length array `tri_h2r`.
+    defined by 3-length array `tri_Ih2R`.
     """
     gamma_Ih = xs.global_ref('gamma_Ih', intent='out')
-    tri_h2r = xs.variable(dims=('value'), static=True, intent='in')
+    tri_Ih2R = xs.variable(dims=('value'), static=True, intent='in')
     stochastic = xs.global_ref('stochastic', intent='in')
     seed_state = xs.global_ref('seed_state', intent='in')
 
     def get_gamma(self) -> xr.DataArray:
         if self.stochastic is True:
             rng = get_rng(seed=self.seed_state)
-            return 1 / rng.triangular(*self.tri_h2r)
+            return 1 / rng.triangular(*self.tri_Ih2R)
         else:
-            return 1 / np.mean(self.tri_h2r)
+            return 1 / np.mean(self.tri_Ih2R)
     
     def initialize(self):
         self.gamma_Ih = self.get_gamma()
@@ -42,10 +42,10 @@ class SetupGammaIh:
 @xs.process
 class SetupGammaIa:
     """Draws `gamma` for compartments Ia from a triangular distribution
-    defined by 3-length array `tri_y2r_para`.
+    defined by 3-length array `tri_Iy2R_para`.
     """
     gamma_Ia = xs.global_ref('gamma_Ia', intent='out')
-    tri_y2r_para = xs.variable(dims=('value'), static=True, intent='in')
+    tri_Iy2R_para = xs.variable(dims=('value'), static=True, intent='in')
     stochastic = xs.global_ref('stochastic', intent='in')
     seed_state = xs.global_ref('seed_state', intent='in')
 
@@ -55,9 +55,9 @@ class SetupGammaIa:
         """
         if self.stochastic is True:
             rng = get_rng(seed=self.seed_state)
-            return 1 / rng.triangular(*self.tri_y2r_para)
+            return 1 / rng.triangular(*self.tri_Iy2R_para)
         else:
-            return 1 / np.mean(self.tri_y2r_para)
+            return 1 / np.mean(self.tri_Iy2R_para)
 
     def initialize(self):
         """Note that because `seed_state` is same for both rng, gamma_Ia
