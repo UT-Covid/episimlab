@@ -13,7 +13,7 @@ class SetupDefaultGamma(BaseSetupEpi):
     """
     """
 
-    gamma = xs.foreign(BaseSEIR, 'gamma', intent='out')
+    gamma = xs.global_ref('gamma', intent='out')
 
     def initialize(self):
         self.gamma = self.get_gamma()

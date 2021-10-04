@@ -12,10 +12,65 @@ import networkx as nx
 from .epi_model import EpiModel
 from ..foi import BaseFOI
 from ..compt_model import ComptModel
-from ..utils import get_var_dims, group_dict_by_var, discrete_time_approx as dta, IntPerDay
+from ..utils import (
+    get_var_dims, group_dict_by_var, discrete_time_approx as dta, 
+    IntPerDay, get_rng
+)
 from ..partition.partition import NC2Contact, Contact2Phi
+from ..setup.sto import SetupStochasticFromToggle
+from ..setup.seed import SeedGenerator
 import logging
 logging.basicConfig(level=logging.DEBUG)
+
+
+@xs.process
+class SetupGammaIh:
+    """Draws `gamma` for compartment Ih from a triangular distribution
+    defined by 3-length array `tri_h2r`.
+    """
+    gamma_Ih = xs.global_ref('gamma_Ih', intent='out')
+    tri_h2r = xs.variable(dims=('value'), static=True, intent='in')
+    stochastic = xs.global_ref('stochastic', intent='in')
+    seed_state = xs.global_ref('seed_state', intent='in')
+
+    def get_gamma(self) -> xr.DataArray:
+        if self.stochastic is True:
+            rng = get_rng(seed=self.seed_state)
+            return 1 / rng.triangular(*self.tri_h2r)
+        else:
+            return 1 / np.mean(self.tri_h2r)
+    
+    def initialize(self):
+        self.gamma_Ih = self.get_gamma()
+
+
+@xs.process
+class SetupGammaIaIy:
+    """Draws `gamma` for compartments Ia and Iy from a triangular distribution
+    defined by 3-length array `tri_y2r_para`.
+    """
+    gamma_Iy = xs.global_ref('gamma_Iy', intent='out')
+    gamma_Ia = xs.global_ref('gamma_Ia', intent='out')
+    tri_y2r_para = xs.variable(dims=('value'), static=True, intent='in')
+    stochastic = xs.global_ref('stochastic', intent='in')
+    seed_state = xs.global_ref('seed_state', intent='in')
+
+    def get_gamma_IaIy(self) -> float:
+        """Sample from triangular distributions if stochastic, or return the
+        mean if deterministic.
+        """
+        if self.stochastic is True:
+            rng = get_rng(seed=self.seed_state)
+            return 1 / rng.triangular(*self.tri_y2r_para)
+        else:
+            return 1 / np.mean(self.tri_y2r_para)
+
+    def initialize(self):
+        """Note that because `seed_state` is same for both rng, gamma_Ia
+        and gamma_Iy are exactly the same at each timestep.
+        """
+        self.gamma_Iy = self.get_gamma_IaIy()
+        self.gamma_Ia = self.get_gamma_IaIy()
 
 
 @xs.process
@@ -314,20 +369,26 @@ class PartitionV1(EpiModel):
     """Nine-compartment SEIR model with partitioning from Episimlab V1"""
     TAGS = ('SEIR', 'compartments::9', 'contact-partitioning')
     PROCESSES = {
+        'setup_compt_graph': SetupComptGraph,
+        'compt_model': ComptModel,
+        'int_per_day': IntPerDay,
         'get_contact_xr': GetContactXR,
         'setup_phi': SetupPhi,
         # 'setup_coords': SetupCoords,
         'setup_state': SetupState,
-        'setup_compt_graph': SetupComptGraph,
-        'compt_model': ComptModel,
-        'int_per_day': IntPerDay,
+        'setup_sto': SetupStochasticFromToggle,
+        'setup_seed': SeedGenerator,
 
-        # DEBUG
+        # DEBUG: lightweight adapter
         'phi_linker': PhiLinker,
 
         # default values for N-D epi parameters
         'setup_pi': SetupPiDefault,
         'setup_nu': SetupNuDefault,
+
+        # calculate greeks used by edge weight processes
+        'setup_gamma_Ih': SetupGammaIh,
+        'setup_gamma_IaIy': SetupGammaIaIy,
 
         # used for RateE2Pa and RateE2Py
         'rate_E2P': RateE2P,
@@ -350,13 +411,14 @@ class PartitionV1(EpiModel):
             'step': pd.date_range(start='3/1/2020', end='5/1/2020', freq='24H')
         },
         input_vars={
+            'setup_sto__sto_toggle': 0,
+            'setup_seed__seed_entropy': 12345,
             'rate_S2E__beta': 0.35,
             'rate_E2P__sigma': 0.34482759, 
             'rate_Py2Iy__rho_Iy': 0.43478261, 
             'rate_Pa2Ia__rho_Ia': 0.43478261,
-            'rate_Ih2R__gamma_Ih': 0.09118541, 
-            'rate_Iy2R__gamma_Iy': 0.25, 
-            'rate_Ia2R__gamma_Ia': 0.25, 
+            'setup_gamma_Ih__tri_h2r': [9.4, 10.7, 12.8],
+            'setup_gamma_IaIy__tri_y2r_para': [3.0, 4.0, 5.0],
             'rate_E2Py__tau': 0.57, 
             'rate_E2Pa__tau': 0.57, 
             'rate_Ih2D__mu': 0.128, 
