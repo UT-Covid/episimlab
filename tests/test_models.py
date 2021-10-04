@@ -6,15 +6,19 @@ import logging
 from episimlab.models import MarkovToy, NineComptV1, PartitionV1
 
 
-@pytest.mark.parametrize('model_type', [
-    # MarkovToy, 
-    # NineComptV1,
-    PartitionV1
+@pytest.mark.parametrize('model_type, sto_toggle', [
+    # (MarkovToy, 0), 
+    # (NineComptV1, 0),
+    (PartitionV1, 0),
+    (PartitionV1, -1),
+    (PartitionV1, 5),
 ])
-def test_model_sanity(model_type):
+def test_model_sanity(model_type, sto_toggle):
     """Tests models with a handful of sanity checks."""
     model = model_type()
-    result = model.run_with_defaults()
+    in_ds = model.default_in_ds()
+    in_ds['setup_sto__sto_toggle'] = sto_toggle
+    result = in_ds.xsimlab.run(model=model)
     assert isinstance(result, xr.Dataset)
     state = result['compt_model__state']
 
