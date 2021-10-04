@@ -19,58 +19,11 @@ from ..utils import (
 from ..partition.partition import NC2Contact, Contact2Phi
 from ..setup.sto import SetupStochasticFromToggle
 from ..setup.seed import SeedGenerator
+from ..setup.greek import (
+    gamma
+)
 import logging
 logging.basicConfig(level=logging.DEBUG)
-
-
-@xs.process
-class SetupGammaIh:
-    """Draws `gamma` for compartment Ih from a triangular distribution
-    defined by 3-length array `tri_h2r`.
-    """
-    gamma_Ih = xs.global_ref('gamma_Ih', intent='out')
-    tri_h2r = xs.variable(dims=('value'), static=True, intent='in')
-    stochastic = xs.global_ref('stochastic', intent='in')
-    seed_state = xs.global_ref('seed_state', intent='in')
-
-    def get_gamma(self) -> xr.DataArray:
-        if self.stochastic is True:
-            rng = get_rng(seed=self.seed_state)
-            return 1 / rng.triangular(*self.tri_h2r)
-        else:
-            return 1 / np.mean(self.tri_h2r)
-    
-    def initialize(self):
-        self.gamma_Ih = self.get_gamma()
-
-
-@xs.process
-class SetupGammaIaIy:
-    """Draws `gamma` for compartments Ia and Iy from a triangular distribution
-    defined by 3-length array `tri_y2r_para`.
-    """
-    gamma_Iy = xs.global_ref('gamma_Iy', intent='out')
-    gamma_Ia = xs.global_ref('gamma_Ia', intent='out')
-    tri_y2r_para = xs.variable(dims=('value'), static=True, intent='in')
-    stochastic = xs.global_ref('stochastic', intent='in')
-    seed_state = xs.global_ref('seed_state', intent='in')
-
-    def get_gamma_IaIy(self) -> float:
-        """Sample from triangular distributions if stochastic, or return the
-        mean if deterministic.
-        """
-        if self.stochastic is True:
-            rng = get_rng(seed=self.seed_state)
-            return 1 / rng.triangular(*self.tri_y2r_para)
-        else:
-            return 1 / np.mean(self.tri_y2r_para)
-
-    def initialize(self):
-        """Note that because `seed_state` is same for both rng, gamma_Ia
-        and gamma_Iy are exactly the same at each timestep.
-        """
-        self.gamma_Iy = self.get_gamma_IaIy()
-        self.gamma_Ia = self.get_gamma_IaIy()
 
 
 @xs.process
@@ -217,7 +170,8 @@ class RateE2P:
 class RateIy2R:
     """Provide a `rate_Iy2R`"""
     rate_Iy2R = xs.variable(global_name='rate_Iy2R', groups=['tm'], intent='out')
-    gamma_Iy = xs.variable(global_name='gamma_Iy', intent='in')
+    # Same as gamma_Ia
+    gamma_Iy = xs.global_ref('gamma_Ia', intent='in')
     pi = xs.global_ref('pi', intent='in')
     state = xs.global_ref('state', intent='in')
 
@@ -387,8 +341,8 @@ class PartitionV1(EpiModel):
         'setup_nu': SetupNuDefault,
 
         # calculate greeks used by edge weight processes
-        'setup_gamma_Ih': SetupGammaIh,
-        'setup_gamma_IaIy': SetupGammaIaIy,
+        'setup_gamma_Ih': gamma.SetupGammaIh,
+        'setup_gamma_Ia': gamma.SetupGammaIa,
 
         # used for RateE2Pa and RateE2Py
         'rate_E2P': RateE2P,
@@ -418,7 +372,7 @@ class PartitionV1(EpiModel):
             'rate_Py2Iy__rho_Iy': 0.43478261, 
             'rate_Pa2Ia__rho_Ia': 0.43478261,
             'setup_gamma_Ih__tri_h2r': [9.4, 10.7, 12.8],
-            'setup_gamma_IaIy__tri_y2r_para': [3.0, 4.0, 5.0],
+            'setup_gamma_Ia__tri_y2r_para': [3.0, 4.0, 5.0],
             'rate_E2Py__tau': 0.57, 
             'rate_E2Pa__tau': 0.57, 
             'rate_Ih2D__mu': 0.128, 
