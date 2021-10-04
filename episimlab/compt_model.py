@@ -3,7 +3,7 @@ import numpy as np
 import xarray as xr
 import xsimlab as xs
 import pandas as pd
-from .utils import group_dict_by_var
+from .utils import group_dict_by_var, get_rng
 
 
 @xs.process
@@ -13,11 +13,14 @@ class ComptModel:
     """
     TAGS = ('compt_model', )
     STATE_DIMS = ('vertex', 'compt', 'age', 'risk')
+    
     _tm_subset = xs.group_dict('tm')
     state = xs.variable(dims=STATE_DIMS, intent='inout', global_name='state')
     tm = xs.variable(dims=STATE_DIMS, intent='out', global_name='tm')
     compt_graph = xs.variable('compt_graph', intent='in', global_name='compt_graph')
-    
+    stochastic = xs.global_ref('stochastic', intent='in')
+    seed_state = xs.global_ref('seed_state', intent='in')
+
     def run_step(self):
         """In particular, we need to ensure that `tm_subset` and `tm` refresh
         at every timestep.
@@ -100,8 +103,20 @@ class ComptModel:
         else:
             logging.warning(f"could not find a weight for transition from {u} to {v} compartment ({key})")
             weight = 0.
+        
+        # poisson draw if stochastic is on
+        if bool(self.stochastic):
+            weight = self.stochastic_draw(weight)
+
         return weight
 
     def edge_weight_name(self, u, v) -> str:
         """Attr name when looking for edge weight between nodes `u` and `v`."""
         return f"rate_{u}2{v}"
+
+    def stochastic_draw(self, value):
+        rng = get_rng(seed=self.seed_state)
+        if isinstance(value, xr.DataArray):
+            return xr.apply_ufunc(rng.poisson, value)
+        else:
+            return rng.poisson(value)
