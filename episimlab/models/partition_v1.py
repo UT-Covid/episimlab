@@ -20,7 +20,7 @@ from ..partition.partition import NC2Contact, Contact2Phi
 from ..setup.sto import SetupStochasticFromToggle
 from ..setup.seed import SeedGenerator
 from ..setup.greek import (
-    gamma
+    gamma, sigma
 )
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -170,8 +170,7 @@ class RateE2P:
 class RateIy2R:
     """Provide a `rate_Iy2R`"""
     rate_Iy2R = xs.variable(global_name='rate_Iy2R', groups=['tm'], intent='out')
-    # Same as gamma_Ia
-    gamma_Iy = xs.global_ref('gamma_Ia', intent='in')
+    gamma_Iy = xs.variable(global_name='gamma_Iy', intent='in')
     pi = xs.global_ref('pi', intent='in')
     state = xs.global_ref('state', intent='in')
 
@@ -343,6 +342,8 @@ class PartitionV1(EpiModel):
         # calculate greeks used by edge weight processes
         'setup_gamma_Ih': gamma.SetupGammaIh,
         'setup_gamma_Ia': gamma.SetupGammaIa,
+        'setup_gamma_Iy': gamma.SetupGammaIy,
+        'setup_sigma': sigma.SetupStaticSigmaFromExposedPara,
 
         # used for RateE2Pa and RateE2Py
         'rate_E2P': RateE2P,
@@ -368,7 +369,8 @@ class PartitionV1(EpiModel):
             'setup_sto__sto_toggle': 0,
             'setup_seed__seed_entropy': 12345,
             'rate_S2E__beta': 0.35,
-            'rate_E2P__sigma': 0.34482759, 
+            # 'rate_E2P__sigma': 0.34482759, 
+            'setup_sigma__tri_exposed_para': [1.9, 2.9, 3.9],
             'rate_Py2Iy__rho_Iy': 0.43478261, 
             'rate_Pa2Ia__rho_Ia': 0.43478261,
             'setup_gamma_Ih__tri_h2r': [9.4, 10.7, 12.8],
