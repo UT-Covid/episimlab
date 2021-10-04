@@ -20,7 +20,7 @@ from ..partition.partition import NC2Contact, Contact2Phi
 from ..setup.sto import SetupStochasticFromToggle
 from ..setup.seed import SeedGenerator
 from ..setup.greek import (
-    gamma, sigma, rho
+    gamma, sigma, rho, mu
 )
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -338,6 +338,7 @@ class PartitionV1(EpiModel):
         # calculate greeks used by edge weight processes
         'setup_pi': SetupPiDefault,
         'setup_nu': SetupNuDefault,
+        'setup_mu': mu.SetupStaticMuIh2D,
         'setup_gamma_Ih': gamma.SetupGammaIh,
         'setup_gamma_Ia': gamma.SetupGammaIa,
         'setup_gamma_Iy': gamma.SetupGammaIy,
@@ -379,7 +380,7 @@ class PartitionV1(EpiModel):
             'setup_gamma_Ia__tri_Iy2R_para': [3.0, 4.0, 5.0],
             'rate_E2Py__tau': 0.57, 
             'rate_E2Pa__tau': 0.57, 
-            'rate_Ih2D__mu': 0.128, 
+            'setup_mu__tri_Ih2D': [5.2, 8.1, 10.1],
             'rate_Iy2Ih__eta': 0.169492, 
             'get_contact_xr__contact_da_fp': 'tests/data/20200311_contact_matrix.nc'
         },
