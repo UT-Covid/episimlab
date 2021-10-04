@@ -3,28 +3,21 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ...seir.base import BaseSEIR
-from .base import BaseSetupEpi
-
 
 @xs.process
-class SetupDefaultTau(BaseSetupEpi):
-    """Return a default value for tau.
-    """
+class SetupDefaultTau:
+    """Return a default value for tau."""
     tau = xs.global_ref('tau', intent='out')
 
     def initialize(self):
-        self.tau = self.get_tau()
-
-    def get_tau(self):
-        return 0.57
+        self.tau = 0.57
 
 
 @xs.process
-class SetupTauFromAsympRate(SetupDefaultTau):
-    """Given a static scalar input asymptomatic ratio, calculate tau.
-    """
+class SetupTauFromAsympRate:
+    """Given a static scalar input asymptomatic ratio, calculate tau."""
     asymp_rate = xs.variable(dims=(), static=True, intent='in')
+    tau = xs.global_ref('tau', intent='out')
 
-    def get_tau(self):
-        return 1 - self.asymp_rate
+    def initialize(self):
+        self.tau = 1 - self.asymp_rate
