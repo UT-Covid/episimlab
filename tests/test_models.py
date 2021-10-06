@@ -4,6 +4,7 @@ import xsimlab as xs
 import numpy as np
 import logging
 from episimlab.models import MarkovToy, NineComptV1, PartitionV1
+from episimlab.utils import any_negative
 
 
 @pytest.mark.parametrize('model_type, sto_toggle', [
@@ -36,5 +37,8 @@ def test_model_sanity(model_type, sto_toggle):
     S_final = state[dict(step=-1)].loc[dict(compt="S")]
     S_change = (S_final - S_init).sum()
     assert abs(S_change) > 1e-8
+
+    # ensure that there are no negative values in the state at any time
+    assert not any_negative(state, raise_err=True)
 
     # model.plot()
