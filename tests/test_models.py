@@ -12,7 +12,7 @@ from episimlab.utils import any_negative
     # (NineComptV1, 0),
     (PartitionV1, 0),
     (PartitionV1, -1),
-    # (PartitionV1, 5),
+    (PartitionV1, 5),
 ])
 def test_model_sanity(model_type, sto_toggle):
     """Tests models with a handful of sanity checks."""
