@@ -18,7 +18,7 @@ def test_model_sanity(model_type, sto_toggle):
     model = model_type()
     in_ds = model.default_in_ds()
     in_ds['setup_sto__sto_toggle'] = sto_toggle
-    result = in_ds.xsimlab.run(model=model)
+    model.out_ds = result = in_ds.xsimlab.run(model=model)
     assert isinstance(result, xr.Dataset)
     state = result['compt_model__state']
 

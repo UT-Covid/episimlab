@@ -26,6 +26,7 @@ class ComptModel:
         """In particular, we need to ensure that `tm_subset` and `tm` refresh
         at every timestep.
         """
+        self._edge_weight_cache = dict()
         self.tm = xr.zeros_like(self.state)
         self.tm_subset = group_dict_by_var(self._tm_subset)
         self.apply_edges()
@@ -94,6 +95,13 @@ class ComptModel:
                 raise
 
     def edge_weight(self, u, v):
+        if (u, v) in self._edge_weight_cache:
+            return self._edge_weight_cache[u, v]
+        else:
+            self._edge_weight_cache[u, v] = self.get_edge_weight(u, v)
+            return self._edge_weight_cache[u, v]
+
+    def get_edge_weight(self, u, v):
         """Try to find an edge weight for (u, v) in `tm_subset`, then
         in the edge attribute. Default to zero weight if none can be found."""
         key = self.edge_weight_name(u, v)
