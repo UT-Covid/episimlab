@@ -165,6 +165,8 @@ class RateE2P:
 
     def run_step(self):
         self.rate_E2P = dta(self.sigma, self.int_per_day) * self.state.loc[dict(compt='E')]
+        # DEBUG
+        assert not any_negative(self.rate_E2P, raise_err=True)
    
 
 @xs.process

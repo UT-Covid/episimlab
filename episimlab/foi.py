@@ -1,5 +1,6 @@
 import xarray as xr
 import xsimlab as xs
+from .utils import any_negative
 
 
 @xs.process
@@ -40,6 +41,10 @@ class BaseFOI:
                .sum(one_suffix.values())
                # like .rename({'age0': 'age', 'risk0': 'risk'})
                .rename({v: k for k, v in zero_suffix.items()}))
+        
+        # DEBUG
+        assert not any_negative(foi, raise_err=True)
+        
         return foi
     
     @property

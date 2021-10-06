@@ -3,7 +3,8 @@ import numpy as np
 import xarray as xr
 import xsimlab as xs
 import pandas as pd
-from .utils import group_dict_by_var, get_rng
+from .utils import group_dict_by_var, get_rng, any_negative, clip_to_zero
+from numbers import Number
 
 
 @xs.process
@@ -31,6 +32,8 @@ class ComptModel:
 
     def finalize_step(self):
         self.state += self.tm
+        # DEBUG
+        assert not any_negative(self.state, raise_err=True)
 
     def apply_edges(self) -> None:
         """Iterate over edges in `compt_graph` in ascending order of `priority`.
@@ -103,20 +106,46 @@ class ComptModel:
         else:
             logging.warning(f"could not find a weight for transition from {u} to {v} compartment ({key})")
             weight = 0.
+
+        # TODO: if weight is very close to zero, set to 0
+
+        # if any_negative(weight):
+        #     logging.warning(
+        #         f"Weight of edge '{key}' contains negative values. " 
+        #         f"Edges are directional, so instead of setting " 
+        #         f"a negative weight, please set a positive weight " 
+        #         f"on the reverse edge ({self.edge_weight_name(v, u)}).")
+        #     logging.warning(f"Clipping weight of edge '{key}' to minimum of zero.")
+        #     weight = clip_to_zero(weight)
+        # assert not any_negative(weight)
         
         # poisson draw if stochastic is on
         if bool(self.stochastic):
-            weight = self.stochastic_draw(weight)
-
+            weight = self.poisson(weight)
+            
         return weight
 
     def edge_weight_name(self, u, v) -> str:
         """Attr name when looking for edge weight between nodes `u` and `v`."""
         return f"rate_{u}2{v}"
+    
+    @property
+    def rng(self):
+        if not hasattr(self, '_rng'):
+            self._rng = get_rng(seed=self.seed_state)
+        return self._rng
 
-    def stochastic_draw(self, value):
-        rng = get_rng(seed=self.seed_state)
-        if isinstance(value, xr.DataArray):
-            return xr.apply_ufunc(rng.poisson, value)
-        else:
-            return rng.poisson(value)
+    def poisson(self, val):
+        try:
+            arr = self.rng.poisson(val)
+        except ValueError as err:
+            if "lam value too large" in str(err):
+                arr = np.stack([self.poisson(a) for a in val], axis=0)
+            else:
+                raise
+        if isinstance(val, xr.DataArray):
+            cp = val.copy()
+            cp[{}] = arr
+            return cp
+        return arr
+
