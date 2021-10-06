@@ -14,7 +14,7 @@ from ..foi import BaseFOI
 from ..compt_model import ComptModel
 from ..utils import (
     get_var_dims, group_dict_by_var, discrete_time_approx as dta, 
-    IntPerDay, get_rng
+    IntPerDay, get_rng, any_negative
 )
 from ..partition.partition import NC2Contact, Contact2Phi
 from ..setup.sto import SetupStochasticFromToggle
@@ -152,7 +152,8 @@ class RateE2Pa:
 
     def run_step(self):
         self.rate_E2Pa = (1 - self.tau) * self.rate_E2P
-
+        # DEBUG
+        assert not any_negative(self.rate_E2Pa, raise_err=True)
 
 @xs.process
 class RateE2P:
