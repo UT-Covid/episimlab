@@ -29,13 +29,13 @@ class TestEpiModel:
     def test_w_config(self, model_type, config):
         """Instantiate model with config"""
         model = model_type()
-        r1 = model.run(config_fp=config)
+        model.config_fp = config
+        r1 = model.run()
         assert model.in_ds['setup_seed__seed_entropy'] == 54321
         assert model.in_ds['setup_sto__sto_toggle'] == 19
 
         # check override in kwargs
-        model.config_fp = config
-        r2 = model.run(input_vars=dict(setup_seed__seed_entropy=56789))
+        r2 = model.run(config_fp=config, input_vars=dict(setup_seed__seed_entropy=56789))
         assert model.in_ds['setup_seed__seed_entropy'] == 56789
         assert model.in_ds['setup_sto__sto_toggle'] == 19
 
