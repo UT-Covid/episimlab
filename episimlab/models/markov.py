@@ -181,6 +181,7 @@ class MarkovToy(EpiModel):
             'step': pd.date_range(start='3/1/2020', end='3/15/2020', freq='24H')
         },
         input_vars={
+            'setup_sto__sto_toggle': 0, 
             'setup_seed__seed_entropy': 12345,
             'foi__beta': 0.08,
             'recovery_rate__gamma': 0.5,

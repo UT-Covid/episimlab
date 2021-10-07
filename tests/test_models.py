@@ -17,7 +17,7 @@ from episimlab.utils import any_negative
 def test_model_sanity(model_type, sto_toggle):
     """Tests models with a handful of sanity checks."""
     model = model_type()
-    in_ds = model.default_in_ds()
+    in_ds = model.get_in_ds()
     in_ds['setup_sto__sto_toggle'] = sto_toggle
     model.out_ds = result = in_ds.xsimlab.run(model=model)
     assert isinstance(result, xr.Dataset)
