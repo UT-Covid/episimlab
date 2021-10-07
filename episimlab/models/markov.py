@@ -12,6 +12,8 @@ from .epi_model import EpiModel
 from ..foi import BaseFOI
 from ..compt_model import ComptModel
 from ..utils import get_var_dims, group_dict_by_var
+from ..setup.sto import SetupStochasticFromToggle
+from ..setup.seed import SeedGenerator
 
 
 @xs.process
@@ -171,12 +173,15 @@ class MarkovToy(EpiModel):
         'foi': FOI,
         'setup_compt_graph': SetupComptGraph,
         'recovery_rate': RecoveryRate,
+        'setup_sto': SetupStochasticFromToggle,
+        'setup_seed': SeedGenerator,
     }
     RUNNER_DEFAULTS = dict(
         clocks={
             'step': pd.date_range(start='3/1/2020', end='3/15/2020', freq='24H')
         },
         input_vars={
+            'setup_seed__seed_entropy': 12345,
             'foi__beta': 0.08,
             'recovery_rate__gamma': 0.5,
         },

@@ -8,8 +8,8 @@ from episimlab.utils import any_negative
 
 
 @pytest.mark.parametrize('model_type, sto_toggle', [
-    # (MarkovToy, 0), 
-    # (NineComptV1, 0),
+    (MarkovToy, 0), 
+    (NineComptV1, 0),
     (PartitionV1, 0),
     (PartitionV1, -1),
     (PartitionV1, 5),

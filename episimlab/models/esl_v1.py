@@ -13,6 +13,8 @@ from .epi_model import EpiModel
 from ..foi import BaseFOI
 from ..compt_model import ComptModel
 from ..utils import get_var_dims, group_dict_by_var, discrete_time_approx as dta, IntPerDay
+from ..setup.sto import SetupStochasticFromToggle
+from ..setup.seed import SeedGenerator
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -326,6 +328,8 @@ class NineComptV1(EpiModel):
         'setup_compt_graph': SetupComptGraph,
         'compt_model': ComptModel,
         'int_per_day': IntPerDay,
+        'setup_sto': SetupStochasticFromToggle,
+        'setup_seed': SeedGenerator,
 
         # default values for N-D epi parameters
         'setup_pi': SetupPiDefault,
@@ -351,6 +355,7 @@ class NineComptV1(EpiModel):
             'step': pd.date_range(start='3/1/2020', end='5/1/2020', freq='24H')
         },
         input_vars={
+            'setup_seed__seed_entropy': 12345,
             'rate_S2E__beta': 0.035,
             'rate_E2P__sigma': 0.34482759, 
             'rate_Py2Iy__rho_Iy': 0.43478261, 
