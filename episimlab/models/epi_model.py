@@ -33,10 +33,32 @@ class EpiModel(xs.Model):
             if hasattr(self, 'config_fp'):
                 config_fp = self.config_fp
             else:
-                logging.info('No path to config (`config_fp`)was specified. Using model defaults.')
+                logging.info('No path to config (`config_fp`) was specified. Using model defaults.')
                 return dict()
         with open(config_fp, 'r') as f:
             return yaml.safe_load(f)
+    
+    def parse_input_vars(self, d: dict) -> dict:
+        """Parse dictionary of input variables, returning a modified dictionary.
+        Attempts to parse keys without the xsimlab-canonical double underscore
+        denoting {process}__{variable}, dynamically assigning variables to 
+        processes that ingest them.
+        """
+        mod = dict()
+        for k, v in d.items():
+            used = False
+            if '__' in k:
+                mod[k] = v
+            else:
+                for proc, name in self.input_vars:
+                    if name == k:
+                        used = True
+                        mod[f"{proc}__{name}"] = v
+                if not used:
+                    raise ValueError(
+                        f"Could not find a process that ingests variable named "
+                        f"{name}. Expected input variables are {self.input_vars}.")
+        return mod
             
     def run(self, config_fp=None, input_vars=None, **kwargs) -> xr.Dataset:
         try:
@@ -45,7 +67,9 @@ class EpiModel(xs.Model):
             raise
         if input_vars is not None:
             kwargs['input_vars'].update(input_vars)
-        if not kwargs['input_vars']:
+        if kwargs['input_vars']:
+            kwargs['input_vars'] = self.parse_input_vars(kwargs['input_vars'])
+        else:
             del kwargs['input_vars']
 
         self.in_ds = self.get_in_ds(**kwargs)

@@ -40,5 +40,18 @@ class TestEpiModel:
         assert model.in_ds['setup_sto__sto_toggle'] == 19
 
         xr.testing.assert_allclose(r1['compt_model__state'], r2['compt_model__state'])
+    
+    def test_parse_input_vars(self, model_type, config):
+        """Test parse_input_vars method"""
+        model = model_type()
+        model.config_fp = config
+        res = model.run(input_vars=dict(sto_toggle=21, foi__beta=0.2))
+        assert res['setup_sto__sto_toggle'] == 21
+        assert res['foi__beta'] == 0.2
+
+        with pytest.raises(ValueError):
+            res = model.run(input_vars=dict(foobar=3))
+
+
 
         
