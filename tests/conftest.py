@@ -37,7 +37,7 @@ def coords(request):
     # 5
 ])
 def counts_coords(request):
-    raise DeprecationWarning()
+    # raise DeprecationWarning()
     return {
         'vertex': list(range(request.param)),
         'age_group': ['0-4', '5-17', '18-49', '50-64', '65+'],

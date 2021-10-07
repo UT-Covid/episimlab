@@ -44,13 +44,13 @@ class SetupToyState:
             coords=self.counts_coords
         )
         # Houston
-        da[dict(vertex=0)].loc[dict(compartment='S')] = 2.326e6 / 10.
+        da[dict(vertex=0)].loc[dict(compt='S')] = 2.326e6 / 10.
         # Austin
-        da[dict(vertex=1)].loc[dict(compartment='S')] = 1e6 / 10.
+        da[dict(vertex=1)].loc[dict(compt='S')] = 1e6 / 10.
         # Beaumont
-        da[dict(vertex=2)].loc[dict(compartment='S')] = 1.18e5 / 10.
+        da[dict(vertex=2)].loc[dict(compt='S')] = 1.18e5 / 10.
         # Start with 50 infected asymp in Austin
-        da[dict(vertex=1)].loc[dict(compartment='Ia')] = 50.
+        da[dict(vertex=1)].loc[dict(compt='Ia')] = 50.
         return da
 
 
@@ -70,37 +70,37 @@ class SetupStateFromCensusCSV(SetupToyState):
                .read_census_csv()
                .reindex(dict(
                    vertex=self.coords['vertex'], 
-                   age_group=self.coords['age_group']))
-               # .expand_dims(['compartment', 'risk_group'])
-               # .expand_dims(['risk_group'])
-               # .transpose('vertex', 'age_group', ...)
+                   age=self.coords['age']))
+               # .expand_dims(['compt', 'risk'])
+               # .expand_dims(['risk'])
+               # .transpose('vertex', 'age', ...)
                )
         # sanity checks
         assert not dac.isnull().any()
         assert all(zcta in dac.coords['vertex'] for zcta in da.coords['vertex'].values)
 
         # breakpoint()
-        da.loc[dict(compartment='S', risk_group='low')] = dac
+        da.loc[dict(compt='S', risk='low')] = dac
         self.state = da
         self.set_ia()
 
         # warning if detects no infected
-        if self.state.loc[dict(compartment='Ia')].sum() < 1.:
-            logging.warning(f"Population of Ia compartment is less than 1. Did " +
-                          "you forget to set infected compartment?")
+        if self.state.loc[dict(compt='Ia')].sum() < 1.:
+            logging.warning(f"Population of Ia compt is less than 1. Did " +
+                          "you forget to set infected compt?")
 
     def set_ia(self):
-        """Sets Ia compartment to 50 for all vertices.
+        """Sets Ia compt to 50 for all vertices.
         """
-        self.state.loc[dict(compartment='Ia', risk_group='low')] = 50.
+        self.state.loc[dict(compt='Ia', risk='low')] = 50.
 
     def read_census_csv(self) -> xr.DataArray:
         df = pd.read_csv(self.census_counts_csv)
         assert not df.isna().any().any(), ('found null values in df', df.isna().any())
-        df.rename(columns={'GEOID': 'vertex', 'age_bin': 'age_group'}, inplace=True)
-        df.set_index(['vertex', 'age_group'], inplace=True)
+        df.rename(columns={'GEOID': 'vertex', 'age_bin': 'age'}, inplace=True)
+        df.set_index(['vertex', 'age'], inplace=True)
         # filter to zcta that we want to model in the simulation (vertex coords)
         df = df.loc[self.coords['vertex']]
         da = xr.DataArray.from_series(df['group_pop'])
-        da.coords['age_group'] = da.coords['age_group'].astype(str)
+        da.coords['age'] = da.coords['age'].astype(str)
         return da
