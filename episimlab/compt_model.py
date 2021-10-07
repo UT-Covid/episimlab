@@ -32,7 +32,11 @@ class ComptModel:
         self.apply_edges()
 
     def finalize_step(self):
-        self.state += self.tm
+        self.state += self.tm 
+        # DEBUG
+        assert not self.state.isnull().any()
+        # set NaN and near-zero negative values (-1e-8 < x < 0) to zero
+        self.state = self.state.where(np.logical_or((self.state >= 0), (self.state < -1e-8)), 0.)
         # DEBUG
         assert not any_negative(self.state, raise_err=True)
 
