@@ -107,7 +107,6 @@ venv.bak/
 !*.gitkeep
 *.DS_Store
 data
+logs
 !tests/data
-episimlab/**/*.html
-**.c
 log_ooops*.html

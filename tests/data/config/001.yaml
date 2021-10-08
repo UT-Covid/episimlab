@@ -1,0 +1,4 @@
+setup_sto__sto_toggle: 19
+setup_seed__seed_entropy: 54321
+foi__beta: 0.08
+recovery_rate__gamma: 0.5

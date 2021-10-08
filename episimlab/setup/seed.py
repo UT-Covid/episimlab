@@ -3,10 +3,6 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..foi.base import BaseFOI
-from ..setup.coords import InitDefaultCoords
-from ..seir.base import BaseSEIR
-
 
 @xs.process
 class SeedGenerator:
@@ -16,7 +12,7 @@ class SeedGenerator:
     seed `seed_entropy`.
     """
     seed_entropy = xs.variable(static=True, intent='in')
-    seed_state = xs.foreign(BaseSEIR, 'seed_state', intent='out')
+    seed_state = xs.variable(global_name='seed_state', intent='out')
 
     def initialize(self):
         # instantiate a SeedSequence
@@ -38,13 +34,3 @@ class SeedGenerator:
 
     def run_step(self):
         self.seed_state = self.spawn_next(self.seed_seq)
-
-
-@xs.process
-class SeedEntropy:
-    """Sets seed entropy for testing purposes
-    """
-    seed_entropy = xs.foreign(SeedGenerator, 'seed_entropy', intent='out')
-
-    def initialize(self):
-        self.seed_entropy = 12345

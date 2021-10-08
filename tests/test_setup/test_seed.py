@@ -5,17 +5,7 @@ import numpy as np
 import logging
 from numbers import Number
 
-from episimlab.setup.seed import SeedEntropy, SeedGenerator
-
-
-class TestSeedEntropy:
-
-    def test_can_init(self):
-        proc = SeedEntropy()
-        proc.initialize()
-        result = proc.seed_entropy
-
-        assert isinstance(result, Number)
+from episimlab.setup.seed import SeedGenerator
 
 
 class TestSeedGenerator:

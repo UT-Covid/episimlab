@@ -1,4 +1,3 @@
-from episimlab import apply_counts_delta
 import logging
 import pytest
 import os
@@ -8,11 +7,7 @@ import yaml
 import xarray as xr
 import xsimlab as xs
 from itertools import product
-
-
 from episimlab.partition.partition import Partition2Contact
-from episimlab.models import basic
-from episimlab.setup import epi
 
 
 @pytest.fixture
@@ -100,50 +95,6 @@ def updated_results(request):
     }
 
 
-class TestPartitionInModel:
-
-    def run_model(self, model, step_clock, input_vars, output_vars):
-        input_ds = xs.create_setup(
-            model=model,
-            clocks=step_clock,
-            input_vars=input_vars,
-            output_vars=output_vars
-        )
-        # breakpoint()
-        return input_ds.xsimlab.run(model=model, decoding=dict(mask_and_scale=False))
-
-    def test_partition_from_nc(self, step_clock):
-        model = basic.partition()
-        input_vars = dict(
-            read_config__config_fp='tests/config/example_v2.yaml',
-            get_contact_xr__contact_da_fp='tests/data/20200311_contact_matrix.nc',
-        )
-        output_vars = dict(apply_counts_delta__counts='step')
-        result = self.run_model(model, step_clock, input_vars, output_vars)
-        assert isinstance(result, xr.Dataset)
-
-    # @pytest.mark.slow
-    @pytest.mark.skipif(not os.path.isfile("data/20200311_travel.csv"),
-                        reason="Requires data/20200311_travel.csv")
-    # @pytest.mark.skip
-    def test_partition_from_csv(self):
-        step_clock = {
-            'step': pd.date_range(
-                start='3/11/2020', end='3/13/2020', freq='24H'
-            )
-        }
-        model = basic.partition().update_processes(
-            dict(get_contact_xr=Partition2Contact))
-        input_vars = dict(
-            read_config__config_fp='tests/config/example_v2.yaml',
-            get_contact_xr__travel_fp='data/20200311_travel.csv',
-            get_contact_xr__contacts_fp='tests/data/polymod_contacts.csv',
-        )
-        output_vars = dict(apply_counts_delta__counts='step')
-        result = self.run_model(model, step_clock, input_vars, output_vars)
-        assert isinstance(result, xr.Dataset)
-
-
 class TestPartitioning:
     """
     Check that refactored partitioning generates expected results
@@ -181,7 +132,13 @@ class TestPartitioning:
         proc.run_step(**kw)
 
         # construct a DataArray from legacy phi
-        phi = to_phi_da(updated_results['phi_fp'])
+        phi = to_phi_da(updated_results['phi_fp']).rename({
+            # rename to accommodate legacy dimension names
+            'vertex1': 'vertex0',
+            'vertex2': 'vertex1',
+            'age_group1': 'age0',
+            'age_group2': 'age1',
+        })
 
         # sort each coordinate
         # this just changes assert_allclose to be agnostic to order of coords
