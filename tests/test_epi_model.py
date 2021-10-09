@@ -4,12 +4,12 @@ import xarray as xr
 import xsimlab as xs
 import numpy as np
 import logging
-from episimlab.models import MarkovToy
+from episimlab.models import ExampleSIR
 
 
 @pytest.fixture
 def model_type():
-    return MarkovToy
+    return ExampleSIR
 
 
 @pytest.fixture
