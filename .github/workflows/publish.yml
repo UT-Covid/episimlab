@@ -1,0 +1,18 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Publish GH release
+        uses: softprops/action-gh-release@v1
+      - name: Build using poetry and publish to PyPi
+        uses: JRubics/poetry-publish@v1.8
+        with:
+          pypi_token: ${{ secrets.PYPI_TOKEN }}
