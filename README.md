@@ -89,13 +89,17 @@ print(final_state)
 
 ## Installation
 
+### From PyPI
+
+```bash
+pip install episimlab
+```
+
+### Latest Edge
+
 ```bash
 pip install git+https://github.com/eho-tacc/episimlab
 ```
-
-### Install from [PyPI](https://pypi.org/)
-
-_Work in progress_
 
 ## Testing
 

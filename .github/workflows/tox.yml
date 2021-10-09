@@ -6,12 +6,16 @@ on:
       - main
     paths-ignore:
       - '**.md'
+      - 'docs'
+      - 'docsrc'
 
   pull_request:
     branches:
       - main
     paths-ignore:
       - '**.md'
+      - 'docs'
+      - 'docsrc'
 
 jobs:
   test:
