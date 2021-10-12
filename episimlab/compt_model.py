@@ -45,7 +45,7 @@ class ComptModel:
         Apply each edge to the TM.
         """
         for priority, edges in self.edges_by_priority:
-            assert edges, f"no edges with {priority=}"
+            assert edges, f"no edges with priority={priority}"
             k = 1. if np.isinf(priority) else self.calc_k(*edges)
             self.edge_to_tm(*edges, k=k)
 
@@ -70,12 +70,12 @@ class ComptModel:
         must share the same origin node u.
         """
         u_set = tuple(set(u for u, v in edges))
-        assert len(u_set) == 1, f"edges do not share origin node: {edges=} {u_set=}"
+        assert len(u_set) == 1, f"edges do not share origin node: edges={edges} u_set{u_set}"
         sum_wt = sum(self.edge_weight(u, v) for u, v in edges)
         u_state = self.state.loc[dict(compt=u_set[0])]
         # set k to infinite if denominator is zero
         k = (u_state / sum_wt).fillna(np.Inf)
-        # assert np.all(sum_wt), f"{u_state=}\n{sum_wt=}\n{k=}"
+        # assert np.all(sum_wt), f"u_state={u_state}\nsum_wt={sum_wt}\nk={k}"
         return xr.ufuncs.minimum(k, xr.ones_like(k))
 
     def edge_to_tm(self, *edges, k=1.) -> None:
