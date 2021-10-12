@@ -341,10 +341,21 @@ class SetupComptGraph:
         return g
 
     def vis(self):
-        return nx.draw(self.compt_graph)
+        f = plt.figure()
+        edge_color = [
+            edge[2] for edge in
+            self.compt_graph.edges.data("color", default="k")
+        ]
+        return nx.draw_networkx(
+            self.compt_graph,
+            ax=f.add_subplot(111),
+            edge_color=edge_color,
+            node_color="#94d67c"
+        )
 
     def initialize(self):
         self.compt_graph = self.get_compt_graph()
+        self.vis()
 
 
 @xs.process
