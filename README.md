@@ -10,7 +10,7 @@ Episimlab is a framework for developing epidemiological models in a modular fash
 * **Fully integrated with the [`xarray-simlab`](https://xarray-simlab.readthedocs.io/) package -** Episimlab provides a library of [`xsimlab.process` ]() classes ("processes"), as well as a handful of commonly-used [`xsimlab.model`]()s ("models").
 * **Extensible -** Users can quickly and easily develop their own process classes, either from scratch or based on an `episimlab` process, and include them in their models.
 * **Any variable can be high-dimensional -** Want constant `beta` for all time points? Use the `ConstantBeta` process. Want `beta` with age and risk group structure? Use `AgeRiskBeta`. Want to add your own custom structure and read it from a CSV file? Quickly write your own process, and it will integrate with processes provided by `episimlab`. Better yet, push your new process in a [Pull Request](CONTRIBUTING.md) so that others can use it!
-* **Good performance under the hood -** Frequently used processes - such as force of infection (FOI) calculation, SEIR disease progression, and travel between spatially separated nodes - use xarray, which takes advantage of numpy and Dask. 
+* **Good performance under the hood -** Frequently used processes - such as force of infection (FOI) calculation, SEIR disease progression, and travel between spatially separated nodes - use xarray, which takes advantage of accelerated matrix math in numpy and Dask. 
 
 ## Example: A Basic Compartmental (SIR) Model
 
