@@ -62,6 +62,31 @@ class BaseFOI:
 
 
 @xs.process
+class VaccineFOI(BaseFOI):
+    """Base class for calculating force of infection (FOI)."""
+    TAGS = ('FOI',)
+    beta_reduction = xs.variable(global_name='beta_reduction', intent='in')
+
+    @property
+    def foi(self) -> xr.DataArray:
+        zero_suffix = self.suffixed_dims(self.state[dict(compt=0)], '0')
+        one_suffix = self.suffixed_dims(self.state[dict(compt=0)], '1')
+        S = self.S.rename(zero_suffix)
+        I = self.I.rename(one_suffix)
+        N = self.state.sum('compt').rename(one_suffix)
+        foi = ((self.beta * self.beta_reduction * self.phi * S * I / N)
+               # sum over coords that are not compt
+               .sum(one_suffix.values())
+               # like .rename({'age0': 'age', 'risk0': 'risk'})
+               .rename({v: k for k, v in zero_suffix.items()}))
+
+        # DEBUG
+        assert not any_negative(foi, raise_err=True)
+
+        return foi
+
+
+@xs.process
 class BruteForceFOI(BaseFOI):
     """Calculate force of infection (FOI) using naive for looping.
     Similar to BruteForceFOI process in Episimlab v1
