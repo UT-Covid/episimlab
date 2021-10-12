@@ -11,7 +11,7 @@ import networkx as nx
 
 # from ..setup import epi
 from .epi_model import EpiModel
-from ..foi import BaseFOI
+from ..foi import BaseFOI, VaccineFOI
 from ..compt_model import ComptModel
 from ..utils import (
     get_var_dims, group_dict_by_var, discrete_time_approx as dta,
@@ -92,34 +92,43 @@ class RateS2E(BaseFOI):
         self.rate_S2E = self.foi.sum('compt')
 
 
+
 @xs.process
 class RateS2V:
     """Vaccination dosage model"""
-    rate_S2V = xs.variable(groups=['tm'], intent='out')
+    rate_S2V = xs.variable(global_name='rate_S2V', groups=['tm'], intent='out')
     daily_doses = xs.variable(global_name='daily_doses', intent='in')
     eff_vaccine = xs.variable(global_name='eff_vaccine', intent='in')
+    state = xs.global_ref('state', intent='in')
 
     @property
     def S(self):
         return self.state.loc[dict(compt='S')]
 
     @property
+    def N_minus_S(self):
+        return self.state.loc[dict(compt=['V', 'E', 'Ev', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D'])].sum('compt')
+
+    @property
     def N(self):
-        return self.state.loc[dict(compt=['V', 'E', 'Ev', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D'])]
+        return self.state.loc[dict(compt=['S', 'V', 'E', 'Ev', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D'])].sum('compt')
 
     @property
     def Vs(self):
-        return hypergeometric(self.S, self.N, self.daily_doses)
+        return hypergeometric(self.S, self.N_minus_S, self.daily_doses)
 
     def run_step(self):
         self.rate_S2V = binomial(self.Vs, self.eff_vaccine)
 
 
 @xs.process
-class RateV2Ev(BaseFOI):
+class RateV2Ev(VaccineFOI):
     """FOI that provides a `rate_V2Ev`"""
     TAGS = ('model::ElevenComptV1', 'FOI')
-    PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
+    # reference phi, beta from global environment
+    phi = xs.global_ref('phi', intent='in')
+    beta = xs.global_ref('beta', intent='in')
+    beta_reduction = xs.variable(global_name='beta_reduction', intent='in')
     rate_V2Ev = xs.variable(intent='out', groups=['tm'])
 
     @property
@@ -319,15 +328,15 @@ class SetupComptGraph:
             ('V', 'Ev', {"priority": 1}),
             ('Ev', 'Pa', {"priority": 2}),
             ('Ev', 'Py', {"priority": 2}),
-            ('E', 'Pa', {"priority": 2}),
-            ('E', 'Py', {"priority": 2}),
-            ('Pa', 'Ia', {"priority": 3}),
-            ('Py', 'Iy', {"priority": 4}),
-            ('Ia', 'R', {"priority": 5}),
-            ('Iy', 'R', {"priority": 6}),
-            ('Iy', 'Ih', {"priority": 6}),
-            ('Ih', 'R', {"priority": 7}),
-            ('Ih', 'D', {"priority": 7}),
+            ('E', 'Pa', {"priority": 3}),
+            ('E', 'Py', {"priority": 3}),
+            ('Pa', 'Ia', {"priority": 4}),
+            ('Py', 'Iy', {"priority": 5}),
+            ('Ia', 'R', {"priority": 6}),
+            ('Iy', 'R', {"priority": 7}),
+            ('Iy', 'Ih', {"priority": 7}),
+            ('Ih', 'R', {"priority": 8}),
+            ('Ih', 'D', {"priority": 8}),
         ])
         return g
 
@@ -365,7 +374,7 @@ class SetupState:
             dims=self.dims,
             coords=self.coords
         )
-        self.state.loc[dict(compt='S')] = np.array([[200, 200, 200, 200, 200]] * 2).T
+        self.state.loc[dict(compt='S')] = np.array([[2000, 2000, 2000, 2000, 2000]] * 2).T
         self.state.loc[dict(compt='Ia')] = np.array([[5, 5, 5, 5, 5]] * 2).T
 
     @property
@@ -380,7 +389,12 @@ class SetupState:
 @xs.process
 class SetupPhi(Contact2Phi):
     """Set value of phi (contacts per unit time)."""
-    pass
+    def initialize_misc_coords(self):
+        """Set up coords besides vertex and age group."""
+        self.risk = ['low', 'high']
+        self.compt = ['S', 'V', 'E', 'Ev', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
+                      'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
+                      'Py2Iy', 'Iy2Ih', 'H2D']
 
 
 @xs.process
@@ -440,6 +454,8 @@ class Vaccine(EpiModel):
 
         # all the expected edge weights
         'rate_S2E': RateS2E,
+        'rate_S2V': RateS2V,
+        'rate_V2Ev': RateV2Ev,
         'rate_E2Pa': RateE2Pa,
         'rate_Ev2Pa': RateEv2Pa,
         'rate_E2Py': RateE2Py,
@@ -461,6 +477,9 @@ class Vaccine(EpiModel):
             'setup_sto__sto_toggle': 0,
             'setup_seed__seed_entropy': 12345,
             'rate_S2E__beta': 0.35,
+            'rate_V2Ev__beta_reduction': 0.1,
+            'rate_S2V__daily_doses': 100,
+            'rate_S2V__eff_vaccine': 0.8,
             'rate_Iy2Ih__eta': 0.169492,
             'rate_E2Py__tau': 0.57,
             'rate_E2Pa__tau': 0.57,
