@@ -3,7 +3,7 @@ import xarray as xr
 import xsimlab as xs
 import numpy as np
 import logging
-from episimlab.models import ExampleSIR, NineComptV1, PartitionV1
+from episimlab.models import ExampleSIR, NineComptV1, PartitionV1, Vaccine
 from episimlab.utils import any_negative
 
 
@@ -13,6 +13,8 @@ from episimlab.utils import any_negative
     (PartitionV1, 0),
     (PartitionV1, -1),
     (PartitionV1, 5),
+    (Vaccine, 0),
+    (Vaccine, -1),
 ])
 def test_model_sanity(model_type, sto_toggle):
     """Tests models with a handful of sanity checks."""
