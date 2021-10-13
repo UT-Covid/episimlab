@@ -28,7 +28,7 @@ class EpiModel(xs.Model):
         assert not hasattr(self, 'in_ds')
         assert not hasattr(self, 'out_ds')
     
-    def input_vars_from_config(self, config_fp=None) -> dict:
+    def input_vars_from_config(self, config_fp: str) -> dict:
         if config_fp is None:
             if hasattr(self, 'config_fp'):
                 config_fp = self.config_fp
@@ -60,23 +60,16 @@ class EpiModel(xs.Model):
                         f"{name}. Expected input variables are {self.input_vars}.")
         return mod
             
-    def run(self, config_fp=None, input_vars=None, **kwargs) -> xr.Dataset:
-        try:
-            kwargs['input_vars'] = self.input_vars_from_config(config_fp=config_fp)
-        except:
-            raise
-        if input_vars is not None:
-            kwargs['input_vars'].update(input_vars)
-        if kwargs['input_vars']:
-            kwargs['input_vars'] = self.parse_input_vars(kwargs['input_vars'])
-        else:
-            del kwargs['input_vars']
-
+    def run(self, **kwargs) -> xr.Dataset:
         self.in_ds = self.get_in_ds(**kwargs)
         self.out_ds = self.in_ds.xsimlab.run(model=self)
         return self.out_ds
 
-    def get_in_ds(self, **kwargs) -> xr.Dataset:
-        setup_kw = self.RUNNER_DEFAULTS.copy()
+    def get_in_ds(self, config_fp: str = None, input_vars: dict = None, **kwargs) -> xr.Dataset:
+        setup_kw = getattr(self, 'RUNNER_DEFAULTS', dict()).copy()
         setup_kw.update(kwargs)
+        setup_kw['input_vars'].update(self.input_vars_from_config(config_fp=config_fp))
+        if input_vars is not None:
+            setup_kw['input_vars'].update(input_vars)
+        setup_kw['input_vars'] = self.parse_input_vars(setup_kw['input_vars'])
         return xs.create_setup(model=self, **setup_kw)

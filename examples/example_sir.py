@@ -80,7 +80,10 @@ model = model.update_processes({
     'recovery_rate': CustomRecoveryRate, 
     'setup_compt_graph': CustomSetupComptGraph})
 # Run the model using Dask and xarray-simlab (xsimlab)
-results = model.run()
+results = model.run(input_vars={
+    # We can optionally overwrite specific input variables at runtime
+    'beta': 0.085
+})
 # Plot the state over time
 model.plot()
 
