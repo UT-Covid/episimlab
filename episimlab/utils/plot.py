@@ -7,6 +7,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from functools import wraps
+from ..compt_model import edge_weight_name
 
 
 def visualize_compt_graph(gph: nx.Graph, path: str = None, mpl_backend: str = None):
@@ -17,14 +18,21 @@ def visualize_compt_graph(gph: nx.Graph, path: str = None, mpl_backend: str = No
         # matplotlib.use("Agg")
         matplotlib.use(mpl_backend)
     f = plt.figure()
-    edge_color = [
-        edge[2] for edge in
-        gph.edges.data("color", default="k")
-    ]
-    drawing = nx.draw_networkx(gph, pos=nx.drawing.planar_layout(gph), 
-                               ax=f.add_subplot(111), edge_color=edge_color, 
+
+    # try to get "color" edge attribute if it was set
+    edge_color = [edge[2] for edge in gph.edges.data("color", default="k")]
+
+    # get edge labels with same naming as compt_model.ComptModel
+    edge_labels = {edge: edge_weight_name(*edge) for edge in gph.edges}
+
+    pos = nx.drawing.planar_layout(gph)
+    ax = f.add_subplot(111)
+    drawing = nx.draw_networkx(gph, pos=pos, 
+                               ax=ax, edge_color=edge_color, 
                                node_color="#94d67c", node_size=500
                                )
+    edge_labels = nx.draw_networkx_edge_labels(gph, pos=pos, ax=ax, 
+                                               edge_labels=edge_labels)
     if path is not None:
         f.savefig(path)
     return drawing

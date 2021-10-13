@@ -3,7 +3,8 @@ import numpy as np
 import xarray as xr
 import xsimlab as xs
 import pandas as pd
-from .utils import group_dict_by_var, get_rng, any_negative, clip_to_zero
+from .utils.variable import group_dict_by_var, any_negative, clip_to_zero
+from .utils.rng import get_rng
 from numbers import Number
 
 
@@ -108,7 +109,7 @@ class ComptModel:
     def get_edge_weight(self, u, v):
         """Try to find an edge weight for (u, v) in `tm_subset`, then
         in the edge attribute. Default to zero weight if none can be found."""
-        key = self.edge_weight_name(u, v)
+        key = edge_weight_name(u, v)
         edge_data = self.compt_graph.get_edge_data(u, v, dict())
         if key in self.tm_subset:
             weight = self.tm_subset[key]
@@ -127,10 +128,6 @@ class ComptModel:
             
         return weight
 
-    def edge_weight_name(self, u, v) -> str:
-        """Attr name when looking for edge weight between nodes `u` and `v`."""
-        return f"rate_{u}2{v}"
-    
     @property
     def rng(self):
         if not hasattr(self, '_rng'):
@@ -154,3 +151,7 @@ class ComptModel:
             return cp
         return arr
 
+
+def edge_weight_name(u, v) -> str:
+    """Attr name when looking for edge weight between nodes `u` and `v`."""
+    return f"rate_{u}2{v}"
