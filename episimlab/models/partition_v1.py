@@ -255,7 +255,10 @@ class SetupComptGraph:
 
 @xs.process
 class SetupCoords:
-    """Initialize state coordinates"""
+    """Initialize state coordinates. Imports the contact matrix as
+    xarray.DataArray `contact_xr` to retrieve coordinates for age and vertex.
+    """
+    contact_xr = xs.global_ref('contact_xr', intent='in')
     compt = xs.index(dims=('compt'), global_name='compt_coords', groups=['coords'])
     age = xs.index(dims=('age'), global_name='age_coords', groups=['coords'])
     risk = xs.index(dims=('risk'), global_name='risk_coords', groups=['coords'])
@@ -263,9 +266,12 @@ class SetupCoords:
     
     def initialize(self):
         self.compt = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D'] 
-        self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
         self.risk = ['low', 'high']
-        self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
+        # self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
+        self.age = self.contact_xr.coords['age0'].values
+        # self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
+        self.vertex = self.contact_xr.coords['vertex0'].values
+
 
 
 @xs.process
@@ -330,7 +336,7 @@ class PartitionV1(EpiModel):
         'int_per_day': IntPerDay,
         'get_contact_xr': GetContactXR,
         'setup_phi': SetupPhi,
-        #'setup_coords': SetupCoords,
+        'setup_coords': SetupCoords,
         'setup_state': SetupState,
         'setup_sto': SetupStochasticFromToggle,
         'setup_seed': SeedGenerator,
