@@ -74,6 +74,62 @@ class SetupPiDefault:
 
 
 @xs.process
+class SetupVaccineDoses:
+    """Initialize vaccine doses"""
+    DIMS = ('age', 'risk')
+    max_daily_doses = xs.variable(dims=DIMS, global_name='max_daily_doses', intent='out')
+    doses_delivered = xs.variable(global_name='doses_delivered', intent='out')
+    eligible_pop = xs.variable(global_name='eligible_pop', intent='out')
+    state = xs.global_ref('state', intent='in')
+    _coords = xs.group_dict('coords')
+
+    @property
+    def dims(self):
+        return self.DIMS
+
+    @property
+    def coords(self):
+        return {k: v for k, v in group_dict_by_var(self._coords).items()
+                if k in self.dims}
+
+    @property
+    def S(self):
+        return self.state.loc[dict(compt='S')].sum('vertex')
+
+    @property
+    def eligible_pop(self):
+        return self.state.loc[dict(compt=['V', 'E', 'Ev', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D'])].sum(['compt', 'vertex'])
+
+    def initialize(self):
+        self.max_daily_doses = xr.DataArray(
+            [[0, 0],
+             [0, 0],
+             [10, 20],
+             [30, 40],
+             [50, 100]],
+            dims=self.dims, coords=self.coords)
+
+    def run_step(self):
+
+        assert self.eligible_pop.shape == self.max_daily_doses.shape
+
+        flat_doses = self.max_daily_doses.values.flatten()
+        flat_pop = self.eligible_pop.values.flatten()
+        actual_doses = np.array([min(i) for i in zip(flat_doses, flat_pop)])
+        doses_delivered = []
+        for i in zip(self.S.values.flatten(), flat_pop, actual_doses):
+            try:
+                doses_delivered.append(np.random.hypergeometric(i[0], i[1], i[2]))
+            except ValueError:
+                doses_delivered.append(0)
+
+        self.doses_delivered = xr.DataArray(
+            np.array(doses_delivered).reshape(self.max_daily_doses.shape),
+            dims=self.dims, coords=self.coords
+        )
+
+
+@xs.process
 class RateS2E(BaseFOI):
     """FOI that provides a `rate_S2E`"""
     TAGS = ('model::ElevenComptV1', 'FOI')
@@ -92,33 +148,15 @@ class RateS2E(BaseFOI):
         self.rate_S2E = self.foi.sum('compt')
 
 
-
 @xs.process
 class RateS2V:
     """Vaccination dosage model"""
     rate_S2V = xs.variable(global_name='rate_S2V', groups=['tm'], intent='out')
-    daily_doses = xs.variable(global_name='daily_doses', intent='in')
+    doses_delivered = xs.global_ref('doses_delivered', intent='in')
     eff_vaccine = xs.variable(global_name='eff_vaccine', intent='in')
-    state = xs.global_ref('state', intent='in')
-
-    @property
-    def S(self):
-        return self.state.loc[dict(compt='S')]
-
-    @property
-    def N_minus_S(self):
-        return self.state.loc[dict(compt=['V', 'E', 'Ev', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D'])].sum('compt')
-
-    @property
-    def N(self):
-        return self.state.loc[dict(compt=['S', 'V', 'E', 'Ev', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D'])].sum('compt')
-
-    @property
-    def Vs(self):
-        return hypergeometric(self.S, self.N_minus_S, self.daily_doses)
 
     def run_step(self):
-        self.rate_S2V = binomial(self.Vs, self.eff_vaccine)
+        self.rate_S2V = binomial(self.doses_delivered, self.eff_vaccine)
 
 
 @xs.process
@@ -459,6 +497,9 @@ class Vaccine(EpiModel):
         'setup_rho_Ia': rho.SetupRhoIa,
         'setup_rho_Iy': rho.SetupRhoIy,
 
+        # calculate vaccine doses
+        'setup_doses': SetupVaccineDoses,
+
         # used for RateE2Pa and RateE2Py
         'rate_E2P': RateE2P,
         'rate_Ev2P': RateEv2P,
@@ -489,7 +530,6 @@ class Vaccine(EpiModel):
             'setup_seed__seed_entropy': 12345,
             'rate_S2E__beta': 0.35,
             'rate_V2Ev__beta_reduction': 0.1,
-            'rate_S2V__daily_doses': 100,
             'rate_S2V__eff_vaccine': 0.8,
             'rate_Iy2Ih__eta': 0.169492,
             'rate_E2Py__tau': 0.57,
