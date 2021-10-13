@@ -121,19 +121,9 @@ class ComptModel:
 
         # TODO: if weight is very close to zero, set to 0
 
-        # if any_negative(weight):
-        #     logging.warning(
-        #         f"Weight of edge '{key}' contains negative values. " 
-        #         f"Edges are directional, so instead of setting " 
-        #         f"a negative weight, please set a positive weight " 
-        #         f"on the reverse edge ({self.edge_weight_name(v, u)}).")
-        #     logging.warning(f"Clipping weight of edge '{key}' to minimum of zero.")
-        #     weight = clip_to_zero(weight)
-        # assert not any_negative(weight)
-        
         # poisson draw if stochastic is on
         if bool(self.stochastic):
-            weight = self.poisson(weight)
+            weight = self.stochastic_draw(weight)
             
         return weight
 
@@ -146,6 +136,9 @@ class ComptModel:
         if not hasattr(self, '_rng'):
             self._rng = get_rng(seed=self.seed_state)
         return self._rng
+    
+    def stochastic_draw(self, *args, **kwargs):
+        return self.poisson(*args, **kwargs)
 
     def poisson(self, val):
         try:
