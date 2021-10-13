@@ -1,10 +1,9 @@
 import xsimlab
 # Import an existing SIR model 
 from episimlab.models import ExampleSIR
+from episimlab.utils import visualize_compt_graph
 import networkx as nx
-import matplotlib
-import matplotlib.pyplot as plt
-matplotlib.use("Agg")
+
 
 
 @xsimlab.process
@@ -61,16 +60,7 @@ class CustomSetupComptGraph:
     
     def visualize(self, path=None):
         """Visualize the compartment graph, saving as a file at `path`"""
-        f = plt.figure()
-        edge_color = [
-            edge[2] for edge in
-            self.compt_graph.edges.data("color", default="k")
-        ]
-        drawing = nx.draw_networkx(self.compt_graph, ax=f.add_subplot(111),
-                                   edge_color=edge_color, node_color="#94d67c")
-        if path is not None:
-            f.savefig(path)
-        return drawing
+        return visualize_compt_graph(self.compt_graph, path=path)
 
 
 # Instantiate the included model

@@ -14,7 +14,7 @@ from ..foi import BaseFOI
 from ..compt_model import ComptModel
 from ..utils import (
     get_var_dims, group_dict_by_var, discrete_time_approx as dta, 
-    IntPerDay, get_rng, any_negative
+    IntPerDay, get_rng, any_negative, visualize_compt_graph
 )
 from ..partition.partition import NC2Contact, Contact2Phi
 from ..setup.sto import SetupStochasticFromToggle
@@ -247,7 +247,7 @@ class SetupComptGraph:
         return g
     
     def vis(self):
-        return nx.draw(self.compt_graph)
+        return visualize_compt_graph(self.compt_graph)
     
     def initialize(self):
         self.compt_graph = self.get_compt_graph()

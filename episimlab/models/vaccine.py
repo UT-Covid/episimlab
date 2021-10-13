@@ -15,7 +15,7 @@ from ..foi import BaseFOI, VaccineFOI
 from ..compt_model import ComptModel
 from ..utils import (
     get_var_dims, group_dict_by_var, discrete_time_approx as dta,
-    IntPerDay, get_rng, any_negative
+    IntPerDay, get_rng, any_negative, visualize_compt_graph
 )
 from ..partition.partition import NC2Contact, Contact2Phi
 from ..setup.sto import SetupStochasticFromToggle
@@ -378,18 +378,8 @@ class SetupComptGraph:
         ])
         return g
 
-    def vis(self):
-        f = plt.figure()
-        edge_color = [
-            edge[2] for edge in
-            self.compt_graph.edges.data("color", default="k")
-        ]
-        return nx.draw_networkx(
-            self.compt_graph,
-            ax=f.add_subplot(111),
-            edge_color=edge_color,
-            node_color="#94d67c"
-        )
+    def vis(self, path=None):
+        return visualize_compt_graph(self.compt_graph, path=path)
 
     def initialize(self):
         self.compt_graph = self.get_compt_graph()

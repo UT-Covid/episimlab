@@ -2,8 +2,32 @@ import os
 import logging
 import xarray as xr
 import xsimlab as xs
+import networkx as nx
+import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 from functools import wraps
+
+
+def visualize_compt_graph(gph: nx.Graph, path: str = None, mpl_backend: str = None):
+    """Visualize compartment graph `gph` using matplotlib. Saves figure
+    to a `path` if specified, e.g. 'my_compt_graph.svg'.
+    """
+    if mpl_backend is not None:
+        # matplotlib.use("Agg")
+        matplotlib.use(mpl_backend)
+    f = plt.figure()
+    edge_color = [
+        edge[2] for edge in
+        gph.edges.data("color", default="k")
+    ]
+    drawing = nx.draw_networkx(gph, pos=nx.drawing.planar_layout(gph), 
+                               ax=f.add_subplot(111), edge_color=edge_color, 
+                               node_color="#94d67c", node_size=500
+                               )
+    if path is not None:
+        f.savefig(path)
+    return drawing
 
 
 def xr_plot(data_array, sel=dict(), isel=dict(), timeslice=slice(0, 100),
