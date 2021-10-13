@@ -4,6 +4,7 @@ def main():
     model = Vaccine()
     in_ds = model.get_in_ds()
     in_ds['setup_sto__sto_toggle'] = 0
+    in_ds['get_contact_xr__contact_da_fp'] = 'data/20200311_contact_matrix.nc'
     model.out_ds = result = in_ds.xsimlab.run(model=model)
     state = result['compt_model__state']
     model.plot()

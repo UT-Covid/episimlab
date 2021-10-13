@@ -382,7 +382,7 @@ class PartitionV1(EpiModel):
             'setup_gamma_Ih__tri_Ih2R': [9.4, 10.7, 12.8],
             'setup_gamma_Ia__tri_Iy2R_para': [3.0, 4.0, 5.0],
             'setup_mu__tri_Ih2D': [5.2, 8.1, 10.1],
-            'get_contact_xr__contact_da_fp': 'data/20200311_contact_matrix.nc'
+            'get_contact_xr__contact_da_fp': 'tests/data/20200311_contact_matrix.nc'
         },
         output_vars={
             'compt_model__state': 'step'

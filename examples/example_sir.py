@@ -60,7 +60,7 @@ class CustomSetupComptGraph:
         return g
     
     def visualize(self, path=None):
-        """Visualize the compartment graph, saving as a file at"""
+        """Visualize the compartment graph, saving as a file at `path`"""
         f = plt.figure()
         edge_color = [
             edge[2] for edge in
