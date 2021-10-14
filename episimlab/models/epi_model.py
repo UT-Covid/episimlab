@@ -68,8 +68,9 @@ class EpiModel(xs.Model):
     def get_in_ds(self, config_fp: str = None, input_vars: dict = None, **kwargs) -> xr.Dataset:
         setup_kw = getattr(self, 'RUNNER_DEFAULTS', dict()).copy()
         setup_kw.update(kwargs)
-        setup_kw['input_vars'].update(self.input_vars_from_config(config_fp=config_fp))
+        setup_kw['input_vars'].update(self.parse_input_vars(
+            self.input_vars_from_config(config_fp=config_fp)))
         if input_vars is not None:
-            setup_kw['input_vars'].update(input_vars)
+            setup_kw['input_vars'].update(self.parse_input_vars(input_vars))
         setup_kw['input_vars'] = self.parse_input_vars(setup_kw['input_vars'])
         return xs.create_setup(model=self, **setup_kw)
