@@ -3,11 +3,20 @@ import xsimlab as xs
 from .utils import any_negative
 
 
+def suffixed_dims(da: xr.DataArray, suffix: str,
+                    exclude: list = None) -> xr.DataArray:
+    if exclude is None:
+        exclude = list()
+    return {k: f"{k}{suffix}" for k in da.dims if k not in exclude}
+
+
 @xs.process
 class BaseFOI:
     """Base class for calculating force of infection (FOI)."""
     TAGS = ('FOI',)
     PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
+    I_COMPT_LABELS = ('I')
+    S_COMPT_LABELS = ('S')
 
     phi = xs.variable(dims=PHI_DIMS, global_name='phi', intent='in')
     state = xs.global_ref('state', intent='in')
@@ -31,8 +40,8 @@ class BaseFOI:
         
     @property
     def foi(self) -> xr.DataArray:
-        zero_suffix = self.suffixed_dims(self.state[dict(compt=0)], '0')
-        one_suffix = self.suffixed_dims(self.state[dict(compt=0)], '1')
+        zero_suffix = suffixed_dims(self.state[dict(compt=0)], '0')
+        one_suffix = suffixed_dims(self.state[dict(compt=0)], '1')
         S = self.S.rename(zero_suffix)
         I = self.I.rename(one_suffix)
         N = self.state.sum('compt').rename(one_suffix)
@@ -49,16 +58,12 @@ class BaseFOI:
     
     @property
     def I(self):
-        return self.state.loc[dict(compt='I')]
+        return self.state.loc[dict(compt=self.I_COMPT_LABELS)]
 
     @property
     def S(self):
-        return self.state.loc[dict(compt='S')]
+        return self.state.loc[dict(compt=self.S_COMPT_LABELS)]
 
-    def suffixed_dims(self, da: xr.DataArray, suffix: str,
-                      exclude: list = None) -> xr.DataArray:
-        exclude = exclude if exclude is not None else list()
-        return {k: f"{k}{suffix}" for k in da.dims if k not in exclude}
 
 
 @xs.process
@@ -69,8 +74,8 @@ class VaccineFOI(BaseFOI):
 
     @property
     def foi(self) -> xr.DataArray:
-        zero_suffix = self.suffixed_dims(self.state[dict(compt=0)], '0')
-        one_suffix = self.suffixed_dims(self.state[dict(compt=0)], '1')
+        zero_suffix = suffixed_dims(self.state[dict(compt=0)], '0')
+        one_suffix = suffixed_dims(self.state[dict(compt=0)], '1')
         S = self.S.rename(zero_suffix)
         I = self.I.rename(one_suffix)
         N = self.state.sum('compt').rename(one_suffix)
