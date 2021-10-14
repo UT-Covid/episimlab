@@ -57,7 +57,7 @@ class EpiModel(xs.Model):
                 if not used:
                     raise ValueError(
                         f"Could not find a process that ingests variable named "
-                        f"{name}. Expected input variables are {self.input_vars}.")
+                        f"{k}. Expected input variables are {self.input_vars}.")
         return mod
             
     def run(self, **kwargs) -> xr.Dataset:

@@ -117,7 +117,8 @@ class ComptModel:
             # TODO: accept function and str type attribs
             weight = edge_data['weight']
         else:
-            logging.warning(f"could not find a weight for transition from {u} to {v} compartment ({key})")
+            logging.warning(f"could not find a weight for transition from {u} "
+                            f"to {v} compartment ({key}). Setting weight to zero.")
             weight = 0.
 
         # TODO: if weight is very close to zero, set to 0
