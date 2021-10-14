@@ -1,7 +1,7 @@
-from episimlab.models import PartitionV1
+from episimlab.models import Vaccine
 
 def main():
-    model = PartitionV1()
+    model = Vaccine()
     model.run(input_vars={
         # update default input vars
         'sto_toggle': 0,

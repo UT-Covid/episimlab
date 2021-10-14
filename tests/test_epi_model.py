@@ -45,9 +45,9 @@ class TestEpiModel:
         """Test parse_input_vars method"""
         model = model_type()
         model.config_fp = config
-        res = model.run(input_vars=dict(sto_toggle=21, foi__beta=0.2))
+        res = model.run(input_vars=dict(sto_toggle=21, rate_S2I__beta=0.2))
         assert res['setup_sto__sto_toggle'] == 21
-        assert res['foi__beta'] == 0.2
+        assert res['rate_S2I__beta'] == 0.2
 
         with pytest.raises(ValueError):
             res = model.run(input_vars=dict(foobar=3))

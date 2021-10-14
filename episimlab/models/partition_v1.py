@@ -14,7 +14,7 @@ from ..foi import BaseFOI
 from ..compt_model import ComptModel
 from ..utils import (
     get_var_dims, group_dict_by_var, discrete_time_approx as dta, 
-    IntPerDay, get_rng, any_negative
+    IntPerDay, get_rng, any_negative, visualize_compt_graph
 )
 from ..partition.partition import NC2Contact, Contact2Phi
 from ..setup.sto import SetupStochasticFromToggle
@@ -74,7 +74,7 @@ class SetupPiDefault:
 @xs.process
 class RateIy2Ih:
     """Provide a `rate_Iy2Ih`"""
-    rate_Iy2Ih = xs.variable(global_name='rate_Iy2Ih', groups=['tm'], intent='out')
+    rate_Iy2Ih = xs.variable(global_name='rate_Iy2Ih', groups=['edge_weight'], intent='out')
     eta = xs.variable(global_name='eta', intent='in')
     pi = xs.global_ref('pi', intent='in')
     state = xs.global_ref('state', intent='in')
@@ -87,7 +87,7 @@ class RateIy2Ih:
 @xs.process
 class RateIh2D:
     """Provide a `rate_Ih2D`"""
-    rate_Ih2D = xs.variable(global_name='rate_Ih2D', groups=['tm'], intent='out')
+    rate_Ih2D = xs.variable(global_name='rate_Ih2D', groups=['edge_weight'], intent='out')
     mu = xs.variable(global_name='mu', intent='in')
     nu = xs.global_ref('nu', intent='in')
     state = xs.global_ref('state', intent='in')
@@ -100,7 +100,7 @@ class RateIh2D:
 @xs.process
 class RateIh2R:
     """Provide a `rate_Ih2R`"""
-    rate_Ih2R = xs.variable(global_name='rate_Ih2R', groups=['tm'], intent='out')
+    rate_Ih2R = xs.variable(global_name='rate_Ih2R', groups=['edge_weight'], intent='out')
     gamma_Ih = xs.variable(global_name='gamma_Ih', intent='in')
     nu = xs.global_ref('nu', intent='in')
     state = xs.global_ref('state', intent='in')
@@ -113,7 +113,7 @@ class RateIh2R:
 @xs.process
 class RatePy2Iy:
     """Provide a `rate_Py2Iy`"""
-    rate_Py2Iy = xs.variable(global_name='rate_Py2Iy', groups=['tm'], intent='out')
+    rate_Py2Iy = xs.variable(global_name='rate_Py2Iy', groups=['edge_weight'], intent='out')
     rho_Iy = xs.variable(global_name='rho_Iy', intent='in')
     state = xs.global_ref('state', intent='in')
 
@@ -124,7 +124,7 @@ class RatePy2Iy:
 @xs.process
 class RatePa2Ia:
     """Provide a `rate_Pa2Ia`"""
-    rate_Pa2Ia = xs.variable(global_name='rate_Pa2Ia', groups=['tm'], intent='out')
+    rate_Pa2Ia = xs.variable(global_name='rate_Pa2Ia', groups=['edge_weight'], intent='out')
     rho_Ia = xs.variable(global_name='rho_Ia', intent='in')
     state = xs.global_ref('state', intent='in')
 
@@ -135,7 +135,7 @@ class RatePa2Ia:
 @xs.process
 class RateE2Py:
     """Provide a `rate_E2Py`"""
-    rate_E2Py = xs.variable(global_name='rate_E2Py', groups=['tm'], intent='out')
+    rate_E2Py = xs.variable(global_name='rate_E2Py', groups=['edge_weight'], intent='out')
     tau = xs.variable(global_name='tau', intent='in')
     rate_E2P = xs.global_ref('rate_E2P', intent='in')
 
@@ -146,7 +146,7 @@ class RateE2Py:
 @xs.process
 class RateE2Pa:
     """Provide a `rate_E2Pa`"""
-    rate_E2Pa = xs.variable(global_name='rate_E2Pa', groups=['tm'], intent='out')
+    rate_E2Pa = xs.variable(global_name='rate_E2Pa', groups=['edge_weight'], intent='out')
     tau = xs.variable(global_name='tau', intent='in')
     rate_E2P = xs.global_ref('rate_E2P', intent='in')
 
@@ -172,7 +172,7 @@ class RateE2P:
 @xs.process
 class RateIy2R:
     """Provide a `rate_Iy2R`"""
-    rate_Iy2R = xs.variable(global_name='rate_Iy2R', groups=['tm'], intent='out')
+    rate_Iy2R = xs.variable(global_name='rate_Iy2R', groups=['edge_weight'], intent='out')
     gamma_Iy = xs.variable(global_name='gamma_Iy', intent='in')
     pi = xs.global_ref('pi', intent='in')
     state = xs.global_ref('state', intent='in')
@@ -187,7 +187,7 @@ class RateIy2R:
 @xs.process
 class RateIa2R:
     """Provide a `rate_Ia2R`"""
-    rate_Ia2R = xs.variable(global_name='rate_Ia2R', groups=['tm'], intent='out')
+    rate_Ia2R = xs.variable(global_name='rate_Ia2R', groups=['edge_weight'], intent='out')
     gamma_Ia = xs.variable(global_name='gamma_Ia', intent='in')
     state = xs.global_ref('state', intent='in')
 
@@ -200,7 +200,7 @@ class RateS2E(BaseFOI):
     """FOI that provides a `rate_S2E`"""
     TAGS = ('model::NineComptV1', 'FOI')
     PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
-    rate_S2E = xs.variable(intent='out', groups=['tm'])
+    rate_S2E = xs.variable(intent='out', groups=['edge_weight'])
 
     @property
     def I(self):
@@ -247,7 +247,7 @@ class SetupComptGraph:
         return g
     
     def vis(self):
-        return nx.draw(self.compt_graph)
+        return visualize_compt_graph(self.compt_graph)
     
     def initialize(self):
         self.compt_graph = self.get_compt_graph()
@@ -255,7 +255,10 @@ class SetupComptGraph:
 
 @xs.process
 class SetupCoords:
-    """Initialize state coordinates"""
+    """Initialize state coordinates. Imports the contact matrix as
+    xarray.DataArray `contact_xr` to retrieve coordinates for age and vertex.
+    """
+    contact_xr = xs.global_ref('contact_xr', intent='in')
     compt = xs.index(dims=('compt'), global_name='compt_coords', groups=['coords'])
     age = xs.index(dims=('age'), global_name='age_coords', groups=['coords'])
     risk = xs.index(dims=('risk'), global_name='risk_coords', groups=['coords'])
@@ -263,9 +266,12 @@ class SetupCoords:
     
     def initialize(self):
         self.compt = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D'] 
-        self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
         self.risk = ['low', 'high']
-        self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
+        # self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
+        self.age = self.contact_xr.coords['age0'].values
+        # self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
+        self.vertex = self.contact_xr.coords['vertex0'].values
+
 
 
 @xs.process
@@ -330,7 +336,7 @@ class PartitionV1(EpiModel):
         'int_per_day': IntPerDay,
         'get_contact_xr': GetContactXR,
         'setup_phi': SetupPhi,
-        # 'setup_coords': SetupCoords,
+        'setup_coords': SetupCoords,
         'setup_state': SetupState,
         'setup_sto': SetupStochasticFromToggle,
         'setup_seed': SeedGenerator,

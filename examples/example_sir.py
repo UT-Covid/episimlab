@@ -1,10 +1,9 @@
 import xsimlab
 # Import an existing SIR model 
 from episimlab.models import ExampleSIR
+from episimlab.utils import visualize_compt_graph
 import networkx as nx
-import matplotlib
-import matplotlib.pyplot as plt
-matplotlib.use("Agg")
+
 
 
 @xsimlab.process
@@ -12,7 +11,7 @@ class CustomRecoveryRate:
     """A single process in the model. Calculates a recovery rate (`rate_I2R`)."""
     # Variables output by this process (intent='out')
     rate_I2R = xsimlab.variable(
-        global_name='rate_I2R', groups=['tm'], intent='out', 
+        global_name='rate_I2R', groups=['edge_weight'], intent='out', 
         description="rate of change from compartments I to R")
 
     # Variables ingested by this process (intent='in')
@@ -60,27 +59,30 @@ class CustomSetupComptGraph:
         return g
     
     def visualize(self, path=None):
-        """Visualize the compartment graph, saving as a file at"""
-        f = plt.figure()
-        edge_color = [
-            edge[2] for edge in
-            self.compt_graph.edges.data("color", default="k")
-        ]
-        drawing = nx.draw_networkx(self.compt_graph, ax=f.add_subplot(111),
-                                   edge_color=edge_color, node_color="#94d67c")
-        if path is not None:
-            f.savefig(path)
-        return drawing
+        """Visualize the compartment graph, saving as a file at `path`"""
+        return visualize_compt_graph(self.compt_graph, path=path)
 
 
 # Instantiate the included model
 model = ExampleSIR()
+
+# Visualize the processes in the model (requires graphviz)
+model.visualize()
+
 # Edit the model so it uses our custom process
 model = model.update_processes({
-    'recovery_rate': CustomRecoveryRate, 
+    'rate_I2R': CustomRecoveryRate, 
     'setup_compt_graph': CustomSetupComptGraph})
+
+# We can optionally overwrite model defaults from a YAML configuration file
+model.config_fp = './examples/example_sir.yaml'
+
 # Run the model using Dask and xarray-simlab (xsimlab)
-results = model.run()
+results = model.run(input_vars={
+    # We can optionally overwrite specific input variables at runtime
+    'beta': 0.085
+})
+
 # Plot the state over time
 model.plot()
 

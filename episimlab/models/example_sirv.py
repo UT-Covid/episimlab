@@ -17,25 +17,6 @@ from ..setup.seed import SeedGenerator
 
 
 @xs.process
-class VaccRate:
-    """Provide a `rate_S2V`"""
-    rate_S2V = xs.variable(global_name='rate_S2V', groups=['edge_weight'], intent='out')
-    vacc_prop = xs.variable(global_name="vacc_prop", intent="in")
-    state = xs.global_ref('state', intent='in')
-
-    def run_step(self):
-        # vaccinate a proportion of S every day
-        # self.rate_S2V = self.vacc_prop * self.S
-
-        # vaccinate a flat 20 doses per day
-        self.rate_S2V = 20
-    
-    @property
-    def S(self):
-        return self.state.loc[dict(compt='S')]
-
-
-@xs.process
 class RecoveryRate:
     """Provide a `rate_I2R`"""
     rate_I2R = xs.variable(global_name='rate_I2R', groups=['edge_weight'], intent='out')
@@ -55,32 +36,44 @@ class SetupComptGraph:
     """A single process in the model. Defines the directed graph `compt_graph`
     that defines the compartments and allowed transitions between them.
     """
+    # Reference a variable defined in a different process, and tell the model
+    # that this process intends to output this variable.
     compt_graph = xs.global_ref('compt_graph', intent='out')
 
     def initialize(self):
         """This method is run once at the beginning of the simulation."""
         self.compt_graph = self.get_compt_graph()
+    
+    def run_step(self):
+        """This method is run once at every step of the simulation."""
+        pass
 
     def finalize(self):
         """This method is run once at the end of the simulation."""
         self.visualize()
 
     def get_compt_graph(self) -> nx.DiGraph:
+        """A method that returns a compartment graph as a directed
+        graph. Uses the networkx package.
+        """
         g = nx.DiGraph()
         g.add_nodes_from([
             ('S', {"color": "red"}),
             ('I', {"color": "blue"}),
             ('R', {"color": "green"}),
+            ('V', {"color": "purple"}), # new
         ])
         g.add_edges_from([
+            ('S', 'V', {"priority": 0, "color": "purple"}), # new
             ('S', 'I', {"priority": 0, "color": "red"}),
-            ('I', 'R', {"priority": 1, "color": "blue"}),
+            ('V', 'I', {"priority": 1, "color": "pink"}), # new
+            ('I', 'R', {"priority": 2, "color": "blue"}),
         ])
         return g
     
-    def visualize(self, path=None):
-        """Visualize the compartment graph, saving as a file at `path`"""
-        return visualize_compt_graph(self.compt_graph, path=path)
+    def visualize(self):
+        """Visualize the compartment graph, saving as a file at a path."""
+        return visualize_compt_graph(self.compt_graph)
 
 
 @xs.process
@@ -96,6 +89,7 @@ class SetupCoords:
     
     def initialize(self):
         self.compt = self.compt_graph.nodes
+        assert len(self.compt) == 4, len(self.compt)
         self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
         self.risk = ['low', 'high']
         self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
@@ -123,6 +117,53 @@ class SetupState:
     @property
     def coords(self):
         return group_dict_by_var(self._coords)
+
+
+@xs.process
+class RateV2I(BaseFOI):
+    """A single process in the model. Calculates a force of infection
+    for vaccinated persons `rate_V2I`. This process inherits from the
+    parent class BaseFOI.
+    """
+    # Override the default behavior: calculate FOI based on the population
+    # of the V compartment, instead of the S compartment
+    S_COMPT_LABELS = 'V'
+    
+    # Like before, we define a variable that we export in this process
+    rate_V2I = xs.variable(dims=('age', 'risk', 'vertex'), 
+                           global_name='rate_V2I', groups=['edge_weight'], 
+                           intent='out')
+    
+    # We also define an input variable that scales FOI
+    vacc_efficacy = xs.variable(global_name='vacc_efficacy', intent='in')
+    
+    phi = xs.global_ref('phi', intent='in')
+    
+    def run_step(self):
+        """Calculate the `rate_V2I` at every step of the simulation. Here,
+        we make use of the `foi` method in the parent process BaseFOI.
+        """
+        self.rate_V2I = self.foi * (1 - self.vacc_efficacy)
+
+
+@xs.process
+class RateS2V:
+    """A single process in the model. Calculates a vaccination rate
+    `rate_S2V`. Ingests a `vacc_per_day` with one dimension on `age`.
+    """
+    vacc_per_day = xs.variable(global_name='vacc_per_day', intent='in',
+                               dims=('age')) # new
+    rate_S2V = xs.variable(global_name='rate_S2V', groups=['edge_weight'], intent='out')
+    
+    @xs.runtime(args=['step'])
+    def run_step(self, step):
+        """Calculate the `rate_S2V` at every step of the simulation.
+        Set the rate to zero after step 5.
+        """
+        if step > 5:
+            self.rate_S2V = 0.
+        else:
+            self.rate_S2V = xr.DataArray(data=self.vacc_per_day, dims=['age']) # new
 
 
 @xs.process
@@ -171,38 +212,73 @@ class SetupPhi:
         return f(f(data, coords), coords)
 
 
-class ExampleSIR(EpiModel):
-    TAGS = ('SIR', 'compartments::3')
+class ExampleSIRV(EpiModel):
+    # Optional: include some tags so that future users
+    # could sort by model metadata
+    TAGS = ('SIRV', 'compartments::4')
+    
+    # Define all the processes in this model
     PROCESSES = {
-        # core processes
+        # Core processes
         'compt_model': ComptModel,
         'setup_sto': SetupStochasticFromToggle,
         'setup_seed': SeedGenerator,
         'setup_coords': SetupCoords,
         'setup_state': SetupState,
-        'setup_compt_graph': SetupComptGraph,
         'setup_phi': SetupPhi,
 
-        # calculate weights for edges in the compartment graph
+        # Edge weight processes from ExampleSIR
         'rate_S2I': FOI,
         'rate_I2R': RecoveryRate,
+        
+        # Distinct from ExampleSIR
+        'setup_compt_graph': SetupComptGraph,
+        'rate_S2V': RateS2V,
+        'rate_V2I': RateV2I
     }
-    RUNNER_DEFAULTS = dict(
-        clocks={
+    
+    # Define defaults that can be overwritten by user
+    RUNNER_DEFAULTS = {
+        'clocks': {
             'step': pd.date_range(start='3/1/2020', end='3/15/2020', freq='24H')
         },
-        input_vars={
+        'input_vars': {
             'sto_toggle': 0, 
             'seed_entropy': 12345,
             'beta': 0.08,
             'gamma': 0.5,
+            'vacc_efficacy': 0.9,
+            'vacc_per_day': [0, 0, 5, 10, 10]
         },
-        output_vars={
-            'compt_model__state': 'step'
+        'output_vars': {
+            'compt_model__state': 'step',
+            'rate_V2I__rate_V2I': 'step'
         }
-    )
-
-    def plot(self, show=True):
-        plot = self.out_ds['compt_model__state'].sum(['age', 'risk', 'vertex']).plot.line(x='step', aspect=2, size=9)
-        if show:
-            plt.show()
+    }
+    
+    # Define custom plotting methods
+    def plot(self):
+        """Plot compartment populations over time."""
+        return (self
+                .out_ds['compt_model__state']
+                .sum(['age', 'risk', 'vertex'])
+                .plot.line(x='step', aspect=2, size=9))
+        
+    def plot_vacc(self):
+        """Plot population of the vaccinated (V) compartment over time,
+        stratified by age group.
+        """
+        return (self
+                .out_ds['compt_model__state']
+                .loc[dict(compt='V')]
+                .sum(['risk', 'vertex'])
+                .plot.line(x='step', aspect=2, size=9))
+    
+    def plot_rate_V2I(self):
+        """Plot incident escape infections (`rate_V2I` over time),
+        stratified by age group.
+        """
+        return (self
+                .out_ds['rate_V2I__rate_V2I']
+                .sum(['risk', 'vertex'])
+                .plot.line(x='step', aspect=2, size=9))

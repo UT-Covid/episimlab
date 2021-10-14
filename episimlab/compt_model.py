@@ -3,7 +3,8 @@ import numpy as np
 import xarray as xr
 import xsimlab as xs
 import pandas as pd
-from .utils import group_dict_by_var, get_rng, any_negative, clip_to_zero
+from .utils.variable import group_dict_by_var, any_negative, clip_to_zero
+from .utils.rng import get_rng
 from numbers import Number
 
 
@@ -15,9 +16,9 @@ class ComptModel:
     TAGS = ('compt_model', )
     STATE_DIMS = ('vertex', 'compt', 'age', 'risk')
     
-    _tm_subset = xs.group_dict('tm')
+    _tm_subset = xs.group_dict('edge_weight')
     state = xs.variable(dims=STATE_DIMS, intent='inout', global_name='state')
-    tm = xs.variable(dims=STATE_DIMS, intent='out', global_name='tm')
+    tm = xs.variable(dims=STATE_DIMS, intent='out', global_name='edge_weight')
     compt_graph = xs.variable('compt_graph', intent='in', global_name='compt_graph')
     stochastic = xs.global_ref('stochastic', intent='in')
     seed_state = xs.global_ref('seed_state', intent='in')
@@ -108,7 +109,7 @@ class ComptModel:
     def get_edge_weight(self, u, v):
         """Try to find an edge weight for (u, v) in `tm_subset`, then
         in the edge attribute. Default to zero weight if none can be found."""
-        key = self.edge_weight_name(u, v)
+        key = edge_weight_name(u, v)
         edge_data = self.compt_graph.get_edge_data(u, v, dict())
         if key in self.tm_subset:
             weight = self.tm_subset[key]
@@ -116,36 +117,26 @@ class ComptModel:
             # TODO: accept function and str type attribs
             weight = edge_data['weight']
         else:
-            logging.warning(f"could not find a weight for transition from {u} to {v} compartment ({key})")
+            logging.warning(f"could not find a weight for transition from {u} "
+                            f"to {v} compartment ({key}). Setting weight to zero.")
             weight = 0.
 
         # TODO: if weight is very close to zero, set to 0
 
-        # if any_negative(weight):
-        #     logging.warning(
-        #         f"Weight of edge '{key}' contains negative values. " 
-        #         f"Edges are directional, so instead of setting " 
-        #         f"a negative weight, please set a positive weight " 
-        #         f"on the reverse edge ({self.edge_weight_name(v, u)}).")
-        #     logging.warning(f"Clipping weight of edge '{key}' to minimum of zero.")
-        #     weight = clip_to_zero(weight)
-        # assert not any_negative(weight)
-        
         # poisson draw if stochastic is on
         if bool(self.stochastic):
-            weight = self.poisson(weight)
+            weight = self.stochastic_draw(weight)
             
         return weight
 
-    def edge_weight_name(self, u, v) -> str:
-        """Attr name when looking for edge weight between nodes `u` and `v`."""
-        return f"rate_{u}2{v}"
-    
     @property
     def rng(self):
         if not hasattr(self, '_rng'):
             self._rng = get_rng(seed=self.seed_state)
         return self._rng
+    
+    def stochastic_draw(self, *args, **kwargs):
+        return self.poisson(*args, **kwargs)
 
     def poisson(self, val):
         try:
@@ -161,3 +152,7 @@ class ComptModel:
             return cp
         return arr
 
+
+def edge_weight_name(u, v) -> str:
+    """Attr name when looking for edge weight between nodes `u` and `v`."""
+    return f"rate_{u}2{v}"

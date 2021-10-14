@@ -6,6 +6,7 @@ import numpy as np
 from itertools import product
 import dask.dataframe as dd
 from datetime import datetime
+from ..utils import group_dict_by_var
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -371,29 +372,31 @@ class Contact2Phi:
                 'age0', 'age1',
                 'risk0', 'risk1')
 
-    age = xs.index(dims='age', global_name='age', groups=['coords'])
-    risk = xs.index(dims='risk', global_name='risk', groups=['coords'])
-    compt = xs.index(dims='compt', global_name='compt', groups=['coords'])
-    vertex = xs.index(dims='vertex', global_name='vertex', groups=['coords'])
-
     contact_xr = xs.global_ref('contact_xr', intent='in')
     phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
+    _coords = xs.group_dict('coords')
+
+    @property
+    def coords(self):
+        return group_dict_by_var(self._coords)
+    
+    @property
+    def phi_dims(self):
+        return self.PHI_DIMS
+
+    @property
+    def phi_coords(self):
+        return {k: self.coords.get(k.rstrip('01')) for k in self.phi_dims}
 
     def initialize(self):
-        self.initialize_misc_coords()
-        self.run_step()
+        self.get_phi()
 
     def run_step(self):
-        # set age group and vertex coords
-        self.age = self.contact_xr.coords['age0'].values
-        self.vertex = self.contact_xr.coords['vertex0'].values
-
         self.get_phi()
 
     def get_phi(self):
-        self.COORDS = {k: getattr(self, k[:-1]) for k in self.PHI_DIMS}
-        self.phi_t = xr.DataArray(data=np.nan, dims=self.PHI_DIMS, coords=self.COORDS)
-
+        self.phi_t = xr.DataArray(data=np.nan, dims=self.phi_dims, 
+                                  coords=self.phi_coords)
         # broadcast into phi_array
         # TODO: refactor
         self.phi_t.loc[dict(risk0='low', risk1='low')] = self.contact_xr
@@ -401,13 +404,6 @@ class Contact2Phi:
         self.phi_t.loc[dict(risk0='high', risk1='high')] = self.contact_xr
         self.phi_t.loc[dict(risk0='high', risk1='low')] = self.contact_xr
         assert not self.phi_t.isnull().any()
-
-    def initialize_misc_coords(self):
-        """Set up coords besides vertex and age group."""
-        self.risk = ['low', 'high']
-        self.compt = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
-                            'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
-                            'Py2Iy', 'Iy2Ih', 'H2D']
 
 
 @xs.process
