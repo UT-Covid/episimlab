@@ -5,20 +5,22 @@
 
 
 import xsimlab as xs
-from episimlab.models import ExampleSIR
+import xarray as xr
+from episimlab.models import ExampleSIR, EpiModel
 from episimlab.foi import BaseFOI
-from episimlab.utils import visualize_compt_graph
+from episimlab.utils import visualize_compt_graph, coerce_to_da
 import networkx as nx
+import pandas as pd
 
 
 # # Episimlab Tutorial
 # ----
 # 
-# This notebook will provide a brief tutorial in basic model building using Episimlab version 2.
+# This notebook will provide a tutorial in model building using Episimlab version 2. For more details, please refer to the [Episimlab GitHub repository](https://github.com/eho-tacc/episimlab) and the [xarray-simlab documentation](https://xarray-simlab.readthedocs.io).
 
 # ## Installation
 # 
-# To install Episimlab, issue:
+# To install Episimlab, issue from the command line:
 # ```bash
 # pip install episimlab
 # ```
@@ -40,7 +42,7 @@ model = ExampleSIR()
 model
 
 
-# These pre-packaged models come with a set of default parameter values. New models should include a full set of default parameters so that users can quickly and easily use the same model that you did (say, in a publication):
+# These pre-packaged models come with a set of default parameter values. New models should include a full set of default parameters so that users can quickly and easily use the same model (say, in a publication):
 
 # In[3]:
 
@@ -59,7 +61,7 @@ input_vars = {
 model.run(input_vars=input_vars)
 
 
-# The model output is an `xarray.Dataset`, which is very similar to an N-dimensional numpy array. We can also see the compartment graph generated when the model was run. The compartment graph defined by the user shows allowed transitions in the model. Here, we see that S -> I (`rate_S2I`) and I -> R (`rate_I2R`) transitions are allowed.
+# The model output is an `xarray.Dataset`, which is very similar to an N-dimensional numpy array. We can also see the compartment graph generated when the model was run. The compartment graph shows allowed transitions in the model. Here, we see that S -> I (`rate_S2I`) and I -> R (`rate_I2R`) transitions are allowed.
 # 
 # We can plot the state of the simulation over time:
 
@@ -72,15 +74,12 @@ model.plot()
 # ## Modify an Existing Model: Adding a Vaccination Compartment
 # ----
 # 
-# We now want to add more heterogeneity into our model. We will do this in two ways:
-# 1. Add a vaccination compartment
-# 2. Add a socio-economic status (SES) dimension
+# We now want to add more heterogeneity into our model. We will demonstrate this by adding a Vaccinated (`V`) compartment to the model.
 # 
 # Episimlab models are highly modular, so we can easily reuse our existing `ExampleSIR` model instead of writing the new model from scratch. To do this, we will write a few new processes and add them to our existing model:
 # 1. A new process `CustomSetupComptGraph` that generates a compartment graph containing a new `V` node, with new directed edges `(S, V)` and `(V, I)`
 # 2. A new process `RateS2V` that calculates an edge weight `rate_S2V`
 # 3. A new process `RateV2I` that calculates an edge weight `rate_V2I`
-# 4. A process `CustomSetupCoords` that includes an `ses` dimension, replacing the default `SetupCoords` process
 
 # ### #1: Add a `V` Compartment
 # 
@@ -96,6 +95,8 @@ class CustomSetupComptGraph:
     """A single process in the model. Defines the directed graph `compt_graph`
     that defines the compartments and allowed transitions between them.
     """
+    # Reference a variable defined in a different process, and tell the model
+    # that this process intends to output this variable.
     compt_graph = xs.global_ref('compt_graph', intent='out')
 
     def initialize(self):
@@ -103,9 +104,7 @@ class CustomSetupComptGraph:
         self.compt_graph = self.get_compt_graph()
     
     def run_step(self):
-        """This method doesn't do anything and is run once at every step
-        of the simulation.
-        """
+        """This method is run once at every step of the simulation."""
         pass
 
     def finalize(self):
@@ -141,8 +140,7 @@ class CustomSetupComptGraph:
 # In[7]:
 
 
-sirv_model = model.clone()
-sirv_model.setup_compt_graph
+model.setup_compt_graph
 
 
 # In[8]:
@@ -176,7 +174,8 @@ class RateS2V:
     """A single process in the model. Calculates a vaccination rate
     `rate_S2V`.
     """
-    # Define a variable that will be imported from other processes
+    # Define a variable that will be imported from other processes,
+    # and tell the model that this process intends to import the variable.
     vacc_per_day = xs.variable(global_name='vacc_per_day', intent='in')
     
     # Define a variable that we want to export
@@ -195,9 +194,9 @@ class RateS2V:
     @xs.runtime(args=['step'])
     def run_step(self, step):
         """Calculate the `rate_S2V` at every step of the simulation.
-        Set the rate to zero after step 10.
+        Set the rate to zero after the 5th step.
         """
-        if step > 10:
+        if step > 5:
             self.rate_S2V = 0.
         else:
             self.rate_S2V = self.vacc_per_day
@@ -218,10 +217,12 @@ class RateV2I(BaseFOI):
     """
     # Override the default behavior: calculate FOI based on the population
     # of the V compartment, instead of the S compartment
-    S_COMPT_LABELS = ['V']
+    S_COMPT_LABELS = 'V'
     
     # Like before, we define a variable that we export in this process
-    rate_V2I = xs.variable(global_name='rate_V2I', groups=['tm'], intent='out')
+    rate_V2I = xs.variable(dims=('age', 'risk', 'vertex'), 
+                           global_name='rate_V2I', groups=['tm'], 
+                           intent='out')
     
     # We also define an input variable that scales FOI
     vacc_efficacy = xs.variable(global_name='vacc_efficacy', intent='in')
@@ -232,10 +233,10 @@ class RateV2I(BaseFOI):
         """Calculate the `rate_V2I` at every step of the simulation. Here,
         we make use of the `foi` method in the parent process BaseFOI.
         """
-        self.rate_V2I = self.foi.sum('compt') * (1 - self.vacc_efficacy)
+        self.rate_V2I = self.foi * (1 - self.vacc_efficacy)
 
 
-# Finally, add both processes to the model:
+# Finally, add both processes to the model. 
 
 # In[12]:
 
@@ -245,27 +246,231 @@ sirv_model = sirv_model.update_processes({
     'rate_S2V': RateS2V,
     'rate_V2I': RateV2I
 })
-sirv_model
 
 
-# We can now run our model, inspect the compartment graph, and plot the results:
+# We visualize the processes in the model as a graph:
 
 # In[13]:
 
 
-sirv_model.run(input_vars={
-    'vacc_efficacy': 0.9,
-    # Stratified by age groups ['0-4', '5-17', '18-49', '50-64', '65+']
-    'vacc_per_day': 10,
-    'sto_toggle': -1,
-    'rate_I2R__gamma': 0.5
+sirv_model.visualize()
+
+
+# We can now run our model, inspect the compartment graph, and plot the results:
+
+# In[14]:
+
+
+sirv_model.run(
+    input_vars={
+        'vacc_efficacy': 0.9,
+        'vacc_per_day': 10,
+        'sto_toggle': 0,
+    })
+
+
+# In[15]:
+
+
+sirv_model.plot()
+
+
+# ## Vaccinate Differently by Age
+# ----
+# 
+# Episimlab allows users to set arbitrary dimensions for parameters. We could add age heterogeneity for the `vacc_per_day` variable by modifying our existing processes:
+
+# In[16]:
+
+
+@xs.process
+class AgeScaledRateS2V:
+    """A single process in the model. Calculates a vaccination rate
+    `rate_S2V`. Ingests a `vacc_per_day` with one dimension on `age`.
+    """
+    vacc_per_day = xs.variable(global_name='vacc_per_day', intent='in',
+                               dims=('age')) # new
+    rate_S2V = xs.variable(global_name='rate_S2V', groups=['tm'], intent='out')
+    
+    @xs.runtime(args=['step'])
+    def run_step(self, step):
+        """Calculate the `rate_S2V` at every step of the simulation.
+        Set the rate to zero after step 5.
+        """
+        if step > 5:
+            self.rate_S2V = 0.
+        else:
+            self.rate_S2V = xr.DataArray(data=self.vacc_per_day, dims=['age']) # new
+
+
+# In[17]:
+
+
+age_model = sirv_model.update_processes({
+    'rate_S2V': AgeScaledRateS2V,
 })
 
 
-# In[ ]:
+# In[18]:
 
 
+age_model
 
+
+# We run the model as usual. Note that we can specify a dictionary of output variables if we want additional data in the output array. In addition to the `state` variable from `compt_model` process, we also want to retrieve the `rate_V2I` variable from the `rate_V2I` process for one of our analyses.
+
+# In[19]:
+
+
+age_model.run(
+    input_vars={
+        'vacc_efficacy': 0.9,
+        # Now stratified by age group:
+        # ['0-4', '5-17', '18-49', '50-64', '65+']
+        'vacc_per_day': [0, 0, 5, 10, 10] # new
+    },
+    output_vars={
+        # `state` of the `compt_model` over time (`step`)
+        'compt_model__state': 'step',
+        # `rate_V2I` over time (`step`)
+        'rate_V2I__rate_V2I': 'step' # new
+    })
+
+
+# ### Plotting
+# 
+# Let's look at some more advanced plotting while we're here. We want to plot:
+# - Population of `V` compartment over time
+# - Incidence of escape infections, effectively the `rate_V2I`
+
+# In[20]:
+
+
+(age_model
+ # we want to track the `state` variable from the `compt_model` process
+ .out_ds['compt_model__state']
+ # only looking at the V compartment
+ .loc[dict(compt='V')]
+ # sum over the other dimensions, leaving one `age` dimension
+ .sum(['risk', 'vertex'])
+ # plot over time
+ .plot.line(x='step', aspect=2, size=9))
+
+
+# In[21]:
+
+
+(age_model
+ # we want to track the `rate_V2I` variable from the `rate_V2I` process
+ .out_ds['rate_V2I__rate_V2I']
+ # sum over the other dimensions, leaving one `age` dimension
+ .sum(['risk', 'vertex'])
+ # plot over time
+ .plot.line(x='step', aspect=2, size=9))
+
+
+# ## Package the Final Model
+# ----
+# 
+# Now that we're finished with model development, we will package it into a model like `ExampleSIR` so that others can easily use it. This will involve writing a Python class (but not a "process") that contains:
+# - The model with its default processes. Most of the processes are the same as `ExampleSIR`
+# - Default parameter values
+# - Custom methods such as plotting
+# 
+# In short, we will package all of our work thus far into a standardized format that makes it easy to reproduce.
+
+# In[22]:
+
+
+from episimlab.models import example_sir
+
+
+# In[23]:
+
+
+class ExampleSIRV(EpiModel):
+    # Optional: include some tags so that future users
+    # could sort by model metadata
+    TAGS = ('SIRV', 'compartments::4')
+    
+    # Define all the processes in this model
+    PROCESSES = {
+        # Core processes
+        'compt_model': example_sir.ComptModel,
+        'setup_sto': example_sir.SetupStochasticFromToggle,
+        'setup_seed': example_sir.SeedGenerator,
+        'setup_coords': example_sir.SetupCoords,
+        'setup_state': example_sir.SetupState,
+        'setup_phi': example_sir.SetupPhi,
+
+        # Edge weight processes from ExampleSIR
+        'rate_S2I': example_sir.FOI,
+        'rate_I2R': example_sir.RecoveryRate,
+        
+        # Distinct from ExampleSIR
+        'setup_compt_graph': CustomSetupComptGraph,
+        'rate_S2V': AgeScaledRateS2V,
+        'rate_V2I': RateV2I
+    }
+    
+    # Define defaults that can be overwritten by user
+    RUNNER_DEFAULTS = {
+        'clocks': {
+            'step': pd.date_range(start='3/1/2020', end='3/15/2020', freq='24H')
+        },
+        'input_vars': {
+            'sto_toggle': 0, 
+            'seed_entropy': 12345,
+            'beta': 0.08,
+            'gamma': 0.5,
+            'vacc_efficacy': 0.9,
+            'vacc_per_day': [0, 0, 5, 10, 10]
+        },
+        'output_vars': {
+            'compt_model__state': 'step',
+            'rate_V2I__rate_V2I': 'step'
+        }
+    }
+    
+    # Define custom plotting methods
+    def plot(self):
+        """Plot compartment populations over time."""
+        return (self
+                .out_ds['compt_model__state']
+                .sum(['age', 'risk', 'vertex'])
+                .plot.line(x='step', aspect=2, size=9)
+        
+    def plot_vacc(self):
+        """Plot population of the vaccinated (V) compartment over time,
+        stratified by age group.
+        """
+        return (self
+                .out_ds['compt_model__state']
+                .loc[dict(compt='V')]
+                .sum(['risk', 'vertex'])
+                .plot.line(x='step', aspect=2, size=9))
+    
+    def plot_rate_V2I(self):
+        """Plot incident escape infections (`rate_V2I` over time),
+        stratified by age group.
+        """
+        return (self
+                .out_ds['rate_V2I__rate_V2I']
+                .sum(['risk', 'vertex'])
+                .plot.line(x='step', aspect=2, size=9))
+
+
+# Now, running our SIRV model is as easy as:
+
+# In[24]:
+
+
+packaged_model = ExampleSIRV()
+packaged_model.run(input_vars={
+    # Optional: overwrite defaults
+    'vacc_per_day': [0, 0, 0, 5, 20]
+})
+packaged_model.plot_rate_V2I()
 
 
 # In[ ]:
