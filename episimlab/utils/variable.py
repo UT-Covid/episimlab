@@ -74,3 +74,23 @@ def clip_to_zero(val):
         return np.clip(val, 0., np.maximum(val))
     elif isinstance(val, Number):
         return max(val, 0.)
+
+
+def coerce_to_da(proc, name: str, value, coords: dict = None) -> xr.DataArray:
+    """Given a variable with `name` and `value` defined in process `proc`,
+    retrieve the variable metadata and use it to coerce the `value` into
+    an `xarray.DataArray` with the correct dimensions and coordinates.
+    Returns `value` if variable is scalar (zero length dims attribute),
+    DataArray otherwise.
+    """
+    # get dims
+    dims = get_var_dims(proc, name)
+    if not dims:
+        return value
+    # get coords
+    if coords is None:
+        coords = dict()
+    return xr.DataArray(data=value, dims=dims, coords={
+        dim: coords.get(dim, list()) for dim in dims 
+        if dim != 'value' and dim in coords
+    })
