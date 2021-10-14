@@ -65,15 +65,24 @@ class CustomSetupComptGraph:
 
 # Instantiate the included model
 model = ExampleSIR()
+
+# Visualize the processes in the model (requires graphviz)
+model.visualize()
+
 # Edit the model so it uses our custom process
 model = model.update_processes({
-    'recovery_rate': CustomRecoveryRate, 
+    'rate_I2R': CustomRecoveryRate, 
     'setup_compt_graph': CustomSetupComptGraph})
+
+# We can optionally overwrite model defaults from a YAML configuration file
+model.config_fp = './examples/example_sir.yaml'
+
 # Run the model using Dask and xarray-simlab (xsimlab)
 results = model.run(input_vars={
     # We can optionally overwrite specific input variables at runtime
     'beta': 0.085
 })
+
 # Plot the state over time
 model.plot()
 
