@@ -1,7 +1,7 @@
 # Episimlab
 [![Tox](https://github.com/eho-tacc/episimlab/actions/workflows/tox.yml/badge.svg)](https://github.com/eho-tacc/episimlab/actions/workflows/tox.yml)
 [![PyPI](https://github.com/eho-tacc/episimlab/actions/workflows/publish.yml/badge.svg)](https://github.com/eho-tacc/episimlab/actions/workflows/publish.yml)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eho-tacc/episimlab/blob/colab-demo/examples/example_sirv.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eho-tacc/episimlab/blob/main/examples/example_sirv.ipynb)
 
 Episimlab is a framework for developing epidemiological models in a modular fashion. It provides a set of extensible components that can be combined with user-written components, allowing for rapid development of reproducible disease-modeling pipelines.
 
