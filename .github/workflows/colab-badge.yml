@@ -1,6 +1,8 @@
 name: Colab Badges
 on:
   push:
+    branches:
+      - "*"
     paths:
       - '**.ipynb'
 jobs:
