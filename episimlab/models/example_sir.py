@@ -11,7 +11,7 @@ import networkx as nx
 from .epi_model import EpiModel
 from ..foi import BaseFOI
 from ..compt_model import ComptModel
-from ..utils import get_var_dims, group_dict_by_var
+from ..utils import get_var_dims, group_dict_by_var, visualize_compt_graph
 from ..setup.sto import SetupStochasticFromToggle
 from ..setup.seed import SeedGenerator
 
@@ -52,42 +52,50 @@ class RecoveryRate:
 
 @xs.process
 class SetupComptGraph:
-    """Generate a toy compartment graph"""
+    """A single process in the model. Defines the directed graph `compt_graph`
+    that defines the compartments and allowed transitions between them.
+    """
     compt_graph = xs.global_ref('compt_graph', intent='out')
+
+    def initialize(self):
+        """This method is run once at the beginning of the simulation."""
+        self.compt_graph = self.get_compt_graph()
+
+    def finalize(self):
+        """This method is run once at the end of the simulation."""
+        self.visualize()
 
     def get_compt_graph(self) -> nx.DiGraph:
         g = nx.DiGraph()
         g.add_nodes_from([
             ('S', {"color": "red"}),
-            # ('V', {"color": "orange"}),
             ('I', {"color": "blue"}),
             ('R', {"color": "green"}),
         ])
         g.add_edges_from([
             ('S', 'I', {"priority": 0, "color": "red"}),
-            # ('S', 'V', {"priority": 0, "color": "orange"}),
-            # ('V', 'R', {"priority": None, "weight": 0., "color": "orange"}),
             ('I', 'R', {"priority": 1, "color": "blue"}),
         ])
         return g
     
-    def vis(self):
-        return nx.draw(self.compt_graph)
-    
-    def initialize(self):
-        self.compt_graph = self.get_compt_graph()
+    def visualize(self, path=None):
+        """Visualize the compartment graph, saving as a file at `path`"""
+        return visualize_compt_graph(self.compt_graph, path=path)
 
 
 @xs.process
 class SetupCoords:
-    """Initialize state coordinates"""
+    """Initialize state coordinates. Imports compartment coordinates from the
+    compartment graph.
+    """
     compt = xs.index(dims=('compt'), global_name='compt_coords', groups=['coords'])
     age = xs.index(dims=('age'), global_name='age_coords', groups=['coords'])
     risk = xs.index(dims=('risk'), global_name='risk_coords', groups=['coords'])
     vertex = xs.index(dims=('vertex'), global_name='vertex_coords', groups=['coords'])
+    compt_graph = xs.global_ref('compt_graph', intent='in')
     
     def initialize(self):
-        self.compt = ['S', 'I', 'R', 'V'] 
+        self.compt = self.compt_graph.nodes
         self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
         self.risk = ['low', 'high']
         self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
@@ -105,8 +113,8 @@ class SetupState:
             dims=self.dims,
             coords=self.coords
         )
-        self.state.loc[dict(compt='S')] = np.array([[200, 200, 200, 200, 200]] * 2).T
-        self.state.loc[dict(compt='I')] = np.array([[20, 20, 20, 20, 20]] * 2).T
+        self.state.loc[dict(compt='S')] = 200
+        self.state.loc[dict(compt='I')] = 20
 
     @property
     def dims(self):
@@ -166,25 +174,28 @@ class SetupPhi:
 class ExampleSIR(EpiModel):
     TAGS = ('SIR', 'compartments::3')
     PROCESSES = {
-        'setup_phi': SetupPhi,
-        'setup_coords': SetupCoords,
-        'setup_state': SetupState,
+        # 
         'compt_model': ComptModel,
-        'foi': FOI,
-        'setup_compt_graph': SetupComptGraph,
-        'recovery_rate': RecoveryRate,
         'setup_sto': SetupStochasticFromToggle,
         'setup_seed': SeedGenerator,
+        'setup_coords': SetupCoords,
+        'setup_state': SetupState,
+        'setup_compt_graph': SetupComptGraph,
+        'setup_phi': SetupPhi,
+
+        # calculate weights for edges in the compartment graph
+        'rate_S2I': FOI,
+        'rate_I2R': RecoveryRate,
     }
     RUNNER_DEFAULTS = dict(
         clocks={
             'step': pd.date_range(start='3/1/2020', end='3/15/2020', freq='24H')
         },
         input_vars={
-            'setup_sto__sto_toggle': 0, 
-            'setup_seed__seed_entropy': 12345,
-            'foi__beta': 0.08,
-            'recovery_rate__gamma': 0.5,
+            'sto_toggle': 0, 
+            'seed_entropy': 12345,
+            'beta': 0.08,
+            'gamma': 0.5,
         },
         output_vars={
             'compt_model__state': 'step'
