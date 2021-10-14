@@ -174,7 +174,7 @@ class SetupPhi:
 class ExampleSIR(EpiModel):
     TAGS = ('SIR', 'compartments::3')
     PROCESSES = {
-        # 
+        # core processes
         'compt_model': ComptModel,
         'setup_sto': SetupStochasticFromToggle,
         'setup_seed': SeedGenerator,

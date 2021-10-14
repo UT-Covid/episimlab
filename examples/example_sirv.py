@@ -385,7 +385,7 @@ age_model.run(
 from episimlab.models import example_sir
 
 
-# In[23]:
+# In[24]:
 
 
 class ExampleSIRV(EpiModel):
@@ -438,7 +438,7 @@ class ExampleSIRV(EpiModel):
         return (self
                 .out_ds['compt_model__state']
                 .sum(['age', 'risk', 'vertex'])
-                .plot.line(x='step', aspect=2, size=9)
+                .plot.line(x='step', aspect=2, size=9))
         
     def plot_vacc(self):
         """Plot population of the vaccinated (V) compartment over time,
@@ -462,7 +462,7 @@ class ExampleSIRV(EpiModel):
 
 # Now, running our SIRV model is as easy as:
 
-# In[24]:
+# In[25]:
 
 
 packaged_model = ExampleSIRV()
@@ -471,10 +471,4 @@ packaged_model.run(input_vars={
     'vacc_per_day': [0, 0, 0, 5, 20]
 })
 packaged_model.plot_rate_V2I()
-
-
-# In[ ]:
-
-
-
 
