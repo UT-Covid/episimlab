@@ -8,29 +8,41 @@ import matplotlib.pyplot as plt
 import numpy as np
 from functools import wraps
 from ..compt_model import edge_weight_name
+from typing import Callable
 
 
-def visualize_compt_graph(gph: nx.Graph, path: str = None, mpl_backend: str = None):
+def visualize_compt_graph(
+    gph: nx.Graph, path: str = None, mpl_backend: str = None, pos = None,
+    default_edge_color: str = 'black', default_node_color: str = 'black',
+    node_size: int = 1000, font_size: int = 16, font_weight: str = 'bold',
+    font_color: str = 'white', **kwargs):
     """Visualize compartment graph `gph` using matplotlib. Saves figure
     to a `path` if specified, e.g. 'my_compt_graph.svg'.
     """
+    
     if mpl_backend is not None:
         # matplotlib.use("Agg")
         matplotlib.use(mpl_backend)
     f = plt.figure()
 
     # try to get "color" edge attribute if it was set
-    edge_color = [edge[2] for edge in gph.edges.data("color", default="k")]
+    edge_color = [edge[2] for edge in gph.edges.data("color", default=default_edge_color)]
+
+    # try to get "color" node attribute if it was set
+    node_color = [node[1] for node in gph.nodes.data("color", default=default_node_color)]
 
     # get edge labels with same naming as compt_model.ComptModel
     edge_labels = {edge: edge_weight_name(*edge) for edge in gph.edges}
 
-    pos = nx.drawing.planar_layout(gph)
+    if pos is None:
+        pos = nx.drawing.planar_layout(gph)
     ax = f.add_subplot(111)
     drawing = nx.draw_networkx(gph, pos=pos, 
                                ax=ax, edge_color=edge_color, 
-                               node_color="#94d67c", node_size=500
-                               )
+                               node_color=node_color, node_size=node_size,
+                               font_size=font_size,
+                               font_weight=font_weight, font_color=font_color,
+                               **kwargs)
     edge_labels = nx.draw_networkx_edge_labels(gph, pos=pos, ax=ax, 
                                                edge_labels=edge_labels)
     if path is not None:
