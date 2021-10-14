@@ -179,9 +179,9 @@ class RateS2V:
     vacc_per_day = xs.variable(global_name='vacc_per_day', intent='in')
     
     # Define a variable that we want to export
-    # We include the `groups=['tm']` in order for the model to recognize
+    # We include the `groups=['edge_weight']` in order for the model to recognize
     # this variable as an edge weight.
-    rate_S2V = xs.variable(global_name='rate_S2V', groups=['tm'], intent='out')
+    rate_S2V = xs.variable(global_name='rate_S2V', groups=['edge_weight'], intent='out')
     
     def initialize(self):
         """If the vaccination rate were constant, we need only need to set
@@ -221,7 +221,7 @@ class RateV2I(BaseFOI):
     
     # Like before, we define a variable that we export in this process
     rate_V2I = xs.variable(dims=('age', 'risk', 'vertex'), 
-                           global_name='rate_V2I', groups=['tm'], 
+                           global_name='rate_V2I', groups=['edge_weight'], 
                            intent='out')
     
     # We also define an input variable that scales FOI
@@ -290,7 +290,7 @@ class AgeScaledRateS2V:
     """
     vacc_per_day = xs.variable(global_name='vacc_per_day', intent='in',
                                dims=('age')) # new
-    rate_S2V = xs.variable(global_name='rate_S2V', groups=['tm'], intent='out')
+    rate_S2V = xs.variable(global_name='rate_S2V', groups=['edge_weight'], intent='out')
     
     @xs.runtime(args=['step'])
     def run_step(self, step):

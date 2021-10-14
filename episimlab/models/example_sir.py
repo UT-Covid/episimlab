@@ -19,7 +19,7 @@ from ..setup.seed import SeedGenerator
 @xs.process
 class VaccRate:
     """Provide a `rate_S2V`"""
-    rate_S2V = xs.variable(global_name='rate_S2V', groups=['tm'], intent='out')
+    rate_S2V = xs.variable(global_name='rate_S2V', groups=['edge_weight'], intent='out')
     vacc_prop = xs.variable(global_name="vacc_prop", intent="in")
     state = xs.global_ref('state', intent='in')
 
@@ -38,7 +38,7 @@ class VaccRate:
 @xs.process
 class RecoveryRate:
     """Provide a `rate_I2R`"""
-    rate_I2R = xs.variable(global_name='rate_I2R', groups=['tm'], intent='out')
+    rate_I2R = xs.variable(global_name='rate_I2R', groups=['edge_weight'], intent='out')
     gamma = xs.variable(global_name='gamma', intent='in')
     state = xs.global_ref('state', intent='in')
 
@@ -130,7 +130,7 @@ class FOI(BaseFOI):
     """FOI that provides a `rate_S2I`"""
     TAGS = ('FOI',)
     PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
-    rate_S2I = xs.variable(intent='out', groups=['tm'])
+    rate_S2I = xs.variable(intent='out', groups=['edge_weight'])
 
     def run_step(self):
         self.rate_S2I = self.foi

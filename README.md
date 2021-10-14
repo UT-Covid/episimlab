@@ -28,7 +28,7 @@ class CustomRecoveryRate:
     calculates a recovery rate (`rate_I2R`)."""
     # Variables output by this process (intent='out')
     rate_I2R = xsimlab.variable(
-        global_name='rate_I2R', groups=['tm'], intent='out', 
+        global_name='rate_I2R', groups=['edge_weight'], intent='out', 
         description="rate of change from compartments I to R")
 
     # Variables ingested by this process (intent='in'). 

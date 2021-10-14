@@ -16,9 +16,9 @@ class ComptModel:
     TAGS = ('compt_model', )
     STATE_DIMS = ('vertex', 'compt', 'age', 'risk')
     
-    _tm_subset = xs.group_dict('tm')
+    _tm_subset = xs.group_dict('edge_weight')
     state = xs.variable(dims=STATE_DIMS, intent='inout', global_name='state')
-    tm = xs.variable(dims=STATE_DIMS, intent='out', global_name='tm')
+    tm = xs.variable(dims=STATE_DIMS, intent='out', global_name='edge_weight')
     compt_graph = xs.variable('compt_graph', intent='in', global_name='compt_graph')
     stochastic = xs.global_ref('stochastic', intent='in')
     seed_state = xs.global_ref('seed_state', intent='in')

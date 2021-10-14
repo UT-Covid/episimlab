@@ -134,7 +134,7 @@ class RateS2E(BaseFOI):
     """FOI that provides a `rate_S2E`"""
     TAGS = ('model::ElevenComptV1', 'FOI')
     PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
-    rate_S2E = xs.variable(intent='out', groups=['tm'])
+    rate_S2E = xs.variable(intent='out', groups=['edge_weight'])
 
     @property
     def I(self):
@@ -151,7 +151,7 @@ class RateS2E(BaseFOI):
 @xs.process
 class RateS2V:
     """Vaccination dosage model"""
-    rate_S2V = xs.variable(global_name='rate_S2V', groups=['tm'], intent='out')
+    rate_S2V = xs.variable(global_name='rate_S2V', groups=['edge_weight'], intent='out')
     doses_delivered = xs.global_ref('doses_delivered', intent='in')
     eff_vaccine = xs.variable(global_name='eff_vaccine', intent='in')
 
@@ -167,7 +167,7 @@ class RateV2Ev(VaccineFOI):
     phi = xs.global_ref('phi', intent='in')
     beta = xs.global_ref('beta', intent='in')
     beta_reduction = xs.variable(global_name='beta_reduction', intent='in')
-    rate_V2Ev = xs.variable(intent='out', groups=['tm'])
+    rate_V2Ev = xs.variable(intent='out', groups=['edge_weight'])
 
     @property
     def I(self):
@@ -210,7 +210,7 @@ class RateE2P:
 @xs.process
 class RateE2Py:
     """Provide a `rate_E2Py`"""
-    rate_E2Py = xs.variable(global_name='rate_E2Py', groups=['tm'], intent='out')
+    rate_E2Py = xs.variable(global_name='rate_E2Py', groups=['edge_weight'], intent='out')
     tau = xs.variable(global_name='tau', intent='in')
     rate_E2P = xs.global_ref('rate_E2P', intent='in')
 
@@ -221,7 +221,7 @@ class RateE2Py:
 @xs.process
 class RateEv2Py:
     """Provide a `rate_Ev2Py"""
-    rate_Ev2Py = xs.variable(global_name='rate_Ev2Py', groups=['tm'], intent='out')
+    rate_Ev2Py = xs.variable(global_name='rate_Ev2Py', groups=['edge_weight'], intent='out')
     tau_v = xs.variable(global_name='tau_v', intent='in')
     rate_Ev2P = xs.global_ref('rate_Ev2P', intent='in')
 
@@ -232,7 +232,7 @@ class RateEv2Py:
 @xs.process
 class RateE2Pa:
     """Provide a `rate_E2Pa`"""
-    rate_E2Pa = xs.variable(global_name='rate_E2Pa', groups=['tm'], intent='out')
+    rate_E2Pa = xs.variable(global_name='rate_E2Pa', groups=['edge_weight'], intent='out')
     tau = xs.variable(global_name='tau', intent='in')
     rate_E2P = xs.global_ref('rate_E2P', intent='in')
 
@@ -245,7 +245,7 @@ class RateE2Pa:
 @xs.process
 class RateEv2Pa:
     """Provide a `rate_Ev2Pa"""
-    rate_Ev2Pa = xs.variable(global_name='rate_Ev2Pa', groups=['tm'], intent='out')
+    rate_Ev2Pa = xs.variable(global_name='rate_Ev2Pa', groups=['edge_weight'], intent='out')
     tau_v = xs.variable(global_name='tau_v', intent='in')
     rate_Ev2P = xs.global_ref('rate_Ev2P', intent='in')
 
@@ -256,7 +256,7 @@ class RateEv2Pa:
 @xs.process
 class RatePy2Iy:
     """Provide a `rate_Py2Iy`"""
-    rate_Py2Iy = xs.variable(global_name='rate_Py2Iy', groups=['tm'], intent='out')
+    rate_Py2Iy = xs.variable(global_name='rate_Py2Iy', groups=['edge_weight'], intent='out')
     rho_Iy = xs.variable(global_name='rho_Iy', intent='in')
     state = xs.global_ref('state', intent='in')
 
@@ -267,7 +267,7 @@ class RatePy2Iy:
 @xs.process
 class RatePa2Ia:
     """Provide a `rate_Pa2Ia`"""
-    rate_Pa2Ia = xs.variable(global_name='rate_Pa2Ia', groups=['tm'], intent='out')
+    rate_Pa2Ia = xs.variable(global_name='rate_Pa2Ia', groups=['edge_weight'], intent='out')
     rho_Ia = xs.variable(global_name='rho_Ia', intent='in')
     state = xs.global_ref('state', intent='in')
 
@@ -278,7 +278,7 @@ class RatePa2Ia:
 @xs.process
 class RateIy2Ih:
     """Provide a `rate_Iy2Ih`"""
-    rate_Iy2Ih = xs.variable(global_name='rate_Iy2Ih', groups=['tm'], intent='out')
+    rate_Iy2Ih = xs.variable(global_name='rate_Iy2Ih', groups=['edge_weight'], intent='out')
     eta = xs.variable(global_name='eta', intent='in')
     pi = xs.global_ref('pi', intent='in')
     state = xs.global_ref('state', intent='in')
@@ -291,7 +291,7 @@ class RateIy2Ih:
 @xs.process
 class RateIh2D:
     """Provide a `rate_Ih2D`"""
-    rate_Ih2D = xs.variable(global_name='rate_Ih2D', groups=['tm'], intent='out')
+    rate_Ih2D = xs.variable(global_name='rate_Ih2D', groups=['edge_weight'], intent='out')
     mu = xs.variable(global_name='mu', intent='in')
     nu = xs.global_ref('nu', intent='in')
     state = xs.global_ref('state', intent='in')
@@ -304,7 +304,7 @@ class RateIh2D:
 @xs.process
 class RateIh2R:
     """Provide a `rate_Ih2R`"""
-    rate_Ih2R = xs.variable(global_name='rate_Ih2R', groups=['tm'], intent='out')
+    rate_Ih2R = xs.variable(global_name='rate_Ih2R', groups=['edge_weight'], intent='out')
     gamma_Ih = xs.variable(global_name='gamma_Ih', intent='in')
     nu = xs.global_ref('nu', intent='in')
     state = xs.global_ref('state', intent='in')
@@ -317,7 +317,7 @@ class RateIh2R:
 @xs.process
 class RateIy2R:
     """Provide a `rate_Iy2R`"""
-    rate_Iy2R = xs.variable(global_name='rate_Iy2R', groups=['tm'], intent='out')
+    rate_Iy2R = xs.variable(global_name='rate_Iy2R', groups=['edge_weight'], intent='out')
     gamma_Iy = xs.variable(global_name='gamma_Iy', intent='in')
     pi = xs.global_ref('pi', intent='in')
     state = xs.global_ref('state', intent='in')
@@ -332,7 +332,7 @@ class RateIy2R:
 @xs.process
 class RateIa2R:
     """Provide a `rate_Ia2R`"""
-    rate_Ia2R = xs.variable(global_name='rate_Ia2R', groups=['tm'], intent='out')
+    rate_Ia2R = xs.variable(global_name='rate_Ia2R', groups=['edge_weight'], intent='out')
     gamma_Ia = xs.variable(global_name='gamma_Ia', intent='in')
     state = xs.global_ref('state', intent='in')
 
