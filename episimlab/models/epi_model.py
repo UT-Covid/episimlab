@@ -65,7 +65,9 @@ class EpiModel(xs.Model):
         self.out_ds = self.in_ds.xsimlab.run(model=self)
         return self.out_ds
 
-    def get_in_ds(self, config_fp: str = None, input_vars: dict = None, **kwargs) -> xr.Dataset:
+    def get_in_ds(self, config_fp: str = None, input_vars: dict = None, 
+                  output_vars: dict = None, **kwargs) -> xr.Dataset:
+        # Handle input_vars
         setup_kw = getattr(self, 'RUNNER_DEFAULTS', dict()).copy()
         setup_kw.update(kwargs)
         setup_kw['input_vars'].update(self.parse_input_vars(
@@ -73,4 +75,11 @@ class EpiModel(xs.Model):
         if input_vars is not None:
             setup_kw['input_vars'].update(self.parse_input_vars(input_vars))
         setup_kw['input_vars'] = self.parse_input_vars(setup_kw['input_vars'])
+
+        # Handle output_vars
+        if output_vars is None:
+            output_vars = dict()
+        if 'output_vars' in setup_kw:
+            setup_kw['output_vars'].update(output_vars)
+
         return xs.create_setup(model=self, **setup_kw)
