@@ -116,16 +116,44 @@ class Partition2Contact:
         logging.debug(f"step_end: {self.step_end}")
 
         self.contacts = self.setup_contacts()
+        # {'source': [], 'destination': [], 'source_age': [], 'destination_age': [], 'pr_contact_src_dest': []}
         self.all_dims = self.spatial_dims + self.age_dims
-        self.non_spatial_dims = self.age_dims  # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
+        # ['source', 'destination', 'source_age', 'destination_age']
+
+        # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
+        self.non_spatial_dims = self.age_dims  
+        # ['source_age', 'destination_age']
 
         # Indexing on date, generate travel_df from travel_df_with_date
         self.travel_df = self.get_travel_df()
+        #        Unnamed: 0  Unnamed: 0.1  source  destination    age            n       date destination_type
+        # 0           30555         30555   76511        76511     <5    35.053846 2020-03-11            local
+        # 1           30556         30556   76511        76511  18-49   472.284615 2020-03-11            local
+        # 2           30557         30557   76511        76511   5-17   150.015385 2020-03-11            local
+        # 3           30558         30558   76511        76511  50-64   165.469231 2020-03-11            local
+        # 4           30559         30559   76511        76511    65+   121.369231 2020-03-11            local
 
         # initialize empty class members to hold intermediate results generated during workflow
-        self.prob_partitions = self.dask_partition()
-        self.contact_partitions = self.partitions_to_contacts(daily_timesteps=1)
-        self.contact_xr = self.build_contact_xr()
+        prob_partitions = self.dask_partition(self.travel_df)
+        #         source_i  source_j  age_i  age_j  pr_contact_ijk
+        # 0          76511     76511  18-49  18-49        0.374233
+        # 1          76511     76511  18-49   5-17        0.369462
+        # 2          76511     76511  18-49  50-64        0.361386
+        # 3          76511     76511  18-49    65+        0.360255
+        # 4          76511     76511  18-49     <5        0.361437
+        contact_partitions = self.partitions_to_contacts(prob_partitions, daily_timesteps=1)
+        #             i      j  age_i  age_j  partitioned_per_capita_contacts
+        # 0       76511  76511  18-49  18-49                         3.830758
+        # 1       76511  76527  18-49  18-49                         0.029453
+        # 2       76511  76530  18-49  18-49                         0.303387
+        # 3       76511  76537  18-49  18-49                         0.472820
+        # 4       76511  76574  18-49  18-49                         1.071847
+        self.contact_xr = self.build_contact_xr(contact_partitions)
+        # Coordinates:
+        # * vertex0  (vertex0) int64 76511 76527 76530 76537 ... 78758 78759 78953 78957
+        # * vertex1  (vertex1) int64 76511 76527 76530 76537 ... 78758 78759 78953 78957
+        # * age0     (age0) <U5 '18-49' '5-17' '50-64' '65+' '<5'
+        # * age1     (age1) <U5 '18-49' '5-17' '50-64' '65+' '<5'
 
     def load_travel_df(self):
 
@@ -160,12 +188,12 @@ class Partition2Contact:
             self._age = ag_from_contacts.union(ag_from_travel)
         return list(self._age)
 
-    def population_totals(self):
+    def population_totals(self, travel_df):
 
         # get population totals for all locations (contextual and local areas)
-        total_pop = self.travel_df.groupby(['source', 'age'])['n'].sum().reset_index()
+        total_pop = travel_df.groupby(['source', 'age'])['n'].sum().reset_index()
         total_contextual = \
-        self.travel_df[self.travel_df['destination_type'] == 'contextual'].groupby(['destination', 'age'])[
+        travel_df[travel_df['destination_type'] == 'contextual'].groupby(['destination', 'age'])[
             'n'].sum().reset_index()
         total_pop = total_pop.rename(columns={'source': 'location'})
         total_contextual = total_contextual.rename(columns={'destination': 'location'})
@@ -173,22 +201,22 @@ class Partition2Contact:
 
         return total
 
-    def daily_totals(self):
+    def daily_totals(self, travel_df):
 
         # get daily population by destination
-        daily_pop = self.travel_df.groupby(['destination', 'age'])['n'].sum().reset_index()
+        daily_pop = travel_df.groupby(['destination', 'age'])['n'].sum().reset_index()
 
         return daily_pop
 
-    def dask_partition(self):
+    def dask_partition(self, travel_df):
 
-        total = self.population_totals()
-        daily_pop = self.daily_totals()
+        total = self.population_totals(travel_df)
+        daily_pop = self.daily_totals(travel_df)
 
         # many:many self join to find sources that share common destinations
         logging.debug('Starting dask merge at {}'.format(datetime.now()))
-        travel_left = dd.from_pandas(self.travel_df, npartitions=10)
-        travel_right = dd.from_pandas(self.travel_df[['source', 'destination', 'age', 'n']], npartitions=100)
+        travel_left = dd.from_pandas(travel_df, npartitions=10)
+        travel_right = dd.from_pandas(travel_df[['source', 'destination', 'age', 'n']], npartitions=100)
         travel_full = dd.merge(
             travel_left.set_index('destination').compute(),
             travel_right.set_index('destination').compute(),
@@ -273,10 +301,10 @@ class Partition2Contact:
         return total_prob
 
     # todo: surface "daily_timesteps" to user
-    def partitions_to_contacts(self, daily_timesteps):
+    def partitions_to_contacts(self, prob_partitions, daily_timesteps):
 
         tc = pd.merge(
-            self.prob_partitions, self.baseline_contact_df, how='outer',
+            prob_partitions, self.baseline_contact_df, how='outer',
             left_on=['age_i', 'age_j'],
             right_on=[legacy_mapping(i, 'contact') for i in self.non_spatial_dims]
         )
@@ -289,10 +317,10 @@ class Partition2Contact:
 
         return tc
 
-    def build_contact_xr(self):
+    def build_contact_xr(self, contact_partitions):
 
         logging.debug('Building contact xarray at {}'.format(datetime.now()))
-        indexed_contact_df = self.contact_partitions.set_index(['i', 'j', 'age_i', 'age_j'])
+        indexed_contact_df = contact_partitions.set_index(['i', 'j', 'age_i', 'age_j'])
         contact_xarray = indexed_contact_df.to_xarray()
         contact_xarray = contact_xarray.to_array()
         contact_xarray = contact_xarray.squeeze().drop('variable')
@@ -311,58 +339,6 @@ class Partition2Contact:
 
         #contact_xarray = contact_xarray.reset_coords(names='partitioned_per_capita_contacts', drop=True)
         return contact_xarray
-
-    def contact_matrix(self):
-
-        logging.debug('Finalizing contact matrix at {}'.format(datetime.now()))
-        sources = self.contact_partitions['i'].unique()
-        destinations = self.contact_partitions['j'].unique()
-
-        nodes = []
-        for i in sources:
-            nodes.append(i)
-        for j in destinations:
-            nodes.append(j)
-        nodes = sorted(list(set(nodes)))
-
-        arr_dims = []
-        coords = {}
-
-        # spatial dimensions and coordinates
-        arr_dims.extend([len(nodes), len(nodes)])
-        coords['vertex_i'] = nodes
-        coords['vertex_j'] = nodes
-
-        # age dimensions and coordinates
-        if self.age_dims:
-            arr_dims.extend([len(self.age), len(self.age)])  # age by source and destination
-            coords['age_i'] = self.age
-            coords['age_j'] = self.age
-
-        new_da = xr.DataArray(
-            data=0.,
-            dims=(coords.keys()),
-            coords=coords
-        )
-
-        # for now we are ignoring the possible demographic dimension
-        for n1, a1, n2, a2 in product(*[nodes, self.age] * 2):
-            subset = self.contact_partitions[(self.contact_partitions['i'] == n1) \
-                & (self.contact_partitions['j'] == n2) \
-                & (self.contact_partitions['age_i'] == a1) \
-                & (self.contact_partitions['age_j'] == a2)]
-            if subset.empty:
-                val = 0
-            else:
-                val = subset['partitioned_per_capita_contacts'].item()
-            new_da.loc[{
-                'vertex_i': n1,
-                'vertex_j': n2,
-                'age_i': a1,
-                'age_j': a2,
-            }] = val
-
-        return new_da
 
 
 @xs.process
