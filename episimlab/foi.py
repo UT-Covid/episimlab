@@ -1,13 +1,6 @@
 import xarray as xr
 import xsimlab as xs
-from .utils import any_negative
-
-
-def suffixed_dims(da: xr.DataArray, suffix: str,
-                    exclude: list = None) -> xr.DataArray:
-    if exclude is None:
-        exclude = list()
-    return {k: f"{k}{suffix}" for k in da.dims if k not in exclude}
+from .utils import any_negative, suffixed_dims
 
 
 @xs.process

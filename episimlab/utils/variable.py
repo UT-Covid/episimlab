@@ -3,6 +3,17 @@ import xsimlab as xs
 import xarray as xr
 
 
+def suffixed_dims(da: xr.DataArray, suffix: str, 
+                  exclude: list = None) -> dict:
+    if exclude is None:
+        exclude = list()
+    return {k: f"{k}{suffix}" for k in da.dims if k not in exclude}
+
+
+def unsuffixed_dims(da: xr.DataArray, suffix: str) -> dict:
+    return {v: k for k, v in suffixed_dims(da, suffix).items()}
+
+
 def get_var_dims(process, name) -> tuple:
     """Given process-wrapped class `process`, retrieve the `dims` metadata
     attribute for variable with `name`.
