@@ -141,7 +141,8 @@ class Partition2Contact:
         # 2          76511     76511  18-49  50-64        0.361386
         # 3          76511     76511  18-49    65+        0.360255
         # 4          76511     76511  18-49     <5        0.361437
-        contact_partitions = self.partitions_to_contacts(prob_partitions, daily_timesteps=1)
+        contact_partitions = self.partitions_to_contacts(
+            prob_partitions, contact_df=self.baseline_contact_df, daily_timesteps=1)
         #             i      j  age_i  age_j  partitioned_per_capita_contacts
         # 0       76511  76511  18-49  18-49                         3.830758
         # 1       76511  76527  18-49  18-49                         0.029453
@@ -154,6 +155,53 @@ class Partition2Contact:
         # * vertex1  (vertex1) int64 76511 76527 76530 76537 ... 78758 78759 78953 78957
         # * age0     (age0) <U5 '18-49' '5-17' '50-64' '65+' '<5'
         # * age1     (age1) <U5 '18-49' '5-17' '50-64' '65+' '<5'
+        self.contact_partitions = contact_partitions
+        self.prob_partitions = prob_partitions
+
+        travel_da = self.get_travel_da(self.travel_df)
+    
+    def get_travel_da(self, df: pd.DataFrame, raise_null=False) -> xr.DataArray:
+        """
+        TODO: handle multiple `date`s
+        TODO: handle `destination_type`
+        TODO: coordinate like `vertex0` has `vertex` index, not `vertex0`
+        """
+        df = (
+            df[['source', 'destination', 'age', 'n', 'destination_type']]
+            .set_index(['source', 'destination', 'age', 'destination_type']))
+        ds = xr.Dataset.from_dataframe(df)
+        ds = (ds
+              .rename({'source': 'vertex0', 'destination': 'vertex1', 'age': 'age0'}) 
+            #   .rename_dims({'vertex0': 'vertex', 'vertex1': 'vertex', 'age0': 'age' })
+        )
+        da = ds.n
+
+        # vertex coordinate is every unique location ID in the Dataset
+        # ds.coords['vertex'] = np.unique(np.concatenate([ds['vertex0'], ds['vertex1']]))
+        # ds.coords['age'] = np.unique(ds['age0'])
+
+        # Handle null values
+        if da.isnull().any():
+            logging.error(f"{(100 * int(da.isnull().sum()) / da.size):.1f}% values "
+                          "in travel DataFrame are null")
+            if raise_null or da.isnull().all():
+                raise ValueError("found null values in travel DataFrame:\n" 
+                                f"{da.where(da.isnull(), drop=True)}")
+            else:
+                da = da.fillna(0.)
+        
+        n_ik = da
+        n_jk = da.rename({'vertex0': 'vertex1', 'vertex1': 'vertex0'})
+        n_k = da.sum('vertex0')
+        n_i = da.sum('vertex1')
+        c_ijk = (n_ik / n_i) * (n_jk / n_k)
+        
+        print(self.prob_partitions)
+        print(
+            c_ijk[dict(destination_type=0)].loc[dict(vertex0=76511, vertex1=76511)]
+        )
+        breakpoint()
+        
 
     def load_travel_df(self):
 
@@ -211,7 +259,19 @@ class Partition2Contact:
     def dask_partition(self, travel_df):
 
         total = self.population_totals(travel_df)
+        #      location    age       n
+        # 0       76511  18-49  1253.0
+        # 1       76511   5-17   398.0
+        # 2       76511  50-64   439.0
+        # 3       76511    65+   322.0
+        # 4       76511     <5    93.0
         daily_pop = self.daily_totals(travel_df)
+        #     destination    age            n
+        # 0          76511  18-49   489.766327
+        # 1          76511   5-17   156.740512
+        # 2          76511  50-64   176.553667
+        # 3          76511    65+   129.770088
+        # 4          76511     <5    37.177764
 
         # many:many self join to find sources that share common destinations
         logging.debug('Starting dask merge at {}'.format(datetime.now()))
@@ -301,10 +361,10 @@ class Partition2Contact:
         return total_prob
 
     # todo: surface "daily_timesteps" to user
-    def partitions_to_contacts(self, prob_partitions, daily_timesteps):
+    def partitions_to_contacts(self, prob_partitions, contact_df, daily_timesteps):
 
         tc = pd.merge(
-            prob_partitions, self.baseline_contact_df, how='outer',
+            prob_partitions, contact_df, how='outer',
             left_on=['age_i', 'age_j'],
             right_on=[legacy_mapping(i, 'contact') for i in self.non_spatial_dims]
         )
