@@ -158,7 +158,11 @@ class Partition2Contact:
         self.contact_partitions = contact_partitions
         self.prob_partitions = prob_partitions
 
-        travel_da = self.get_travel_da(self.travel_df)
+        # DEBUG
+        try:
+            travel_da = self.get_travel_da(self.travel_df)
+        except:
+            pass
     
     def get_travel_da(self, df: pd.DataFrame, raise_null=False) -> xr.DataArray:
         """
@@ -166,14 +170,19 @@ class Partition2Contact:
         TODO: handle `destination_type`
         TODO: coordinate like `vertex0` has `vertex` index, not `vertex0`
         """
-        df = (
-            df[['source', 'destination', 'age', 'n', 'destination_type']]
-            .set_index(['source', 'destination', 'age', 'destination_type']))
+        
+        df = df[['source', 'destination', 'age', 'n', 'destination_type']]
+        # DEBUG
+        # df['age1'] = df['age'] 
+        df = df.set_index(['source', 'destination', 'age', 'destination_type'])
         ds = xr.Dataset.from_dataframe(df)
         ds = (ds
-              .rename({'source': 'vertex0', 'destination': 'vertex1', 'age': 'age0'}) 
+              .rename({'source': 'vertex0', 'destination': 'vertex1', 'age': 'age0', 'destination_type': 'dt'}) 
             #   .rename_dims({'vertex0': 'vertex', 'vertex1': 'vertex', 'age0': 'age' })
         )
+        # DEBUG
+        # ds.coords['age1'] = ds.coords['age0'] = ['<5', '18-49', '5-17', '50-64', '65+']
+        ds.coords['age0'] = ['<5', '18-49', '5-17', '50-64', '65+']
         da = ds.n
 
         # vertex coordinate is every unique location ID in the Dataset
@@ -191,16 +200,21 @@ class Partition2Contact:
                 da = da.fillna(0.)
         
         n_ik = da
-        n_jk = da.rename({'vertex0': 'vertex1', 'vertex1': 'vertex0'})
+        # n_ik = da
+        n_jk = da.rename({'vertex0': 'vertex1', 'vertex1': 'vertex0', 'age0': 'age1'})
         n_k = da.sum('vertex0')
         n_i = da.sum('vertex1')
         c_ijk = (n_ik / n_i) * (n_jk / n_k)
         
-        print(self.prob_partitions)
+        pp = self.prob_partitions
+        print(pp[
+            (pp['source_i'] == 76511) &
+            (pp['source_j'] == 76511) 
+        ])
         print(
-            c_ijk[dict(destination_type=0)].loc[dict(vertex0=76511, vertex1=76511)]
+            c_ijk[dict(dt=0)].loc[dict(vertex0=76511, vertex1=76511)]
         )
-        breakpoint()
+        # breakpoint()
         
 
     def load_travel_df(self):
@@ -284,6 +298,8 @@ class Partition2Contact:
             right_index=True,
             suffixes=['_i', '_j']
         ).reset_index()
+        # print("travel_full:")
+        # print(travel_full.head())
         logging.debug('Finishing dask merge at {}'.format(datetime.now()))
 
         # subsequent joins in pandas on unindexed data frames:
@@ -315,6 +331,21 @@ class Partition2Contact:
         travel_totals['nij/ni'] = travel_totals['n_i'] / travel_totals['n_total_i']
         travel_totals['njk/nk'] = travel_totals['n_j'] / travel_totals['n_total_k']
         travel_totals['pr_contact_ijk'] = travel_totals['nij/ni'] * travel_totals['njk/nk']
+
+        # DEBUG
+        print("travel_totals:")
+        tt = travel_totals[['age_i', 'age_j', 'destination', 'source_i', 'source_j', 
+                            'n_i', 'n_total_i', 'n_j', 'n_total_k', 'pr_contact_ijk']]
+        # print(tt.head())
+        print(tt[
+            # (tt['age_i'] == '18-49') & 
+            # (tt['age_j'] == '18-49') & 
+            (tt['source_i'] == 76511) &
+            (tt['source_j'] == 76511) & 
+            (tt['destination'] == 76511) 
+        ])
+        # df.loc[(df['column_name'] >= A) & (df['column_name'] <= B)]
+        # breakpoint()
 
         # sum over contextual locations
         total_prob = travel_totals.groupby(['source_i', 'source_j', 'age_i', 'age_j'])[
