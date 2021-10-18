@@ -129,7 +129,7 @@ class Partition2Contact:
 
     def load_travel_df(self):
 
-        tdf = pd.read_csv(self.travel_fp)
+        tdf = pd.read_csv(self.travel_fp, dtype={'source': str, 'destination': str})
         tdf['date'] = pd.to_datetime(tdf['date'])
         try:
             tdf = tdf.rename(columns={'age_src': 'age'})
@@ -212,6 +212,8 @@ class Partition2Contact:
             how='left',
         ).drop('location', axis=1)
 
+        logging.debug('Age levels present: {}'.format(travel_totals['age_i'].unique()))
+
         logging.debug('Starting pandas merge 2 at {}'.format(datetime.now()))
         # second merge adds n_total_k, the daily net population of k accounting for travel in and out by age group
         travel_totals = pd.merge(
@@ -222,6 +224,8 @@ class Partition2Contact:
             suffixes=['_total_i', '_total_k']
         )
 
+        logging.debug('Age levels present: {}'.format(travel_totals['age_j'].unique()))
+
         logging.debug('Calculating contact probabilities on full dataframe starting at {}'.format(datetime.now()))
         # calculate probability of contact between i and j in location k
         travel_totals['nij/ni'] = travel_totals['n_i'] / travel_totals['n_total_i']
@@ -231,6 +235,10 @@ class Partition2Contact:
         # sum over contextual locations
         total_prob = travel_totals.groupby(['source_i', 'source_j', 'age_i', 'age_j'])[
             'pr_contact_ijk'].sum().reset_index()
+
+        logging.debug('Age levels present, age_i: {}'.format(total_prob['age_i'].unique()))
+        logging.debug('Age levels present, age_j: {}'.format(total_prob['age_j'].unique()))
+
         return total_prob
 
     def pandas_partition(self):
@@ -275,6 +283,8 @@ class Partition2Contact:
     # todo: surface "daily_timesteps" to user
     def partitions_to_contacts(self, daily_timesteps):
 
+        logging.debug('Age 1 in baseline contacts: {}'.format(self.baseline_contact_df['age1'].unique()))
+        logging.debug('Age 2 in baseline contacts: {}'.format(self.baseline_contact_df['age2'].unique()))
         tc = pd.merge(
             self.prob_partitions, self.baseline_contact_df, how='outer',
             left_on=['age_i', 'age_j'],
@@ -308,6 +318,12 @@ class Partition2Contact:
         # convert coords from dtype object
         contact_xarray.coords['age0'] = contact_xarray.coords['age0'].astype(str).values
         contact_xarray.coords['age1'] = contact_xarray.coords['age1'].astype(str).values
+        contact_xarray = contact_xarray.reorder_levels(
+            dim_order={
+                'age0': sorted(contact_xarray.coords['age0'].values),
+                'age1': sorted(contact_xarray.coords['age1'].values)
+            }
+        )
 
         #contact_xarray = contact_xarray.reset_coords(names='partitioned_per_capita_contacts', drop=True)
         return contact_xarray
@@ -397,6 +413,14 @@ class Contact2Phi:
     def get_phi(self):
         self.phi_t = xr.DataArray(data=np.nan, dims=self.phi_dims, 
                                   coords=self.phi_coords)
+
+        self.phi_t = self.phi_t.reorder_levels(
+            dim_order={
+                'age0': sorted(self.phi_t.coords['age0'].values),
+                'age1': sorted(self.phi_t.coords['age1'].values)
+            }
+        )
+
         # broadcast into phi_array
         # TODO: refactor
         self.phi_t.loc[dict(risk0='low', risk1='low')] = self.contact_xr
