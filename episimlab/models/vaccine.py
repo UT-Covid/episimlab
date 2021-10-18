@@ -17,7 +17,7 @@ from ..utils import (
     get_var_dims, group_dict_by_var, discrete_time_approx as dta,
     IntPerDay, get_rng, any_negative, visualize_compt_graph
 )
-from ..partition.partition import NC2Contact, Contact2Phi
+from ..partition.partition import Partition2Contact, Contact2Phi
 from ..setup.sto import SetupStochasticFromToggle
 from ..setup.seed import SeedGenerator
 from ..setup.greek import (
@@ -46,7 +46,7 @@ class SetupNuDefault:
 
     def initialize(self):
         self.nu = xr.DataArray(
-            [0.02878229, 0.09120554, 0.02241002, 0.07886779, 0.17651128],
+            [0.02878229, 0.09120554, 0.09120554, 0.09120554, 0.02241002, 0.07886779, 0.17651128],
             dims=self.dims, coords=self.coords)
 
 
@@ -68,8 +68,8 @@ class SetupPiDefault:
 
     def initialize(self):
         self.pi = xr.DataArray(np.array([
-            [5.92915812e-04, 4.55900959e-04, 2.78247788e-02, 5.95202276e-02, 7.03344654e-02],
-            [5.91898663e-03, 4.55299354e-03, 2.57483139e-01, 5.07631836e-01, 5.84245731e-01]]),
+            [5.92915812e-04, 4.55900959e-04, 4.55900959e-04, 4.55900959e-04, 2.78247788e-02, 5.95202276e-02, 7.03344654e-02],
+            [5.91898663e-03, 4.55299354e-03, 4.55299354e-03, 4.55299354e-03, 2.57483139e-01, 5.07631836e-01, 5.84245731e-01]]),
             dims=self.dims, coords=self.coords)
 
 
@@ -103,6 +103,8 @@ class SetupVaccineDoses:
     def initialize(self):
         self.max_daily_doses = xr.DataArray(
             [[0, 0],
+             [0, 0],
+             [0, 0],
              [0, 0],
              [10, 20],
              [30, 40],
@@ -400,9 +402,7 @@ class SetupCoords:
     def initialize(self):
         self.compt = ['S', 'V', 'E', 'Ev', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D']
         self.risk = ['low', 'high']
-        # self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
-        self.age = self.contact_xr.coords['age0'].values
-        # self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
+        self.age = ['0-4', '5-9', '10-14', '15-17', '18-49', '50-64', '65+'] #self.contact_xr.coords['age0'].values
         self.vertex = self.contact_xr.coords['vertex0'].values
 
 
@@ -410,16 +410,15 @@ class SetupCoords:
 class SetupState:
     """Initialize state matrix"""
     _coords = xs.group_dict('coords')
+    initial_state_df = xs.variable(intent='in')
     state = xs.global_ref('state', intent='out')
 
     def initialize(self):
-        self.state = xr.DataArray(
-            data=0.,
-            dims=self.dims,
-            coords=self.coords
-        )
-        self.state.loc[dict(compt='S')] = np.array([[2000, 2000, 2000, 2000, 2000]] * 2).T
-        self.state.loc[dict(compt='Ia')] = np.array([[5, 5, 5, 5, 5]] * 2).T
+        initial_state_data = pd.read_csv(self.initial_state_df, dtype={'vertex': str})
+        initial_state_data = initial_state_data.set_index(['vertex', 'age', 'risk', 'compt'])
+        self.state = initial_state_data.to_xarray().to_array()
+        random_vertex = np.random.choice(self.state['vertex'])
+        self.state.loc[dict(compt='Ia', age='18-49', risk='low', vertex=random_vertex)] = np.array([5])
 
     @property
     def dims(self):
@@ -442,7 +441,7 @@ class SetupPhi(Contact2Phi):
 
 
 @xs.process
-class GetContactXR(NC2Contact):
+class GetContactXR(Partition2Contact):
     pass
 
 
@@ -536,8 +535,7 @@ class Vaccine(EpiModel):
             'setup_sigma__tri_exposed_para': [1.9, 2.9, 3.9],
             'setup_gamma_Ih__tri_Ih2R': [9.4, 10.7, 12.8],
             'setup_gamma_Ia__tri_Iy2R_para': [3.0, 4.0, 5.0],
-            'setup_mu__tri_Ih2D': [5.2, 8.1, 10.1],
-            'get_contact_xr__contact_da_fp': 'tests/data/20200311_contact_matrix.nc'
+            'setup_mu__tri_Ih2D': [5.2, 8.1, 10.1]
         },
         output_vars={
             'compt_model__state': 'step'
