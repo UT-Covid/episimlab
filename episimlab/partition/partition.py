@@ -99,6 +99,8 @@ class Partition2Contact:
             
         # Generate travel_df by indexing on `date`
         self.travel_df = self.travel_df_with_date[mask]
+        # DEBUG
+        # self.travel_df[(self.travel_df['destination_type'] == 'local')]
         assert not self.travel_df.empty, \
             f'No travel data for date between {self.step_start} and {self.step_end}'
         print(f'The date in Partition.get_travel_df is {self.travel_df["date"].unique()}')
@@ -172,14 +174,17 @@ class Partition2Contact:
         df = df.set_index(['source', 'destination', 'age', 'destination_type'])
         ds = xr.Dataset.from_dataframe(df)
         ds = (ds
-              .rename({'source': 'i', 'destination': 'k', 'age': 'age_i', 'destination_type': 'dt'}) 
+              .rename({'destination_type': 'dt', 'age': 'age_i', 'destination': 'k', 'source': 'i', }) 
             #   .rename_dims({'vertex0': 'vertex', 'vertex1': 'vertex', 'age_i': 'age' })
         )
 
         # DEBUG
         # ds.coords['age1'] = ds.coords['age_i'] = ['<5', '18-49', '5-17', '50-64', '65+']
-        ds.coords['age_i'] = ['<5', '5-17', '18-49', '50-64', '65+']
-        da = ds.n[dict(dt=0)]
+        ds.coords['age_i'] = ['young', 'old']
+        # TODO: check for dt=1
+        # da = ds.n.loc[dict(dt='local')]
+        da = ds.n
+        # breakpoint()
 
         # vertex coordinate is every unique location ID in the Dataset
         # ds.coords['vertex'] = np.unique(np.concatenate([ds['vertex0'], ds['vertex1']]))
@@ -196,24 +201,28 @@ class Partition2Contact:
                 da = da.fillna(0.)
         
         # Actual math
-        n_ik = da
-        n_jk = da.rename({'i': 'j', 'age_i': 'age_j'})
-        n_i = n_ik.sum('k')
-        n_k = n_jk.sum('j')
+        n_ik = da.loc[dict(dt='local')]
+        n_jk = da.loc[dict(dt='local')]
+        n_i = da.sum(['k', 'dt'])
+        n_k = da.sum(['k', 'dt'])
         c_ijk = (n_ik / n_i) * (n_jk / n_k)
+        # c_ijk = c_ijk.sum('k')
+        breakpoint()
 
         # ------------------------ DEBUG ---------------------------------------
 
         # Print the pandas/dask implementation
         pp = self.prob_partitions
-        print(pp[
-            (pp['source_i'] == 76511) &
-            (pp['source_j'] == 76511) &
-            (pp['age_i'] == '18-49') & 
-            (pp['age_j'] == '18-49')
-        ])
+        # print(pp[
+        #     (pp['source_i'] == 76511) &
+        #     (pp['source_j'] == 76511) &
+        #     (pp['age_i'] == '18-49') & 
+        #     (pp['age_j'] == '18-49')
+        # ])
+        print(pp)
 
-        i = dict(i=76511, j=76511, age_i='18-49', age_j='18-49')
+        # i = dict(i=76511, j=76511, age_i='18-49', age_j='18-49')
+        i = dict()
 
         def debug_print(name: str, da: xr.DataArray):
             print(f"{name}\n", da.loc[{k: v for k, v in i.items() if k in da.dims}])
@@ -231,9 +240,8 @@ class Partition2Contact:
         refac_pp['n_total_k'] = n_k
         debug_print('refac_pp', refac_pp)
         refac_pp_df = refac_pp.loc[i].to_dataframe()
-        print(refac_pp_df)
+        print(refac_pp_df[['n_i', 'n_total_i', 'n_j', 'n_total_k', 'pr_contact_ijk']])
 
-        # breakpoint()
         
 
     def load_travel_df(self):
@@ -355,14 +363,15 @@ class Partition2Contact:
         print("travel_totals:")
         tt = travel_totals[['age_i', 'age_j', 'destination', 'source_i', 'source_j', 
                             'n_i', 'n_total_i', 'n_j', 'n_total_k', 'pr_contact_ijk']]
-        # print(tt.head())
-        print(tt[
-            (tt['age_i'] == '18-49') & 
-            (tt['age_j'] == '18-49') & 
-            (tt['source_i'] == 76511) &
-            (tt['source_j'] == 76511)
+        tt = tt.set_index(['age_i', 'age_j', 'destination', 'source_i', 'source_j'])
+        print(tt)
+        # print(tt[
+        #     (tt['age_i'] == '18-49') & 
+        #     (tt['age_j'] == '18-49') & 
+        #     (tt['source_i'] == 76511) &
+        #     (tt['source_j'] == 76511)
             # (tt['destination'] == 76511) 
-        ])
+        # ])
         # df.loc[(df['column_name'] >= A) & (df['column_name'] <= B)]
         # breakpoint()
 
