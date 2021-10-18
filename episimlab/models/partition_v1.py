@@ -453,8 +453,8 @@ class PartitionFromTravel(EpiModel):
             'setup_gamma_Ih__tri_Ih2R': [9.4, 10.7, 12.8],
             'setup_gamma_Ia__tri_Iy2R_para': [3.0, 4.0, 5.0],
             'setup_mu__tri_Ih2D': [5.2, 8.1, 10.1],
-            'travel_fp': os.path.join(DATA_DIR, 'travel1.csv'),
-            'contacts_fp': os.path.join(DATA_DIR, 'contacts1.csv'),
+            'travel_fp': os.path.join(DATA_DIR, 'travel10.csv'),
+            'contacts_fp': os.path.join(DATA_DIR, 'contacts10.csv'),
         },
         output_vars={
             'compt_model__state': 'step'

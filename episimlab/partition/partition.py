@@ -180,7 +180,7 @@ class Partition2Contact:
 
         # DEBUG
         # ds.coords['age1'] = ds.coords['age_i'] = ['<5', '18-49', '5-17', '50-64', '65+']
-        ds.coords['age_i'] = ['young', 'old']
+        # ds.coords['age_i'] = ['young', 'old']
         # TODO: check for dt=1
         # da = ds.n.loc[dict(dt='local')]
         da = ds.n
@@ -203,8 +203,8 @@ class Partition2Contact:
         # Actual math
         n_ik = da.loc[dict(dt='local')]
         n_jk = da.loc[dict(dt='local')]
-        n_i = da.sum(['k', 'dt'])
-        n_k = da.sum(['k', 'dt'])
+        n_i = da.sum('k')
+        n_k = da.sum('i')
         c_ijk = (n_ik / n_i) * (n_jk / n_k)
         # c_ijk = c_ijk.sum('k')
         breakpoint()
