@@ -1,0 +1,9 @@
+date,source,destination,destination_type,age,n
+2020-03-11,A,A,local,young,10
+2020-03-11,A,A,local,old,20
+2020-03-11,A,B,local,young,5
+2020-03-11,A,B,local,old,15
+2020-03-11,B,A,local,young,30
+2020-03-11,B,A,local,old,25
+2020-03-11,B,B,local,young,8
+2020-03-11,B,B,local,old,12
