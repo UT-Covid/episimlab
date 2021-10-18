@@ -170,7 +170,6 @@ class Partition2Contact:
     def get_pr_c_ijk(self, da: xr.DataArray, raise_null=False) -> xr.DataArray:
         """
         TODO: handle multiple `date`s
-        TODO: handle `destination_type`
         """
         
         # Handle null values
@@ -185,9 +184,9 @@ class Partition2Contact:
         
         # Calculate probability of contact between i and j
         n_ik = da
+        n_i = n_ik.sum(['k', 'dt'])
         n_jk = da.rename({'i': 'j', 'age_i': 'age_j', })
-        n_i = n_ik.sum('k')
-        n_k = n_jk.sum('j')
+        n_k = n_jk.sum(['j', 'dt'])
         c_ijk = (n_ik / n_i) * (n_jk / n_k)
         return c_ijk.fillna(0.)
 
