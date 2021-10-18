@@ -307,9 +307,9 @@ class Partition2Contact:
         travel_totals['pr_contact_ijk'] = travel_totals['nij/ni'] * travel_totals['njk/nk']
 
         # DEBUG
-        tt = travel_totals[['age_i', 'age_j', 'destination', 'source_i', 'source_j', 
+        tt = travel_totals[['destination_type', 'age_i', 'age_j', 'destination', 'source_i', 'source_j', 
                             'n_i', 'n_total_i', 'n_j', 'n_total_k', 'pr_contact_ijk']]
-        tt = tt.set_index(['destination', 'source_j', 'age_j', 'source_i', 'age_i', ])
+        tt = tt.set_index(['destination_type', 'destination', 'source_j', 'age_j', 'source_i', 'age_i', ])
         tt_da = xr.Dataset.from_dataframe(tt)
         self.old_pr_contact_ijk = tt_da['pr_contact_ijk']
 
