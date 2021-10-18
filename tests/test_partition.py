@@ -149,3 +149,32 @@ class TestPartitioning:
 
         xr.testing.assert_allclose(sort_coords(
             proc.contact_xr), sort_coords(phi))
+
+    def test_travel_xr_same_as_dask(self):
+        """Check that for travel10.csv (only local, no contextual),
+        xarray travel partitioning in method `get_travel_da` has same data as 
+        Dask implementation stored in `Partition2Contact.old_pr_contact_ijk`.
+        """
+        inputs = {
+            'contacts_fp': './tests/data/partition_capture/contacts10.csv',
+            'travel_fp': './tests/data/partition_capture/travel10.csv'
+        }
+        proc = Partition2Contact(**inputs)
+        kw = dict(step_delta=np.timedelta64(24, 'h'),
+                  step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
+                  step_end=np.datetime64('2020-03-12T00:00:00.000000000'),)
+        proc.initialize(**kw)
+        proc.run_step(**kw)
+
+        xr_result = (
+            proc 
+            .pr_contact_ijk 
+            .squeeze('dt') 
+            .drop('dt') 
+            .rename({'j': 'source_j', 'k': 'destination', 'i': 'source_i', }) 
+            .transpose('destination', 'source_i', 'source_j', 'age_i', 'age_j', ...))
+        dask_result = (
+            proc 
+            .old_pr_contact_ijk 
+            .transpose('destination', 'source_i', 'source_j', 'age_i', 'age_j', ...))
+        xr.testing.assert_allclose(xr_result, dask_result)

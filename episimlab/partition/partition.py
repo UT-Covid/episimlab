@@ -167,28 +167,13 @@ class Partition2Contact:
         """
         TODO: handle multiple `date`s
         TODO: handle `destination_type`
-        TODO: coordinate like `vertex0` has `vertex` index, not `vertex0`
         """
         
         df = df[['source', 'destination', 'age', 'n', 'destination_type']]
         df = df.set_index(['source', 'destination', 'age', 'destination_type'])
         ds = xr.Dataset.from_dataframe(df)
-        ds = (ds
-              .rename({'destination_type': 'dt', 'age': 'age_i', 'destination': 'k', 'source': 'i', }) 
-            #   .rename_dims({'vertex0': 'vertex', 'vertex1': 'vertex', 'age_i': 'age' })
-        )
-
-        # DEBUG
-        # ds.coords['age1'] = ds.coords['age_i'] = ['<5', '18-49', '5-17', '50-64', '65+']
-        # ds.coords['age_i'] = ['young', 'old']
-        # TODO: check for dt=1
-        # da = ds.n.loc[dict(dt='local')]
+        ds = ds.rename({'destination_type': 'dt', 'destination': 'k', 'source': 'i', 'age': 'age_i', }) 
         da = ds.n
-        # breakpoint()
-
-        # vertex coordinate is every unique location ID in the Dataset
-        # ds.coords['vertex'] = np.unique(np.concatenate([ds['vertex0'], ds['vertex1']]))
-        # ds.coords['age'] = np.unique(ds['age_i'])
 
         # Handle null values
         if da.isnull().any():
@@ -200,49 +185,14 @@ class Partition2Contact:
             else:
                 da = da.fillna(0.)
         
-        # Actual math
-        n_ik = da.loc[dict(dt='local')]
-        n_jk = da.loc[dict(dt='local')]
-        n_i = da.sum('k')
-        n_k = da.sum('i')
+        # Calculate probability of contact between i and j
+        n_ik = da
+        n_jk = da.rename({'i': 'j', 'age_i': 'age_j', })
+        n_i = n_ik.sum('k')
+        n_k = n_jk.sum('j')
         c_ijk = (n_ik / n_i) * (n_jk / n_k)
-        # c_ijk = c_ijk.sum('k')
-        breakpoint()
-
-        # ------------------------ DEBUG ---------------------------------------
-
-        # Print the pandas/dask implementation
-        pp = self.prob_partitions
-        # print(pp[
-        #     (pp['source_i'] == 76511) &
-        #     (pp['source_j'] == 76511) &
-        #     (pp['age_i'] == '18-49') & 
-        #     (pp['age_j'] == '18-49')
-        # ])
-        print(pp)
-
-        # i = dict(i=76511, j=76511, age_i='18-49', age_j='18-49')
-        i = dict()
-
-        def debug_print(name: str, da: xr.DataArray):
-            print(f"{name}\n", da.loc[{k: v for k, v in i.items() if k in da.dims}])
-        
-        # debug_print('n_ik', n_ik)
-        # debug_print('n_jk', n_jk)
-        # debug_print('n_i', n_i)
-        # debug_print('n_k', n_k)
-
-        # Print the xarray implementation
-        refac_pp = c_ijk.to_dataset(name='pr_contact_ijk')
-        refac_pp['n_i'] = n_ik
-        refac_pp['n_total_i'] = n_i
-        refac_pp['n_j'] = n_jk
-        refac_pp['n_total_k'] = n_k
-        debug_print('refac_pp', refac_pp)
-        refac_pp_df = refac_pp.loc[i].to_dataframe()
-        print(refac_pp_df[['n_i', 'n_total_i', 'n_j', 'n_total_k', 'pr_contact_ijk']])
-
-        
+        self.pr_contact_ijk = c_ijk
+        return c_ijk
 
     def load_travel_df(self):
 
@@ -360,20 +310,11 @@ class Partition2Contact:
         travel_totals['pr_contact_ijk'] = travel_totals['nij/ni'] * travel_totals['njk/nk']
 
         # DEBUG
-        print("travel_totals:")
         tt = travel_totals[['age_i', 'age_j', 'destination', 'source_i', 'source_j', 
                             'n_i', 'n_total_i', 'n_j', 'n_total_k', 'pr_contact_ijk']]
-        tt = tt.set_index(['age_i', 'age_j', 'destination', 'source_i', 'source_j'])
-        print(tt)
-        # print(tt[
-        #     (tt['age_i'] == '18-49') & 
-        #     (tt['age_j'] == '18-49') & 
-        #     (tt['source_i'] == 76511) &
-        #     (tt['source_j'] == 76511)
-            # (tt['destination'] == 76511) 
-        # ])
-        # df.loc[(df['column_name'] >= A) & (df['column_name'] <= B)]
-        # breakpoint()
+        tt = tt.set_index(['destination', 'source_j', 'age_j', 'source_i', 'age_i', ])
+        tt_da = xr.Dataset.from_dataframe(tt)
+        self.old_pr_contact_ijk = tt_da['pr_contact_ijk']
 
         # sum over contextual locations
         total_prob = travel_totals.groupby(['source_i', 'source_j', 'age_i', 'age_j'])[
