@@ -160,21 +160,19 @@ class Partition2Contact:
         self.contact_partitions = contact_partitions
         self.prob_partitions = prob_partitions
 
-        travel_da = self.get_travel_da(self.travel_df)
+        df = self.travel_df[['source', 'destination', 'age', 'n', 'destination_type']]
+        df = df.set_index(['source', 'destination', 'age', 'destination_type'])
+        ds = xr.Dataset.from_dataframe(df)
+        ds = ds.rename({'destination_type': 'dt', 'destination': 'k', 'source': 'i', 'age': 'age_i', }) 
 
+        self.pr_contact_ijk = self.get_pr_c_ijk(da=ds.n)
     
-    def get_travel_da(self, df: pd.DataFrame, raise_null=False) -> xr.DataArray:
+    def get_pr_c_ijk(self, da: xr.DataArray, raise_null=False) -> xr.DataArray:
         """
         TODO: handle multiple `date`s
         TODO: handle `destination_type`
         """
         
-        df = df[['source', 'destination', 'age', 'n', 'destination_type']]
-        df = df.set_index(['source', 'destination', 'age', 'destination_type'])
-        ds = xr.Dataset.from_dataframe(df)
-        ds = ds.rename({'destination_type': 'dt', 'destination': 'k', 'source': 'i', 'age': 'age_i', }) 
-        da = ds.n
-
         # Handle null values
         if da.isnull().any():
             logging.error(f"{(100 * int(da.isnull().sum()) / da.size):.1f}% values "
@@ -191,8 +189,7 @@ class Partition2Contact:
         n_i = n_ik.sum('k')
         n_k = n_jk.sum('j')
         c_ijk = (n_ik / n_i) * (n_jk / n_k)
-        self.pr_contact_ijk = c_ijk
-        return c_ijk
+        return c_ijk.fillna(0.)
 
     def load_travel_df(self):
 
