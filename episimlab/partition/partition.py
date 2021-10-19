@@ -163,9 +163,10 @@ class Partition2Contact:
         df = self.travel_df[['source', 'destination', 'age', 'n', 'destination_type']]
         df = df.set_index(['source', 'destination', 'age', 'destination_type'])
         ds = xr.Dataset.from_dataframe(df)
-        ds = ds.rename({'destination_type': 'dt', 'destination': 'k', 'source': 'i', 'age': 'age_i', }) 
+        ds = ds.rename({'destination_type': 'dt', 'destination': 'k', 'source': 'i', 'age': 'age_i', })
+        dd_ds = ds.chunk(1000)
 
-        self.pr_contact_ijk = self.get_pr_c_ijk(da=ds.n)
+        self.pr_contact_ijk = self.get_pr_c_ijk(da=dd_ds.n)
     
     def get_pr_c_ijk(self, da: xr.DataArray, raise_null=False) -> xr.DataArray:
         """
