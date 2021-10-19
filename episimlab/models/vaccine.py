@@ -402,7 +402,7 @@ class SetupCoords:
     def initialize(self):
         self.compt = ['S', 'V', 'E', 'Ev', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D']
         self.risk = ['low', 'high']
-        self.age = ['0-4', '5-9', '10-14', '15-17', '18-49', '50-64', '65+'] #self.contact_xr.coords['age0'].values
+        self.age = self.contact_xr.coords['age0'].values
         self.vertex = self.contact_xr.coords['vertex0'].values
 
 

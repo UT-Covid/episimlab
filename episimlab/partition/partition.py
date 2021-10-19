@@ -117,13 +117,13 @@ class Partition2Contact:
         logging.debug(f"step_start: {self.step_start}")
         logging.debug(f"step_end: {self.step_end}")
 
-        self.contacts = self.setup_contacts()
+        #self.contacts = self.setup_contacts()
         # {'source': [], 'destination': [], 'source_age': [], 'destination_age': [], 'pr_contact_src_dest': []}
-        self.all_dims = self.spatial_dims + self.age_dims
+        #self.all_dims = self.spatial_dims + self.age_dims
         # ['source', 'destination', 'source_age', 'destination_age']
 
         # would add demographic dims here if we had any, still trying to think through how to make certain dimensions optional...
-        self.non_spatial_dims = self.age_dims  
+        #self.non_spatial_dims = self.age_dims
         # ['source_age', 'destination_age']
 
         # Indexing on date, generate travel_df from travel_df_with_date
@@ -136,37 +136,47 @@ class Partition2Contact:
         # 4           30559         30559   76511        76511    65+   121.369231 2020-03-11            local
 
         # initialize empty class members to hold intermediate results generated during workflow
-        prob_partitions = self.dask_partition(self.travel_df)
+        #prob_partitions = self.dask_partition(self.travel_df)
         #         source_i  source_j  age_i  age_j  pr_contact_ijk
         # 0          76511     76511  18-49  18-49        0.374233
         # 1          76511     76511  18-49   5-17        0.369462
         # 2          76511     76511  18-49  50-64        0.361386
         # 3          76511     76511  18-49    65+        0.360255
         # 4          76511     76511  18-49     <5        0.361437
-        contact_partitions = self.partitions_to_contacts(
-            prob_partitions, contact_df=self.baseline_contact_df, daily_timesteps=1)
+        #contact_partitions = self.partitions_to_contacts(
+        #    prob_partitions, contact_df=self.baseline_contact_df, daily_timesteps=1)
         #             i      j  age_i  age_j  partitioned_per_capita_contacts
         # 0       76511  76511  18-49  18-49                         3.830758
         # 1       76511  76527  18-49  18-49                         0.029453
         # 2       76511  76530  18-49  18-49                         0.303387
         # 3       76511  76537  18-49  18-49                         0.472820
         # 4       76511  76574  18-49  18-49                         1.071847
-        self.contact_xr = self.build_contact_xr(contact_partitions)
+        #self.contact_xr = self.build_contact_xr(contact_partitions)
         # Coordinates:
         # * vertex0  (vertex0) int64 76511 76527 76530 76537 ... 78758 78759 78953 78957
         # * vertex1  (vertex1) int64 76511 76527 76530 76537 ... 78758 78759 78953 78957
         # * age0     (age0) <U5 '18-49' '5-17' '50-64' '65+' '<5'
         # * age1     (age1) <U5 '18-49' '5-17' '50-64' '65+' '<5'
-        self.contact_partitions = contact_partitions
-        self.prob_partitions = prob_partitions
+        #self.contact_partitions = contact_partitions
+        #self.prob_partitions = prob_partitions
 
         df = self.travel_df[['source', 'destination', 'age', 'n', 'destination_type']]
         df = df.set_index(['source', 'destination', 'age', 'destination_type'])
-        ds = xr.Dataset.from_dataframe(df)
-        ds = ds.rename({'destination_type': 'dt', 'destination': 'k', 'source': 'i', 'age': 'age_i', }) 
+        # debug non-unique multiindex:
+        try:
+            ds = xr.Dataset.from_dataframe(df)
+        except ValueError:
+            df_summary = df.groupby(['source', 'destination', 'age', 'destination_type'])['n'].count()
+            print(f'Maximum index occurrence = {max(df_summary)}')
+            print(f'Minimum index occurrence = {min(df_summary)}')
+            print(df_summary[df_summary == 2])
+            raise ValueError
+        ds = ds.rename({'destination_type': 'dt', 'destination': 'k', 'source': 'i', 'age': 'age_i', })
+        dd_ds = ds.chunk(1000)
 
-        self.pr_contact_ijk = self.get_pr_c_ijk(da=ds.n)
-    
+        self.contact_xr = self.get_pr_c_ijk(da=dd_ds.n)
+        self.contact_xr = self.contact_xr.rename({'i': 'vertex0', 'j': 'vertex1', 'age_i': 'age0', 'age_j': 'age1'})
+
     def get_pr_c_ijk(self, da: xr.DataArray, raise_null=False) -> xr.DataArray:
         """
         TODO: handle multiple `date`s
@@ -445,13 +455,6 @@ class Contact2Phi:
     def get_phi(self):
         self.phi_t = xr.DataArray(data=np.nan, dims=self.phi_dims, 
                                   coords=self.phi_coords)
-
-        self.phi_t = self.phi_t.reorder_levels(
-            dim_order={
-                'age0': sorted(self.phi_t.coords['age0'].values),
-                'age1': sorted(self.phi_t.coords['age1'].values)
-            }
-        )
 
         # broadcast into phi_array
         # TODO: refactor
