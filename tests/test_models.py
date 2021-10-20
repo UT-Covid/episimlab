@@ -10,14 +10,14 @@ from episimlab.utils import any_negative
 
 @pytest.mark.parametrize('model_type, sto_toggle', [
     (ExampleSIR, 0), 
-    # (ExampleSIRV, 0), 
-    # (NineComptV1, 0),
-    (PartitionFromTravel, 0),
+    (ExampleSIRV, 0), 
+    (NineComptV1, 0),
+    # (PartitionFromTravel, 0),
     # (PartitionFromTravel, -1),
     # (PartitionFromTravel, 5),
-    # (PartitionV1, 0),
-    # (Vaccine, 0),
-    # (Vaccine, -1),
+    (PartitionV1, 0),
+    (Vaccine, 0),
+    (Vaccine, -1),
 ])
 def test_model_sanity(model_type, sto_toggle):
     """Tests models with a handful of sanity checks."""

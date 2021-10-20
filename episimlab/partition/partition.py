@@ -119,6 +119,19 @@ class Partition2Contact:
         logging.debug(f"step_start: {self.step_start}")
         logging.debug(f"step_end: {self.step_end}")
 
+        self.old_contact_xr = self.partition_using_pd()
+
+        if hasattr(self, 'int_per_day'):
+            self.contact_xr = self.partition_using_xr()
+        else:
+            # other processes depend on the coords, but not values, of
+            # contact_xr. Make sure we generate an array like this on
+            # initialize
+            self.int_per_day = 1.
+            self.contact_xr = xr.zeros_like(self.partition_using_xr())
+            
+    
+    def partition_using_pd(self):
         self.contacts = self.setup_contacts()
         # {'source': [], 'destination': [], 'source_age': [], 'destination_age': [], 'pr_contact_src_dest': []}
         self.all_dims = self.spatial_dims + self.age_dims
@@ -153,7 +166,7 @@ class Partition2Contact:
         # 2       76511  76530  18-49  18-49                         0.303387
         # 3       76511  76537  18-49  18-49                         0.472820
         # 4       76511  76574  18-49  18-49                         1.071847
-        self.old_contact_xr = self.build_contact_xr(contact_partitions)
+        old_contact_xr = self.build_contact_xr(contact_partitions)
 
         # Coordinates:
         # * vertex0  (vertex0) int64 76511 76527 76530 76537 ... 78758 78759 78953 78957
@@ -163,8 +176,7 @@ class Partition2Contact:
         self.contact_partitions = contact_partitions
         self.prob_partitions = prob_partitions
 
-        if hasattr(self, 'int_per_day'):
-            self.partition_using_xr()
+        return old_contact_xr
     
     def partition_using_xr(self):
         contacts_df = self.get_contacts_df()
@@ -174,8 +186,10 @@ class Partition2Contact:
         c_ijk = self.get_pr_c_ijk(da=travel_da)
         phi = c_ijk * contacts_da / self.int_per_day
         # self.pr_contact_ijk.sum(['dt', 'k']).load().rename({'i': 'vertex0', 'j': 'vertex1', 'age_i': 'age0', 'age_j': 'age1'}).transpose('vertex0', 'vertex1', 'age0', 'age1')
-        self.contact_xr = phi
-        # (self.contact_xr == phi).all()
+
+        # Change coordinate dtypes
+        phi = fix_coord_dtypes(phi)
+        return phi
     
     def get_contacts_df(self):
         df = pd.read_csv(self.contacts_fp)
