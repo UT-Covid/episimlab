@@ -179,9 +179,8 @@ class Partition2Contact:
         return old_contact_xr
     
     def partition_using_xr(self):
-        contacts_df = self.get_contacts_df()
-        contacts_da = self.get_contacts_da(df=contacts_df)
-        travel_da = self.get_travel_da(df=self.get_travel_df())
+        contacts_da = self.get_contacts_da(df=self.get_contacts_df()).chunk(1000)
+        travel_da = self.get_travel_da(df=self.get_travel_df()).chunk(1000)
 
         c_ijk = self.get_pr_c_ijk(da=travel_da)
         phi = c_ijk * contacts_da / self.int_per_day
