@@ -6,7 +6,7 @@ import numpy as np
 from itertools import product
 import dask.dataframe as dd
 from datetime import datetime
-from ..utils import group_dict_by_var
+from ..utils import group_dict_by_var, get_int_per_day
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -75,7 +75,7 @@ class Partition2Contact:
         # time interval is set first timestep in travel df 
         step_end = self.travel_df_with_date.date.min().to_datetime64()
         self.run_step(None, step_start=step_end, step_end=step_end)
-        assert hasattr(self, 'contact_xr')
+        # assert hasattr(self, 'contact_xr')
         
     def get_travel_df(self) -> pd.DataFrame:
         """Given timestamps `step_start` and `step_end`, returns attr
@@ -114,6 +114,8 @@ class Partition2Contact:
         self.step_delta = step_delta
         self.step_start = step_start
         self.step_end = step_end
+        if self.step_delta is not None:
+            self.int_per_day = get_int_per_day(step_delta=self.step_delta)
         logging.debug(f"step_start: {self.step_start}")
         logging.debug(f"step_end: {self.step_end}")
 
@@ -151,7 +153,8 @@ class Partition2Contact:
         # 2       76511  76530  18-49  18-49                         0.303387
         # 3       76511  76537  18-49  18-49                         0.472820
         # 4       76511  76574  18-49  18-49                         1.071847
-        self.contact_xr = self.build_contact_xr(contact_partitions)
+        self.old_contact_xr = self.build_contact_xr(contact_partitions)
+
         # Coordinates:
         # * vertex0  (vertex0) int64 76511 76527 76530 76537 ... 78758 78759 78953 78957
         # * vertex1  (vertex1) int64 76511 76527 76530 76537 ... 78758 78759 78953 78957
@@ -160,17 +163,46 @@ class Partition2Contact:
         self.contact_partitions = contact_partitions
         self.prob_partitions = prob_partitions
 
-        df = self.travel_df[['source', 'destination', 'age', 'n', 'destination_type']]
+        if hasattr(self, 'int_per_day'):
+            self.partition_using_xr()
+    
+    def partition_using_xr(self):
+        contacts_df = self.get_contacts_df()
+        contacts_da = self.get_contacts_da(df=contacts_df)
+        travel_da = self.get_travel_da(df=self.get_travel_df())
+
+        c_ijk = self.get_pr_c_ijk(da=travel_da)
+        phi = c_ijk * contacts_da / self.int_per_day
+        # self.pr_contact_ijk.sum(['dt', 'k']).load().rename({'i': 'vertex0', 'j': 'vertex1', 'age_i': 'age0', 'age_j': 'age1'}).transpose('vertex0', 'vertex1', 'age0', 'age1')
+        self.contact_xr = phi
+        # (self.contact_xr == phi).all()
+    
+    def get_contacts_df(self):
+        df = pd.read_csv(self.contacts_fp)
+        df = df.rename(columns={
+            'age1': 'age0',
+            'age2': 'age1',
+        })
+        return df
+
+    def get_contacts_da(self, df: pd.DataFrame) -> xr.DataArray:
+        df = df[['age0', 'age1', 'daily_per_capita_contacts']]
+        df = df.set_index(['age0', 'age1'])
+        ds = xr.Dataset.from_dataframe(df)
+        return ds['daily_per_capita_contacts']
+    
+    def get_travel_da(self, df: pd.DataFrame) -> xr.DataArray:
+        """
+        """
+        df = df[['source', 'destination', 'age', 'n', 'destination_type']]
         df = df.set_index(['source', 'destination', 'age', 'destination_type'])
         ds = xr.Dataset.from_dataframe(df)
         ds = ds.rename({'destination_type': 'dt', 'destination': 'k', 'source': 'i', 'age': 'age_i', })
-        dd_ds = ds.chunk(1000)
-
-        self.pr_contact_ijk = self.get_pr_c_ijk(da=dd_ds.n)
-    
+        # dd_ds = ds.chunk(1000)
+        return ds['n']
+        
     def get_pr_c_ijk(self, da: xr.DataArray, raise_null=False) -> xr.DataArray:
         """
-        TODO: handle multiple `date`s
         """
         
         # Handle null values
@@ -189,7 +221,16 @@ class Partition2Contact:
         n_jk = da.rename({'i': 'j', 'age_i': 'age_j', })
         n_k = n_jk.sum(['j', 'dt'])
         c_ijk = (n_ik / n_i) * (n_jk / n_k)
-        return c_ijk.fillna(0.)
+        c_ijk = c_ijk.fillna(0.)
+
+        # for testing against old Dask method
+        self.pr_contact_ijk = c_ijk
+
+        c_ijk = (c_ijk 
+                 .sum(['dt', 'k']) 
+                 .rename({'i': 'vertex0', 'j': 'vertex1', 'age_i': 'age0', 'age_j': 'age1'}) 
+                 .transpose('vertex0', 'vertex1', 'age0', 'age1', ...))
+        return c_ijk
 
     def load_travel_df(self):
 

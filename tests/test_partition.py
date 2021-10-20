@@ -150,7 +150,7 @@ class TestPartitioning:
         xr.testing.assert_allclose(sort_coords(
             proc.contact_xr), sort_coords(phi))
 
-    def test_travel_xr_same_as_dask(self, updated_results):
+    def test_travel_xr_same_as_dask(self, updated_results, to_phi_da):
         """Check that for travel10.csv (only local, no contextual),
         xarray travel partitioning in method `get_travel_da` has same data as 
         Dask implementation stored in `Partition2Contact.old_pr_contact_ijk`.
@@ -163,6 +163,7 @@ class TestPartitioning:
         proc.initialize(**kw)
         proc.run_step(**kw)
 
+        # Check that the travel partitioning is the same
         xr_result = (
             proc 
             .pr_contact_ijk 
@@ -179,3 +180,24 @@ class TestPartitioning:
             # .sum('destination')
         )
         xr.testing.assert_allclose(xr_result, dask_result)
+
+        # Check that phi is consistent with saved array
+        phi = to_phi_da(updated_results['phi_fp']).rename({
+            # rename to accommodate legacy dimension names
+            'vertex1': 'vertex0',
+            'vertex2': 'vertex1',
+            'age_group1': 'age0',
+            'age_group2': 'age1',
+        })
+
+        # sort each coordinate
+        # this just changes assert_allclose to be agnostic to order of coords
+        def sort_coords(da):
+            for dim in da.dims:
+                da = da.sortby(dim)
+            return da
+
+        xr.testing.assert_allclose(
+            sort_coords(proc.contact_xr), 
+            sort_coords(proc.old_contact_xr), 
+        )
