@@ -6,7 +6,7 @@ import numpy as np
 from itertools import product
 import dask.dataframe as dd
 from datetime import datetime
-from ..utils import group_dict_by_var, get_int_per_day
+from ..utils import group_dict_by_var, get_int_per_day, fix_coord_dtypes
 
 logging.basicConfig(level=logging.DEBUG)
 

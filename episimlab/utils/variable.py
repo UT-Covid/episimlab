@@ -105,3 +105,22 @@ def coerce_to_da(proc, name: str, value, coords: dict = None) -> xr.DataArray:
         dim: coords.get(dim, list()) for dim in dims 
         if dim != 'value' and dim in coords
     })
+
+
+def fix_coord_dtypes(da: xr.DataArray, max_len: int = None) -> xr.DataArray:
+    """Changes coords with object dtype to unicode, e.g. <U5, where 5 would be
+    `max_len` in this case. Workaround for missing object_codec for object array.
+    """
+    for dim in da.coords.keys():
+        if da.coords[dim].dtype == 'object':
+            len_crd = [len(name) for name in da.coords[dim].values.tolist()]
+            if max_len is None:
+                new_dtype = f'<U{max(len_crd)}'
+            elif any(l > max_len for l in len_crd):
+                raise ValueError(f"Tried to set dtype to '<U{max_len}', but "
+                                    f"coordinate labels for dim {dim} are "
+                                    f"longet than max_len={max_len}.")
+            else:
+                new_dtype = f'<U{max_len}'
+            da.coords[dim] = da.coords[dim].astype(new_dtype)
+    return da
