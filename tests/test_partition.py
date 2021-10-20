@@ -8,7 +8,11 @@ import xarray as xr
 import xsimlab as xs
 from itertools import product
 from episimlab.partition.partition import Partition2Contact
-from episimlab.partition import Partition as PartitionUsingXR
+from episimlab.partition import (
+    Partition as PartitionUsingXR,
+    ContactsFromCSV,
+    TravelPatFromCSV,
+)
 
 
 @pytest.fixture
@@ -151,9 +155,11 @@ class TestPartitioning:
         xr.testing.assert_allclose(sort_coords(
             proc.contact_xr), sort_coords(phi))
 
+
+class TestPartitionUsingXarray:
+
     def test_travel_xr_same_as_dask(self, updated_results, to_phi_da):
-        """Check that for travel10.csv (only local, no contextual),
-        xarray travel partitioning in method `get_travel_da` has same data as 
+        """Check that xarray travel partitioning is consistent with 
         Dask implementation stored in `Partition2Contact.old_pr_contact_ijk`.
         """
 
@@ -167,13 +173,16 @@ class TestPartitioning:
         proc_pd.initialize(**kw)
         proc_pd.run_step(**kw)
 
-        # breakpoint()
+        # new 3 process pipeline
+        proc_tp = TravelPatFromCSV(travel_pat_fp=updated_results['travel_fp'])
+        proc_tp.run_step(step_start=kw['step_start'], step_end=kw['step_end'])
+        proc_ct = ContactsFromCSV(contacts_fp=updated_results['contacts_fp'])
+        proc_ct.initialize()
         proc_xr = PartitionUsingXR(
-            travel_pat=proc_pd.travel_pat.rename(dict(i='vertex0', k='vertex1', age_i='age0')),
-            contacts=proc_pd.contacts,
-            int_per_day=1
+            travel_pat=proc_tp.travel_pat,
+            contacts=proc_ct.contacts,
         )
-        proc_xr.run_step()
+        proc_xr.run_step(step_delta=kw['step_delta'])
 
         # Check that phi is consistent with saved array
         phi = to_phi_da(updated_results['phi_fp']).rename({
