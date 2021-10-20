@@ -8,6 +8,7 @@ import xarray as xr
 import xsimlab as xs
 from itertools import product
 from episimlab.partition.partition import Partition2Contact
+from episimlab.partition import Partition as PartitionUsingXR
 
 
 @pytest.fixture
@@ -155,31 +156,24 @@ class TestPartitioning:
         xarray travel partitioning in method `get_travel_da` has same data as 
         Dask implementation stored in `Partition2Contact.old_pr_contact_ijk`.
         """
+
+        # use xarray implementation in old process
+        # for generating travel_pat and contacts arrays only
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
-        proc = Partition2Contact(**inputs)
         kw = dict(step_delta=np.timedelta64(24, 'h'),
                   step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
                   step_end=np.datetime64('2020-03-12T00:00:00.000000000'),)
-        proc.initialize(**kw)
-        proc.run_step(**kw)
+        proc_pd = Partition2Contact(**inputs)
+        proc_pd.initialize(**kw)
+        proc_pd.run_step(**kw)
 
-        # Check that the travel partitioning is the same
-        xr_result = (
-            proc 
-            .pr_contact_ijk 
-            .rename({'dt': 'destination_type', 'j': 'source_j', 'k': 'destination', 'i': 'source_i', }) 
-            .transpose('destination_type', 'destination', 'source_i', 'source_j', 'age_i', 'age_j', ...)
-            # .loc[dict(dt='local')]
-            # .sum('destination')
+        # breakpoint()
+        proc_xr = PartitionUsingXR(
+            travel_pat=proc_pd.travel_pat.rename(dict(i='vertex0', k='vertex1', age_i='age0')),
+            contacts=proc_pd.contacts,
+            int_per_day=1
         )
-        dask_result = (
-            proc 
-            .old_pr_contact_ijk 
-            .fillna(0.)
-            .transpose('destination_type', 'destination', 'source_i', 'source_j', 'age_i', 'age_j', ...)
-            # .sum('destination')
-        )
-        xr.testing.assert_allclose(xr_result, dask_result)
+        proc_xr.run_step()
 
         # Check that phi is consistent with saved array
         phi = to_phi_da(updated_results['phi_fp']).rename({
@@ -198,6 +192,14 @@ class TestPartitioning:
             return da
 
         xr.testing.assert_allclose(
-            sort_coords(proc.contact_xr), 
-            sort_coords(proc.old_contact_xr), 
+            # new way
+            sort_coords(proc_xr.phi),
+            # archived result
+            sort_coords(phi), 
+        )
+        xr.testing.assert_allclose(
+            # new way
+            sort_coords(proc_xr.phi),
+            # new way in old process
+            sort_coords(proc_pd.contact_xr), 
         )

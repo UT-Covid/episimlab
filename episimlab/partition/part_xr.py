@@ -57,7 +57,206 @@ def legacy_mapping(col_type, table):
 
 
 @xs.process
-class Partition2Contact:
+class Partition:
+    PHI_DIMS = (
+        'vertex0', 'vertex1', 
+        'age0', 'age1', 
+        'risk0', 'risk1'
+    )
+    TRAVEL_PAT_DIMS = (
+        # formerly age, source, destination
+        'vertex0', 'vertex1', 'age0', 
+    )
+    CONTACTS_DIMS = (
+        'age0', 'age1', 
+    )
+
+    phi = xs.variable(
+        dims=PHI_DIMS, intent='out', global_name='phi', 
+        description="pairwise contact patterns for force of infection calculation")
+    travel_pat = xs.variable(
+        dims=TRAVEL_PAT_DIMS, intent='in', global_name='travel_pat', 
+        description="mobility/travel patterns")
+    contacts = xs.variable(
+        dims=CONTACTS_DIMS, intent='in', global_name='contacts', 
+        description="pairwise baseline contact patterns")
+    int_per_day = xs.global_ref('int_per_day', intent='in')
+    _coords = xs.group_dict('coords')
+
+    @property
+    def coords(self):
+        return group_dict_by_var(self._coords)
+
+    def unsuffixed_coords(self, dims):
+        return {d: self.coords.get(d.rstrip('01')) for d in dims}
+
+    @property
+    def phi_dims(self):
+        return self.PHI_DIMS
+
+    @property
+    def travel_pat_dims(self):
+        return self.TRAVEL_PAT_DIMS
+
+    @property
+    def contacts_dims(self):
+        return self.CONTACTS_DIMS
+
+    @property
+    def phi_coords(self):
+        return self.unsuffixed_coords(self.phi_dims)
+
+    @property
+    def travel_pat_coords(self):
+        return self.unsuffixed_coords(self.phi_dims)
+
+    @property
+    def contacts_coords(self):
+        return self.unsuffixed_coords(self.contacts_dims)
+    
+    def run_step(self):
+        """
+        """
+        self.c_ijk = self.get_c_ijk(self.travel_pat)
+        phi = self.c_ijk * self.contacts / self.int_per_day
+        # Change coordinate dtypes from 'object' to unicode
+        self.phi = fix_coord_dtypes(phi)
+    
+    
+    def old_get_c_ijk(self, da: xr.DataArray, raise_null=False) -> xr.DataArray:
+        """
+        """
+        
+        # Handle null values
+        if da.isnull().any():
+            logging.error(f"{(100 * int(da.isnull().sum()) / da.size):.1f}% values "
+                          "in travel DataFrame are null")
+            if raise_null or da.isnull().all():
+                raise ValueError("found null values in travel DataFrame:\n" 
+                                f"{da.where(da.isnull(), drop=True)}")
+            else:
+                da = da.fillna(0.)
+        
+        # Calculate probability of contact between i and j
+        n_ik = da
+        n_i = n_ik.sum(['k', 'dt'])
+        n_jk = da.rename({'i': 'j', 'age_i': 'age_j', })
+        n_k = n_jk.sum(['j', 'dt'])
+        c_ijk = (n_ik / n_i) * (n_jk / n_k)
+        c_ijk = c_ijk.fillna(0.)
+
+        # for testing against old Dask method
+        self.pr_contact_ijk = c_ijk
+
+        c_ijk = (c_ijk 
+                 .sum(['dt', 'k']) 
+                 .rename({'i': 'vertex0', 'j': 'vertex1', 'age_i': 'age0', 'age_j': 'age1'}) 
+                 .transpose('vertex0', 'vertex1', 'age0', 'age1', ...))
+        return c_ijk
+
+        
+    def get_c_ijk(self, tp: xr.DataArray, raise_null=False) -> xr.DataArray:
+        """
+        """
+        
+        # Handle null values
+        if tp.isnull().any():
+            logging.error(f"{(100 * int(tp.isnull().sum()) / tp.size):.1f}% values "
+                          "in travel DataFrame are null")
+            if raise_null or tp.isnull().all():
+                raise ValueError("found null values in travel DataFrame:\n" 
+                                f"{tp.where(tp.isnull(), drop=True)}")
+            else:
+                tp = tp.fillna(0.)
+        
+        tp = tp.rename({'vertex1': 'k'})
+        # similar to {'vertex0': 'vertex1', 'age0': 'age1'}
+        zero_to_one = {
+            k: k.replace('0', '1') for k in self.travel_pat_dims if '0' in k
+        }
+        
+        # Calculate probability of contact between i and j
+        n_ik = tp
+        n_i = n_ik.sum(['k', 'dt'])
+        n_jk = tp.rename(zero_to_one)
+        n_k = n_jk.sum(['vertex1', 'dt'])
+        c_ijk = (n_ik / n_i) * (n_jk / n_k)
+        c_ijk = (c_ijk 
+                 .fillna(0.)
+                 .sum(['k', 'dt']) 
+                 .transpose(*self.travel_pat_dims, ...))
+        return c_ijk
+
+
+@xs.process
+class Contact2Phi:
+    """Given array `contact_xr`, coerces to `phi_t` array."""
+    PHI_DIMS = ('vertex0', 'vertex1',
+                'age0', 'age1',
+                'risk0', 'risk1')
+
+    contact_xr = xs.global_ref('contact_xr', intent='in')
+    phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
+    _coords = xs.group_dict('coords')
+
+    @property
+    def coords(self):
+        return group_dict_by_var(self._coords)
+    
+    @property
+    def phi_dims(self):
+        return self.PHI_DIMS
+
+    @property
+    def phi_coords(self):
+        return {k: self.coords.get(k.rstrip('01')) for k in self.phi_dims}
+
+    def initialize(self):
+        self.get_phi()
+
+    def run_step(self):
+        self.get_phi()
+
+    def get_phi(self):
+        self.phi_t = xr.DataArray(data=np.nan, dims=self.phi_dims, 
+                                  coords=self.phi_coords)
+        # broadcast into phi_array
+        # TODO: refactor
+        self.phi_t.loc[dict(risk0='low', risk1='low')] = self.contact_xr
+        self.phi_t.loc[dict(risk0='low', risk1='high')] = self.contact_xr
+        self.phi_t.loc[dict(risk0='high', risk1='high')] = self.contact_xr
+        self.phi_t.loc[dict(risk0='high', risk1='low')] = self.contact_xr
+        assert not self.phi_t.isnull().any()
+
+
+@xs.process
+class NC2Contact:
+    """Reads DataArray from NetCDF file at `contact_da_fp`, and sets attr
+    `contact_xr`.
+    """
+    DIMS = ('vertex0', 'vertex1', 'age0', 'age1',)
+    contact_da_fp = xs.variable(intent='in')
+    contact_xr = xs.variable(dims=DIMS, intent='out', global_name='contact_xr')
+
+    def initialize(self):
+        da = (xr
+              .open_dataarray(self.contact_da_fp)
+              .rename({
+                  'vertex_i': 'vertex0',
+                  'vertex_j': 'vertex1',
+                  'age_i': 'age0',
+                  'age_j': 'age1',
+               })
+             )
+        da.coords['age0'] = da.coords['age0'].astype(str)
+        da.coords['age1'] = da.coords['age1'].astype(str)
+        assert isinstance(da, xr.DataArray)
+
+        self.contact_xr = da
+
+
+@xs.process
+class TravelPatFromCSV:
     DIMS = ('vertex0', 'vertex1', 'age0', 'age1',)
     travel_fp = xs.variable(intent='in')
     contacts_fp = xs.variable(intent='in')
@@ -179,8 +378,8 @@ class Partition2Contact:
         return old_contact_xr
     
     def partition_using_xr(self):
-        self.contacts = contacts_da = self.get_contacts_da(df=self.get_contacts_df()).chunk(1000)
-        self.travel_pat = travel_da = self.get_travel_da(df=self.get_travel_df()).chunk(1000)
+        contacts_da = self.get_contacts_da(df=self.get_contacts_df()).chunk(1000)
+        travel_da = self.get_travel_da(df=self.get_travel_df()).chunk(1000)
 
         c_ijk = self.get_pr_c_ijk(da=travel_da)
         phi = c_ijk * contacts_da / self.int_per_day
@@ -451,69 +650,3 @@ class Partition2Contact:
         #contact_xarray = contact_xarray.reset_coords(names='partitioned_per_capita_contacts', drop=True)
         return contact_xarray
 
-
-@xs.process
-class Contact2Phi:
-    """Given array `contact_xr`, coerces to `phi_t` array."""
-    PHI_DIMS = ('vertex0', 'vertex1',
-                'age0', 'age1',
-                'risk0', 'risk1')
-
-    contact_xr = xs.global_ref('contact_xr', intent='in')
-    phi_t = xs.variable(dims=PHI_DIMS, intent='out', global_name='phi_t')
-    _coords = xs.group_dict('coords')
-
-    @property
-    def coords(self):
-        return group_dict_by_var(self._coords)
-    
-    @property
-    def phi_dims(self):
-        return self.PHI_DIMS
-
-    @property
-    def phi_coords(self):
-        return {k: self.coords.get(k.rstrip('01')) for k in self.phi_dims}
-
-    def initialize(self):
-        self.get_phi()
-
-    def run_step(self):
-        self.get_phi()
-
-    def get_phi(self):
-        self.phi_t = xr.DataArray(data=np.nan, dims=self.phi_dims, 
-                                  coords=self.phi_coords)
-        # broadcast into phi_array
-        # TODO: refactor
-        self.phi_t.loc[dict(risk0='low', risk1='low')] = self.contact_xr
-        self.phi_t.loc[dict(risk0='low', risk1='high')] = self.contact_xr
-        self.phi_t.loc[dict(risk0='high', risk1='high')] = self.contact_xr
-        self.phi_t.loc[dict(risk0='high', risk1='low')] = self.contact_xr
-        assert not self.phi_t.isnull().any()
-
-
-@xs.process
-class NC2Contact:
-    """Reads DataArray from NetCDF file at `contact_da_fp`, and sets attr
-    `contact_xr`.
-    """
-    DIMS = ('vertex0', 'vertex1', 'age0', 'age1',)
-    contact_da_fp = xs.variable(intent='in')
-    contact_xr = xs.variable(dims=DIMS, intent='out', global_name='contact_xr')
-
-    def initialize(self):
-        da = (xr
-              .open_dataarray(self.contact_da_fp)
-              .rename({
-                  'vertex_i': 'vertex0',
-                  'vertex_j': 'vertex1',
-                  'age_i': 'age0',
-                  'age_j': 'age1',
-               })
-             )
-        da.coords['age0'] = da.coords['age0'].astype(str)
-        da.coords['age1'] = da.coords['age1'].astype(str)
-        assert isinstance(da, xr.DataArray)
-
-        self.contact_xr = da
