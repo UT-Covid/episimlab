@@ -484,10 +484,10 @@ class Vaccine(EpiModel):
         'rate_Ih2R': RateIh2R,
         'rate_Ih2D': RateIh2D,
     }
-
+    DATA_DIR = './tests/data'
     RUNNER_DEFAULTS = dict(
         clocks={
-            'step': pd.date_range(start='3/1/2020', end='5/1/2020', freq='24H')
+            'step': pd.date_range(start='3/11/2020', end='3/12/2020', freq='24H')
         },
         input_vars={
             'setup_sto__sto_toggle': 0,
@@ -506,6 +506,8 @@ class Vaccine(EpiModel):
             'setup_gamma_Ih__tri_Ih2R': [9.4, 10.7, 12.8],
             'setup_gamma_Ia__tri_Iy2R_para': [3.0, 4.0, 5.0],
             'setup_mu__tri_Ih2D': [5.2, 8.1, 10.1],
+            'travel_pat_fp': os.path.join(DATA_DIR, 'travel_pat0.csv'),
+            'contacts_fp': os.path.join(DATA_DIR, 'polymod_contacts.csv'),
         },
         output_vars={
             'compt_model__state': 'step'

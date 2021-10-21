@@ -374,7 +374,7 @@ class PartitionV1(EpiModel):
 class PartitionFromTravel(EpiModel):
     """Nine-compartment SEIR model with partitioning from Episimlab V1"""
     TAGS = ('SEIR', 'compartments::9', 'contact-partitioning')
-    DATA_DIR = './data'
+    DATA_DIR = './tests/data'
     PROCESSES = {
         # Core processes
         'compt_model': ComptModel,
@@ -434,7 +434,7 @@ class PartitionFromTravel(EpiModel):
             'setup_gamma_Ih__tri_Ih2R': [9.4, 10.7, 12.8],
             'setup_gamma_Ia__tri_Iy2R_para': [3.0, 4.0, 5.0],
             'setup_mu__tri_Ih2D': [5.2, 8.1, 10.1],
-            'travel_pat_fp': os.path.join(DATA_DIR, '20200311_travel.csv'),
+            'travel_pat_fp': os.path.join(DATA_DIR, 'travel_pat0.csv'),
             'contacts_fp': os.path.join(DATA_DIR, 'polymod_contacts.csv'),
         },
         output_vars={
