@@ -259,15 +259,17 @@ class SetupComptGraph:
 class SetupCoords:
     """Initialize state coordinates. Imports the travel patterns as
     xarray.DataArray `travel_pat` to retrieve coordinates for age and vertex.
+    Imports coordinates for `compt` from the compartment graph `compt_graph`.
     """
     travel_pat = xs.global_ref('travel_pat', intent='in')
+    compt_graph = xs.global_ref('compt_graph', intent='in')
     compt = xs.index(dims=('compt'), global_name='compt_coords', groups=['coords'])
     age = xs.index(dims=('age'), global_name='age_coords', groups=['coords'])
     risk = xs.index(dims=('risk'), global_name='risk_coords', groups=['coords'])
     vertex = xs.index(dims=('vertex'), global_name='vertex_coords', groups=['coords'])
     
     def initialize(self):
-        self.compt = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D'] 
+        self.compt = list(self.compt_graph.nodes) 
         self.risk = ['low', 'high']
         # self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
         self.age = self.travel_pat.coords['age0'].values
