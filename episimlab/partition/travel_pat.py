@@ -14,6 +14,7 @@ class TravelPatFromCSV:
                                 "a CSV file containing travel patterns")
     travel_pat = xs.global_ref('travel_pat', intent='out')
     dask_chunks = xs.variable(static=True, intent='in', default=None,
+                              global_name="dask_chunks",
                               description="number of chunks in which to divide "
                               "the `travel_pat` DataArray using Dask. None or 0 "
                               "will skip Dask chunking.")
@@ -95,5 +96,28 @@ class TravelPatFromCSV:
 
 
 @xs.process
-class RepeatingTravelPat:
-    pass
+class TravelPatRepeatDaily(TravelPatFromCSV):
+    """Example process that sets `travel_pat` based on a travel patterns
+    CSV with data for only one date. This effectively sets `travel_pat` to be
+    the same for the entire simulation.
+    """
+    TAGS = ('example', 'partition', 'dependency::dask')
+
+    @xs.runtime(args=('step_start', 'step_end',))
+    def run_step(self, step_start, step_end):
+        df = self.get_travel_df()
+
+        # Check that the travel_df only has one date
+        assert len(df['date'].unique()) == 1, f"unique dates: {df['date'].unique()}"
+        only_date = df['date'].unique()[0]
+
+        # Both step_start and step_end will be None for initialize
+        if step_start is None and step_end is None:
+            pass
+        elif only_date > step_start:
+            raise ValueError(
+                f"travel data has a single date ({only_date}) that is after "
+                f"step start {step_start}.")
+
+        self.travel_pat = self.get_travel_da(df)
+    

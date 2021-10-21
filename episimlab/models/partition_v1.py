@@ -17,7 +17,7 @@ from ..utils import (
     get_var_dims, group_dict_by_var, discrete_time_approx as dta, 
     IntPerDay, get_rng, any_negative, visualize_compt_graph
 )
-from ..partition import Partition, TravelPatFromCSV, ContactsFromCSV
+from ..partition import Partition, TravelPatRepeatDaily, ContactsFromCSV
 from ..setup.sto import SetupStochasticFromToggle
 from ..setup.seed import SeedGenerator
 from ..setup.greek import (
@@ -315,7 +315,7 @@ class PartitionFromTravel(EpiModel):
         'setup_state': SetupState,
 
         # Contact partitioning
-        'setup_travel': TravelPatFromCSV, 
+        'setup_travel': TravelPatRepeatDaily, 
         'setup_contacts': ContactsFromCSV,
         'partition': Partition,
 
