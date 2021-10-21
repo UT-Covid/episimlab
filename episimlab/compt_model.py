@@ -106,17 +106,28 @@ class ComptModel:
         """
         for u, v in edges:
             weight = k * self.edge_weight(u, v)
-            # print(f"adjusted weight of edge from {u} to {v} is {weight}")
             try:
                 self.tm.loc[dict(compt=u)] -= weight
                 self.tm.loc[dict(compt=v)] += weight
             except ValueError:
-                logging.error(
+                msg = (
                     f"Error while applying weight for edge {(u, v)}. "
                     f"Transition matrix expects matrix with coords:\n "
                     f"{self.tm.loc[dict(compt=u)].coords}\n...but weight "
                     f"has coords:\n {weight.coords}.")
+                logging.error(msg)
                 raise
+            except Exception:
+                msg = (
+                    f"Unknown error while applying weight for edge {(u, v)}. "
+                    f"The edge weight has type '{type(weight)}', and we tried "
+                    f"to add it to transition matrix with coordinates\n"
+                    f"{self.tm.loc[dict(compt=u)].coords}")
+                if isinstance(weight, xr.DataArray):
+                    msg = msg + f"\nEdge weight has coordinates\n{weight.coords}"
+                logging.error(msg)
+                raise
+                
 
     def edge_weight(self, u, v):
         if (u, v) in self._edge_weight_cache:
@@ -139,8 +150,6 @@ class ComptModel:
             logging.warning(f"could not find a weight for transition from {u} "
                             f"to {v} compartment ({key}). Setting weight to zero.")
             weight = 0.
-
-        # TODO: if weight is very close to zero, set to 0
 
         # poisson draw if stochastic is on
         if bool(self.stochastic):

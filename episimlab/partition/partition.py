@@ -115,11 +115,13 @@ class TravelPatFromCSV:
             df = df[df['date'] == df['date'].min()]
         else:
             df = df[self.get_date_mask(df['date'], step_start, step_end)]
-        da = self.get_travel_da(df, chunks=None)
-        
+
         # Validation
-        assert not df.empty, f'No travel data between {step_start} and {step_end}'
-        print(f'The date in Partition.get_travel_df is {df["date"].unique()}')
+        if df.empty:
+            raise ValueError(f'No travel data between {step_start} and {step_end}')
+        logging.info(f'The date in Partition.get_travel_df is {df["date"].unique()}')
+
+        da = self.get_travel_da(df, chunks=1000)
 
         # Handle null values
         if da.isnull().any():
