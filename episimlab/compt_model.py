@@ -126,6 +126,16 @@ class ComptModel:
         # poisson draw if stochastic is on
         if bool(self.stochastic):
             weight = self.stochastic_draw(weight)
+        
+        # raise a warning if edge appears to be an array, but not a DataArray
+        if not isinstance(weight, xr.DataArray) and hasattr(weight, 'shape'):
+            logging.error(
+                f"Edge weight '{key}' appears to be an array (has 'shape' "
+                f"attribute), but is not an xarray.DataArray (is type "
+                f"'{type(weight)}'). Array may fail to broadcast with "
+                f"other DataArrays. To avoid this, please set '{key}' as a "
+                f"float or int if it is a scalar, and an xarray.DataArray if "
+                f"it is a tensor/vector.")
             
         return weight
 
