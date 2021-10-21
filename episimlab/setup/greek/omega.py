@@ -3,18 +3,16 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ...foi.base import BaseFOI
-from ...seir.base import BaseSEIR
-from .base import BaseSetupEpi
-
 
 @xs.process
-class SetupDefaultOmega(BaseSetupEpi):
+class SetupDefaultOmega:
     """
     """
+    TAGS = ('deprecated',)
     omega = xs.global_ref('omega', intent='out')
 
     def initialize(self):
+        raise DeprecationWarning()
         self.omega = self.get_omega()
 
     def get_omega(self):
@@ -46,10 +44,10 @@ class SetupStaticOmega(SetupDefaultOmega):
     prop_trans_in_p = xs.variable(dims=(), static=True, intent='in')
     symp_h_ratio = xs.variable(dims=('age_group'), static=True, intent='in')
     asymp_relative_infect = xs.variable(dims=(), static=True, intent='in')
-    gamma = xs.foreign(BaseSEIR, 'gamma', intent='in')
-    eta = xs.foreign(BaseSEIR, 'eta', intent='in')
-    rho = xs.foreign(BaseSEIR, 'rho', intent='in')
-    tau = xs.foreign(BaseSEIR, 'tau', intent='in')
+    gamma = xs.global_ref('gamma', intent='in')
+    eta = xs.global_ref('eta', intent='in')
+    rho = xs.global_ref('rho', intent='in')
+    tau = xs.global_ref('tau', intent='in')
 
     def get_omega(self) -> xr.DataArray:
         dims = ['age_group', 'compartment']

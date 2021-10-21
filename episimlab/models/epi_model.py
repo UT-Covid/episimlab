@@ -12,6 +12,7 @@ class EpiModel(xs.Model):
     testing, running, and plotting an epidemiological model with default
     arguments
     """
+    TAGS = tuple()
     PROCESSES = {}
     RUNNER_DEFAULTS = {
         'clocks': {

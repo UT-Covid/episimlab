@@ -60,6 +60,10 @@ def xr_plot(data_array, sel=dict(), isel=dict(), timeslice=slice(0, 100),
     return da.plot.line(x='step', aspect=2, size=7)
 
 
+def _get_timestamp():
+    return datetime.datetime.today().strftime('%Y%m%d_%H%M%S')
+
+
 def plotter(flavor='mpl', log_dir='./logs', log_stub=None, plotter_kwargs=dict()):
     """
     TODO

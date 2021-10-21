@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import os
 import numpy as np
 import xarray as xr
 import xsimlab as xs
@@ -16,7 +17,7 @@ from ..utils import (
     get_var_dims, group_dict_by_var, discrete_time_approx as dta, 
     IntPerDay, get_rng, any_negative, visualize_compt_graph
 )
-from ..partition.partition import NC2Contact, Contact2Phi
+from ..partition import Partition, TravelPatRepeatDaily, ContactsFromCSV
 from ..setup.sto import SetupStochasticFromToggle
 from ..setup.seed import SeedGenerator
 from ..setup.greek import (
@@ -198,7 +199,6 @@ class RateIa2R:
 @xs.process
 class RateS2E(BaseFOI):
     """FOI that provides a `rate_S2E`"""
-    TAGS = ('model::NineComptV1', 'FOI')
     PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
     rate_S2E = xs.variable(intent='out', groups=['edge_weight'])
 
@@ -255,22 +255,24 @@ class SetupComptGraph:
 
 @xs.process
 class SetupCoords:
-    """Initialize state coordinates. Imports the contact matrix as
-    xarray.DataArray `contact_xr` to retrieve coordinates for age and vertex.
+    """Initialize state coordinates. Imports the travel patterns as
+    xarray.DataArray `travel_pat` to retrieve coordinates for age and vertex.
+    Imports coordinates for `compt` from the compartment graph `compt_graph`.
     """
-    contact_xr = xs.global_ref('contact_xr', intent='in')
+    travel_pat = xs.global_ref('travel_pat', intent='in')
+    compt_graph = xs.global_ref('compt_graph', intent='in')
     compt = xs.index(dims=('compt'), global_name='compt_coords', groups=['coords'])
     age = xs.index(dims=('age'), global_name='age_coords', groups=['coords'])
     risk = xs.index(dims=('risk'), global_name='risk_coords', groups=['coords'])
     vertex = xs.index(dims=('vertex'), global_name='vertex_coords', groups=['coords'])
     
     def initialize(self):
-        self.compt = ['S', 'E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D'] 
+        self.compt = list(self.compt_graph.nodes) 
         self.risk = ['low', 'high']
         # self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
-        self.age = self.contact_xr.coords['age0'].values
+        self.age = self.travel_pat.coords['age0'].values
         # self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
-        self.vertex = self.contact_xr.coords['vertex0'].values
+        self.vertex = self.travel_pat.coords['vertex0'].values
 
 
 
@@ -298,53 +300,26 @@ class SetupState:
         return group_dict_by_var(self._coords)
 
 
-@xs.process
-class SetupPhi(Contact2Phi):
-    """Set value of phi (contacts per unit time)."""
-    pass
-
-
-@xs.process
-class GetContactXR(NC2Contact):
-    pass
-
-
-@xs.process
-class PhiLinker:
-    """Simple process that passes value of `phi_t` to `phi` for compatibility
-    with ESL v1 partition processes.
-    """
-    phi_t = xs.global_ref('phi_t', intent='in')
-    phi = xs.global_ref('phi', intent='out')
-
-    def initialize(self):
-        self.phi = self.convert_phi_t()
-
-    def run_step(self):
-        self.phi = self.convert_phi_t()
-    
-    def convert_phi_t(self):
-        return self.phi_t
-
-
-class PartitionV1(EpiModel):
+class PartitionFromTravel(EpiModel):
     """Nine-compartment SEIR model with partitioning from Episimlab V1"""
     TAGS = ('SEIR', 'compartments::9', 'contact-partitioning')
+    DATA_DIR = './tests/data'
     PROCESSES = {
-        'setup_compt_graph': SetupComptGraph,
+        # Core processes
         'compt_model': ComptModel,
-        'int_per_day': IntPerDay,
-        'get_contact_xr': GetContactXR,
-        'setup_phi': SetupPhi,
-        'setup_coords': SetupCoords,
-        'setup_state': SetupState,
         'setup_sto': SetupStochasticFromToggle,
         'setup_seed': SeedGenerator,
+        'setup_compt_graph': SetupComptGraph,
+        'int_per_day': IntPerDay,
+        'setup_coords': SetupCoords,
+        'setup_state': SetupState,
 
-        # DEBUG: lightweight adapter
-        'phi_linker': PhiLinker,
+        # Contact partitioning
+        'setup_travel': TravelPatRepeatDaily, 
+        'setup_contacts': ContactsFromCSV,
+        'partition': Partition,
 
-        # calculate greeks used by edge weight processes
+        # Calculate greeks used by edge weight processes
         'setup_pi': SetupPiDefault,
         'setup_nu': SetupNuDefault,
         'setup_mu': mu.SetupStaticMuIh2D,
@@ -355,10 +330,10 @@ class PartitionV1(EpiModel):
         'setup_rho_Ia': rho.SetupRhoIa,
         'setup_rho_Iy': rho.SetupRhoIy,
 
-        # used for RateE2Pa and RateE2Py
+        # Used for RateE2Pa and RateE2Py
         'rate_E2P': RateE2P,
 
-        # all the expected edge weights
+        # All the expected edge weights
         'rate_S2E': RateS2E,
         'rate_E2Pa': RateE2Pa,
         'rate_E2Py': RateE2Py,
@@ -373,7 +348,7 @@ class PartitionV1(EpiModel):
 
     RUNNER_DEFAULTS = dict(
         clocks={
-            'step': pd.date_range(start='3/1/2020', end='5/1/2020', freq='24H')
+            'step': pd.date_range(start='3/11/2020', end='3/12/2020', freq='24H')
         },
         input_vars={
             'setup_sto__sto_toggle': 0,
@@ -388,7 +363,8 @@ class PartitionV1(EpiModel):
             'setup_gamma_Ih__tri_Ih2R': [9.4, 10.7, 12.8],
             'setup_gamma_Ia__tri_Iy2R_para': [3.0, 4.0, 5.0],
             'setup_mu__tri_Ih2D': [5.2, 8.1, 10.1],
-            'get_contact_xr__contact_da_fp': 'tests/data/20200311_contact_matrix.nc'
+            'travel_pat_fp': os.path.join(DATA_DIR, 'travel_pat0.csv'),
+            'contacts_fp': os.path.join(DATA_DIR, 'polymod_contacts.csv'),
         },
         output_vars={
             'compt_model__state': 'step'

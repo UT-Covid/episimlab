@@ -1,24 +1,23 @@
 import xarray as xr
 import xsimlab as xs
-from .utils import any_negative
-
-
-def suffixed_dims(da: xr.DataArray, suffix: str,
-                    exclude: list = None) -> xr.DataArray:
-    if exclude is None:
-        exclude = list()
-    return {k: f"{k}{suffix}" for k in da.dims if k not in exclude}
+from .utils import any_negative, suffixed_dims
+from collections import Sequence
 
 
 @xs.process
 class BaseFOI:
     """Base class for calculating force of infection (FOI)."""
-    TAGS = ('FOI',)
-    PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
+    TAGS = ('FOI', 'essential', 'example')
+    PHI_DIMS = (
+        'age0', 'age1', 
+        'risk0', 'risk1', 
+        'vertex0', 'vertex1',
+    )
     I_COMPT_LABELS = ('I')
     S_COMPT_LABELS = ('S')
 
-    phi = xs.variable(dims=PHI_DIMS, global_name='phi', intent='in')
+    phi = xs.variable(dims=PHI_DIMS, global_name='phi', intent='in', 
+                      description="pairwise contact patterns")
     state = xs.global_ref('state', intent='in')
     beta = xs.variable(global_name='beta', intent='in')
     _coords = xs.group_dict('coords')
@@ -56,39 +55,24 @@ class BaseFOI:
         
         return foi
     
+    def normalize_index(self, index):
+        """Generate an index that that is compatible with `DataArray.loc`."""
+        if isinstance(index, str):
+            return index
+        elif isinstance(index, Sequence):
+            return list(index)
+        else:
+            return index
+    
     @property
     def I(self):
-        return self.state.loc[dict(compt=self.I_COMPT_LABELS)]
+        index = self.normalize_index(self.I_COMPT_LABELS)
+        return self.state.loc[dict(compt=index)]
 
     @property
     def S(self):
-        return self.state.loc[dict(compt=self.S_COMPT_LABELS)]
-
-
-
-@xs.process
-class VaccineFOI(BaseFOI):
-    """Base class for calculating force of infection (FOI)."""
-    TAGS = ('FOI',)
-    beta_reduction = xs.variable(global_name='beta_reduction', intent='in')
-
-    @property
-    def foi(self) -> xr.DataArray:
-        zero_suffix = suffixed_dims(self.state[dict(compt=0)], '0')
-        one_suffix = suffixed_dims(self.state[dict(compt=0)], '1')
-        S = self.S.rename(zero_suffix)
-        I = self.I.rename(one_suffix)
-        N = self.state.sum('compt').rename(one_suffix)
-        foi = ((self.beta * self.beta_reduction * self.phi * S * I / N)
-               # sum over coords that are not compt
-               .sum(one_suffix.values())
-               # like .rename({'age0': 'age', 'risk0': 'risk'})
-               .rename({v: k for k, v in zero_suffix.items()}))
-
-        # DEBUG
-        assert not any_negative(foi, raise_err=True)
-
-        return foi
+        index = self.normalize_index(self.S_COMPT_LABELS)
+        return self.state.loc[dict(compt=index)]
 
 
 @xs.process

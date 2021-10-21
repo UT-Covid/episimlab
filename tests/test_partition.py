@@ -7,7 +7,11 @@ import yaml
 import xarray as xr
 import xsimlab as xs
 from itertools import product
-from episimlab.partition.partition import Partition2Contact
+from episimlab.partition import (
+    Partition as PartitionUsingXR,
+    ContactsFromCSV,
+    TravelPatFromCSV,
+)
 
 
 @pytest.fixture
@@ -95,43 +99,33 @@ def updated_results(request):
     }
 
 
-class TestPartitioning:
-    """
-    Check that refactored partitioning generates expected results
-    """
+class TestPartition:
 
-    def test_partitioning(self, updated_results, counts_coords_toy):
+    def test_travel_xr_same_as_dask(self, updated_results, to_phi_da):
+        """Check that xarray travel partitioning is consistent with 
+        Dask implementation stored in `Partition2Contact.old_pr_contact_ijk`.
+        """
+
+        # use xarray implementation in old process
+        # for generating travel_pat and contacts arrays only
         inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
-        inputs.update({
-            # 'age_group': counts_coords_toy['age_group'],
-            # 'risk_group': counts_coords_toy['risk_group']
-        })
         kw = dict(step_delta=np.timedelta64(24, 'h'),
                   step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
                   step_end=np.datetime64('2020-03-12T00:00:00.000000000'),)
-        proc = Partition2Contact(**inputs)
-        proc.initialize(**kw)
-        proc.run_step(**kw)
 
-        tc_final = pd.read_csv(updated_results['tc_final_fp'], index_col=None)
-        tr_part = pd.read_csv(updated_results['tr_parts_fp'], index_col=None)
+        # new 3 process pipeline
+        proc_tp = TravelPatFromCSV(travel_pat_fp=updated_results['travel_fp'])
+        proc_tp.initialize()
+        proc_tp.run_step(step_start=kw['step_start'], step_end=kw['step_end'])
+        proc_ct = ContactsFromCSV(contacts_fp=updated_results['contacts_fp'])
+        proc_ct.initialize()
+        proc_xr = PartitionUsingXR(
+            travel_pat=proc_tp.travel_pat,
+            contacts=proc_ct.contacts,
+        )
+        proc_xr.run_step(step_delta=kw['step_delta'])
 
-        # test against legacy
-        pd.testing.assert_frame_equal(
-            proc.prob_partitions, tr_part.drop('Unnamed: 0', axis=1))
-        pd.testing.assert_frame_equal(
-            proc.contact_partitions, tc_final.drop('Unnamed: 0', axis=1))
-
-    def test_phi(self, to_phi_da, updated_results, counts_coords_toy):
-        inputs = {k: updated_results[k] for k in ('contacts_fp', 'travel_fp')}
-        proc = Partition2Contact(**inputs)
-        kw = dict(step_delta=np.timedelta64(24, 'h'),
-                  step_start=np.datetime64('2020-03-11T00:00:00.000000000'),
-                  step_end=np.datetime64('2020-03-12T00:00:00.000000000'),)
-        proc.initialize(**kw)
-        proc.run_step(**kw)
-
-        # construct a DataArray from legacy phi
+        # Check that phi is consistent with saved array
         phi = to_phi_da(updated_results['phi_fp']).rename({
             # rename to accommodate legacy dimension names
             'vertex1': 'vertex0',
@@ -147,5 +141,9 @@ class TestPartitioning:
                 da = da.sortby(dim)
             return da
 
-        xr.testing.assert_allclose(sort_coords(
-            proc.contact_xr), sort_coords(phi))
+        xr.testing.assert_allclose(
+            # new way
+            sort_coords(proc_xr.phi),
+            # archived result
+            sort_coords(phi.transpose(*proc_xr.phi.dims)), 
+        )

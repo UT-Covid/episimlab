@@ -4,16 +4,17 @@ import pandas as pd
 import xsimlab as xs
 
 
-def dt64_to_day_of_week(dt64) -> int:
-    """Monday == 0, Sunday == 6
+def dt64_to_day_of_week(dt64: np.datetime64) -> int:
+    """Convert a datetime to integer corresponding to day of the week.
+    Monday == 0, Sunday == 6.
     """
     assert isinstance(dt64, np.datetime64)
     index = pd.DatetimeIndex([dt64])
     return index.dayofweek[0]
 
 
-def get_int_per_day(step_delta) -> float:
-    """
+def get_int_per_day(step_delta: np.timedelta64) -> float:
+    """Given a time delta, calculate the number of intervals per day.
     """
     assert isinstance(step_delta, np.timedelta64), \
         f"`step_delta` is not datetime64: {step_delta} type is {type(step_delta)}"

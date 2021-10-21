@@ -5,6 +5,7 @@ import xsimlab as xs
 @xs.process
 class SetupToyCoords:
     """Initialize state coordinates"""
+    TAGS = ('coords', 'model::SIRV', 'example')
     compt = xs.variable(global_name='compt_coords', groups=['coords'], intent='out')
     age = xs.variable(global_name='age_coords', groups=['coords'], intent='out')
     risk = xs.variable(global_name='risk_coords', groups=['coords'], intent='out')
@@ -19,6 +20,7 @@ class SetupToyCoords:
 
 @xs.process
 class SetupCoordsFromTravel(SetupToyCoords):
+    TAGS = ('deprecated', 'coords')
     travel_fp = xs.variable(intent='in')
 
     def load_travel_df(self):
@@ -41,6 +43,7 @@ class SetupCoordsFromTravel(SetupToyCoords):
         )
 
     def initialize(self):
+        raise DeprecationWarning()
         for dim, coord in self.get_df_coords().items():
             setattr(self, dim, coord)
         self.risk = ['low', 'high']

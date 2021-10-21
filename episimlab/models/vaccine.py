@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import os
 import numpy as np
 from numpy.random import binomial, hypergeometric
 import xarray as xr
@@ -11,13 +12,13 @@ import networkx as nx
 
 # from ..setup import epi
 from .epi_model import EpiModel
-from ..foi import BaseFOI, VaccineFOI
+from ..foi import BaseFOI
 from ..compt_model import ComptModel
 from ..utils import (
     get_var_dims, group_dict_by_var, discrete_time_approx as dta,
     IntPerDay, get_rng, any_negative, visualize_compt_graph
 )
-from ..partition.partition import NC2Contact, Contact2Phi
+from ..partition import Partition, TravelPatFromCSV, ContactsFromCSV
 from ..setup.sto import SetupStochasticFromToggle
 from ..setup.seed import SeedGenerator
 from ..setup.greek import (
@@ -156,29 +157,33 @@ class RateS2V:
     eff_vaccine = xs.variable(global_name='eff_vaccine', intent='in')
 
     def run_step(self):
-        self.rate_S2V = binomial(self.doses_delivered, self.eff_vaccine)
+        self.rate_S2V = xr.apply_ufunc(binomial, self.doses_delivered, self.eff_vaccine)
 
 
 @xs.process
-class RateV2Ev(VaccineFOI):
+class RateV2Ev(BaseFOI):
     """FOI that provides a `rate_V2Ev`"""
     TAGS = ('model::ElevenComptV1', 'FOI')
+    I_COMPT_LABELS = ('Ia', 'Iy', 'Pa', 'Py')
+    S_COMPT_LABELS = ('V')
+
     # reference phi, beta from global environment
     phi = xs.global_ref('phi', intent='in')
-    beta = xs.global_ref('beta', intent='in')
-    beta_reduction = xs.variable(global_name='beta_reduction', intent='in')
+    beta = xs.global_ref('reduced_beta', intent='in')
     rate_V2Ev = xs.variable(intent='out', groups=['edge_weight'])
-
-    @property
-    def I(self):
-        return self.state.loc[dict(compt=['Ia', 'Iy', 'Pa', 'Py'])]
-
-    @property
-    def S(self):
-        return self.state.loc[dict(compt='V')]
 
     def run_step(self):
         self.rate_V2Ev = self.foi.sum('compt')
+
+
+@xs.process
+class BetaReduction:
+    beta = xs.global_ref('beta', intent='in')
+    reduced_beta = xs.variable(global_name='reduced_beta', intent='out')
+    beta_reduction = xs.variable(global_name='beta_reduction', intent='in')
+
+    def run_step(self):
+        self.reduced_beta = self.beta * self.beta_reduction
 
 
 @xs.process
@@ -388,22 +393,24 @@ class SetupComptGraph:
 
 @xs.process
 class SetupCoords:
-    """Initialize state coordinates. Imports the contact matrix as
-    xarray.DataArray `contact_xr` to retrieve coordinates for age and vertex.
+    """Initialize state coordinates. Imports the travel patterns as
+    xarray.DataArray `travel_pat` to retrieve coordinates for age and vertex.
+    Imports coordinates for `compt` from the compartment graph `compt_graph`.
     """
-    contact_xr = xs.global_ref('contact_xr', intent='in')
+    travel_pat = xs.global_ref('travel_pat', intent='in')
+    compt_graph = xs.global_ref('compt_graph', intent='in')
     compt = xs.index(dims=('compt'), global_name='compt_coords', groups=['coords'])
     age = xs.index(dims=('age'), global_name='age_coords', groups=['coords'])
     risk = xs.index(dims=('risk'), global_name='risk_coords', groups=['coords'])
     vertex = xs.index(dims=('vertex'), global_name='vertex_coords', groups=['coords'])
     
     def initialize(self):
-        self.compt = ['S', 'V', 'E', 'Ev', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D']
+        self.compt = list(self.compt_graph.nodes) 
         self.risk = ['low', 'high']
         # self.age = ['0-4', '5-17', '18-49', '50-64', '65+']
-        self.age = self.contact_xr.coords['age0'].values
+        self.age = self.travel_pat.coords['age0'].values
         # self.vertex = ['Austin', 'Houston', 'San Marcos', 'Dallas']
-        self.vertex = self.contact_xr.coords['vertex0'].values
+        self.vertex = self.travel_pat.coords['vertex0'].values
 
 
 @xs.process
@@ -430,40 +437,6 @@ class SetupState:
         return group_dict_by_var(self._coords)
 
 
-@xs.process
-class SetupPhi(Contact2Phi):
-    """Set value of phi (contacts per unit time)."""
-    def initialize_misc_coords(self):
-        """Set up coords besides vertex and age group."""
-        self.risk = ['low', 'high']
-        self.compt = ['S', 'V', 'E', 'Ev', 'Pa', 'Py', 'Ia', 'Iy', 'Ih',
-                      'R', 'D', 'E2P', 'E2Py', 'P2I', 'Pa2Ia',
-                      'Py2Iy', 'Iy2Ih', 'H2D']
-
-
-@xs.process
-class GetContactXR(NC2Contact):
-    pass
-
-
-@xs.process
-class PhiLinker:
-    """Simple process that passes value of `phi_t` to `phi` for compatibility
-    with ESL v1 partition processes.
-    """
-    phi_t = xs.global_ref('phi_t', intent='in')
-    phi = xs.global_ref('phi', intent='out')
-
-    def initialize(self):
-        self.phi = self.convert_phi_t()
-
-    def run_step(self):
-        self.phi = self.convert_phi_t()
-
-    def convert_phi_t(self):
-        return self.phi_t
-
-
 class Vaccine(EpiModel):
     """Nine-compartment SEIR model with partitioning from Episimlab V1"""
     TAGS = ('SEIR', 'compartments::11', 'contact-partitioning')
@@ -471,17 +444,18 @@ class Vaccine(EpiModel):
         'setup_compt_graph': SetupComptGraph,
         'compt_model': ComptModel,
         'int_per_day': IntPerDay,
-        'get_contact_xr': GetContactXR,
-        'setup_phi': SetupPhi,
         'setup_coords': SetupCoords,
         'setup_state': SetupState,
         'setup_sto': SetupStochasticFromToggle,
         'setup_seed': SeedGenerator,
 
-        # DEBUG: lightweight adapter
-        'phi_linker': PhiLinker,
+        # Contact partitioning
+        'setup_travel': TravelPatFromCSV, 
+        'setup_contacts': ContactsFromCSV,
+        'partition': Partition,
 
         # calculate greeks used by edge weight processes
+        'beta_reduction': BetaReduction,
         'setup_pi': SetupPiDefault,
         'setup_nu': SetupNuDefault,
         'setup_mu': mu.SetupStaticMuIh2D,
@@ -515,16 +489,16 @@ class Vaccine(EpiModel):
         'rate_Ih2R': RateIh2R,
         'rate_Ih2D': RateIh2D,
     }
-
+    DATA_DIR = './tests/data'
     RUNNER_DEFAULTS = dict(
         clocks={
-            'step': pd.date_range(start='3/1/2020', end='5/1/2020', freq='24H')
+            'step': pd.date_range(start='3/11/2020', end='3/12/2020', freq='24H')
         },
         input_vars={
             'setup_sto__sto_toggle': 0,
             'setup_seed__seed_entropy': 12345,
             'rate_S2E__beta': 0.35,
-            'rate_V2Ev__beta_reduction': 0.1,
+            'beta_reduction': 0.1,
             'rate_S2V__eff_vaccine': 0.8,
             'rate_Iy2Ih__eta': 0.169492,
             'rate_E2Py__tau': 0.57,
@@ -537,7 +511,8 @@ class Vaccine(EpiModel):
             'setup_gamma_Ih__tri_Ih2R': [9.4, 10.7, 12.8],
             'setup_gamma_Ia__tri_Iy2R_para': [3.0, 4.0, 5.0],
             'setup_mu__tri_Ih2D': [5.2, 8.1, 10.1],
-            'get_contact_xr__contact_da_fp': 'tests/data/20200311_contact_matrix.nc'
+            'travel_pat_fp': os.path.join(DATA_DIR, 'travel_pat0.csv'),
+            'contacts_fp': os.path.join(DATA_DIR, 'polymod_contacts.csv'),
         },
         output_vars={
             'compt_model__state': 'step'
