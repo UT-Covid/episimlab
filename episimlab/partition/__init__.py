@@ -1,1 +1,3 @@
-from .partition import Partition, ContactsFromCSV, TravelPatFromCSV
+from .partition import Partition
+from .contacts import ContactsFromCSV
+from .travel_pat import TravelPatFromCSV

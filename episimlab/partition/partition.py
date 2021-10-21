@@ -11,6 +11,9 @@ from ..foi import BaseFOI
 
 @xs.process
 class Partition:
+    """Given travel patterns `travel_pat` and baseline contact rates `contacts`,
+    estimate the pairwise contact probabilities `phi` from contact partitioning.
+    """
     TAGS = ('partition', )
     TRAVEL_PAT_DIMS = (
         # formerly age, source, destination
@@ -94,115 +97,3 @@ class Partition:
                  .transpose(*expected_dims))
         return c_ijk
 
-
-@xs.process
-class TravelPatFromCSV:
-    TAGS = ('partition', 'dependency::dask')
-    RAISE_NULL = False
-    travel_pat_fp = xs.variable(static=True, intent='in', description="path to "
-                                "a CSV file containing travel patterns")
-    travel_pat = xs.global_ref('travel_pat', intent='out')
-    dask_chunks = xs.variable(static=True, intent='in', default=None,
-                              description="number of chunks in which to divide "
-                              "the `travel_pat` DataArray using Dask. None or 0 "
-                              "will skip Dask chunking.")
-
-    def initialize(self):
-        self.run_step(None, None)
-
-    @xs.runtime(args=('step_start', 'step_end',))
-    def run_step(self, step_start, step_end):
-        df = self.get_travel_df()
-
-        # Both step_start and step_end will be None for initialize
-        if step_start is None and step_end is None:
-            df = df[df['date'] == df['date'].min()]
-        else:
-            df = df[self.get_date_mask(df['date'], step_start, step_end)]
-
-        # Validation
-        if df.empty:
-            raise ValueError(f'No travel data between {step_start} and {step_end}')
-        logging.info(f'The date in Partition.get_travel_df is {df["date"].unique()}')
-
-        self.travel_pat = self.get_travel_da(df)
-        
-    def get_date_mask(self, date: pd.Series, step_start, step_end) -> pd.Series:
-        """Given timestamps `step_start` and `step_end`, returns a mask
-        for the travel dataframe. Special handling for NaT and cases where 
-        `step_start` equals `step_end`.
-        """
-        isnull = (pd.isnull(step_start), pd.isnull(step_end))
-        assert not all(isnull), f"both of `step_start` and `step_end` are null (NaT)"
-
-        if isnull[0]:
-            mask = (date == step_end)
-        elif isnull[1]:
-            mask = (date == step_start)
-        elif step_start == step_end:
-            mask = (date == step_start)
-        else:
-            assert step_start <= step_end
-            mask = (date >= step_start) & (date < step_end)
-        return mask
-    
-    def get_travel_df(self) -> pd.DataFrame:
-        """Load travel patterns from a CSV file and run preprocessing."""
-        df = pd.read_csv(self.travel_pat_fp)
-        df['date'] = pd.to_datetime(df['date'])
-        if 'age_src' in df.columns:
-            df = df.rename(columns=dict(age_src='age'))
-        return df
-            
-    def get_travel_da(self, df: pd.DataFrame, chunks: int = None) -> xr.DataArray:
-        """Convert a DataFrame into a single DataArray, using Dask to chunk
-        into `chunk` divisions if `chunk` is not None.
-        """
-        df = df[['source', 'destination', 'age', 'n']]
-        df = df.set_index(['source', 'destination', 'age'])
-        ds = xr.Dataset.from_dataframe(df)
-        ds = ds.rename({'destination': 'vertex1', 'source': 'vertex0', 'age': 'age0', })
-        if chunks:
-            ds = ds.chunk(chunks=chunks)
-        elif self.dask_chunks:
-            ds = ds.chunk(chunks=self.dask_chunks)
-        da = ds['n']
-            
-        # Handle null values
-        if da.isnull().any():
-            logging.error(f"{(100 * int(da.isnull().sum()) / da.size):.1f}% values "
-                          "in travel DataFrame are null")
-            if self.RAISE_NULL or da.isnull().all():
-                raise ValueError("found null values in travel DataFrame:\n" 
-                                 f"{da.where(da.isnull(), drop=True)}")
-            else:
-                da = da.fillna(0.)
-        
-        # Change coordinate dtypes from 'object' to unicode
-        da = fix_coord_dtypes(da)
-        return da
-
-
-@xs.process
-class ContactsFromCSV:
-    TAGS = ('partition',)
-    contacts_fp = xs.variable(intent='in')
-    contacts = xs.global_ref('contacts', intent='out')
-
-    def initialize(self):
-        self.contacts = self.get_contacts_da(df=self.get_contacts_df())
-    
-    def get_contacts_df(self):
-        return pd.read_csv(self.contacts_fp).rename(columns={
-            'age1': 'age0',
-            'age2': 'age1',
-        })
-
-    def get_contacts_da(self, df: pd.DataFrame) -> xr.DataArray:
-        df = df[['age0', 'age1', 'daily_per_capita_contacts']]
-        df = df.set_index(['age0', 'age1'])
-        ds = xr.Dataset.from_dataframe(df)
-        da = ds['daily_per_capita_contacts']
-        # Change coordinate dtypes from 'object' to unicode
-        return fix_coord_dtypes(da)
-    
