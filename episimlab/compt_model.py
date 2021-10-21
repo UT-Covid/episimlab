@@ -13,15 +13,34 @@ class ComptModel:
     """Applies the compartmental disease model defined in `compt_graph` to the
     current `state` of the system.
     """
-    TAGS = ('compt_model', )
+    TAGS = ('essential',)
     STATE_DIMS = ('vertex', 'compt', 'age', 'risk')
     
     _tm_subset = xs.group_dict('edge_weight')
-    state = xs.variable(dims=STATE_DIMS, intent='inout', global_name='state')
-    tm = xs.variable(dims=STATE_DIMS, intent='out', global_name='edge_weight')
-    compt_graph = xs.variable('compt_graph', intent='in', global_name='compt_graph')
-    stochastic = xs.global_ref('stochastic', intent='in')
-    seed_state = xs.global_ref('seed_state', intent='in')
+    state = xs.variable(dims=STATE_DIMS, intent='inout', global_name='state',
+                        description="The current state of the simulation. "
+                        "In the context of a compartmental model, this tensor "
+                        "contains the current populations of all compartments "
+                        "along every demographic axis (e.g. age, risk, "
+                        "geospatial vertex).")
+    tm = xs.variable(dims=STATE_DIMS, intent='out', global_name='edge_weight', 
+                     description="The transition matrix (`tm` for short) that "
+                     "is added to the state at time `t` to get the state for "
+                     "the state at the `t + 1` timestep.")
+    compt_graph = xs.variable('compt_graph', intent='in', global_name='compt_graph',
+                              description="The compartment graph is a networkx "
+                              "graph where nodes are compartments and edges "
+                              "are allowed transitions between them in the "
+                              "compartmental model.")
+    stochastic = xs.variable(global_name='stochastic', intent='in', 
+                             description="boolean flag that determines " 
+                             "whether to sample edge weights stochastically " 
+                             "(stochastic=True) or not (deterministic, " 
+                             "stochastic=False)")
+    seed_state = xs.variable(global_name='seed_state', intent='in',
+                             description="integer seed for generating the "
+                             "random number generator at every time step.")
+
 
     def run_step(self):
         """In particular, we need to ensure that `tm_subset` and `tm` refresh

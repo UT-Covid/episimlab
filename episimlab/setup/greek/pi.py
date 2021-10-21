@@ -4,17 +4,18 @@ import numpy as np
 import logging
 
 from ...seir.base import BaseSEIR
-from .base import BaseSetupEpi
-from ..utils import trim_data_to_coords
+from ...utils import trim_data_to_coords
 
 
 @xs.process
-class SetupDefaultPi(BaseSetupEpi):
+class SetupDefaultPi:
     """
     """
-    pi = xs.foreign(BaseSEIR, 'pi', intent='out')
+    TAGS = ('deprecated',)
+    pi = xs.global_ref('pi', intent='out')
 
     def initialize(self):
+        raise DeprecationWarning()
         self.pi = self.get_pi()
 
     def get_pi(self):
@@ -35,8 +36,8 @@ class SetupStaticPi(SetupDefaultPi):
     """
     symp_h_ratio_w_risk = xs.variable(dims=('risk_group', 'age_group'),
                                       static=True, intent='in')
-    gamma = xs.foreign(BaseSEIR, 'gamma', intent='in')
-    eta = xs.foreign(BaseSEIR, 'eta', intent='in')
+    gamma = xs.global_ref('gamma', intent='in')
+    eta = xs.global_ref('eta', intent='in')
 
     def get_pi(self) -> xr.DataArray:
         dims = ['risk_group', 'age_group']

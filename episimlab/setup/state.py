@@ -33,15 +33,15 @@ class SetupToyState:
     def uniform_state_basic(self, value=0.):
         return xr.DataArray(
             data=value,
-            dims=self.counts_dims,
-            coords=self.counts_coords
+            dims=self.state_dims,
+            coords=self.state_coords
         )
 
     def realistic_state_basic(self):
         da = xr.DataArray(
             data=0.,
-            dims=self.counts_dims,
-            coords=self.counts_coords
+            dims=self.state_dims,
+            coords=self.state_coords
         )
         # Houston
         da[dict(vertex=0)].loc[dict(compt='S')] = 2.326e6 / 10.
@@ -58,7 +58,7 @@ class SetupToyState:
 class SetupStateFromCensusCSV(SetupToyState):
     """Initializes state from a census.gov formatted CSV file.
     """
-    census_counts_csv = xs.variable(intent='in')
+    census_state_csv = xs.variable(intent='in')
     
     def initialize(self):
         da = xr.DataArray(
@@ -95,7 +95,7 @@ class SetupStateFromCensusCSV(SetupToyState):
         self.state.loc[dict(compt='Ia', risk='low')] = 50.
 
     def read_census_csv(self) -> xr.DataArray:
-        df = pd.read_csv(self.census_counts_csv)
+        df = pd.read_csv(self.census_state_csv)
         assert not df.isna().any().any(), ('found null values in df', df.isna().any())
         df.rename(columns={'GEOID': 'vertex', 'age_bin': 'age'}, inplace=True)
         df.set_index(['vertex', 'age'], inplace=True)

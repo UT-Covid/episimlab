@@ -199,7 +199,6 @@ class RateIa2R:
 @xs.process
 class RateS2E(BaseFOI):
     """FOI that provides a `rate_S2E`"""
-    TAGS = ('model::NineComptV1', 'FOI')
     PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
     rate_S2E = xs.variable(intent='out', groups=['edge_weight'])
 

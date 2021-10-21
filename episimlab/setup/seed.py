@@ -12,7 +12,7 @@ class SeedGenerator:
     seed `seed_entropy`.
     """
     seed_entropy = xs.variable(static=True, intent='in')
-    seed_state = xs.variable(global_name='seed_state', intent='out')
+    seed_state = xs.global_ref('seed_state', intent='out')
 
     def initialize(self):
         # instantiate a SeedSequence

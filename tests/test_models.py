@@ -4,14 +4,13 @@ import xsimlab as xs
 import numpy as np
 import logging
 from episimlab.models import (
-    ExampleSIR, ExampleSIRV, NineComptV1, PartitionFromTravel, Vaccine)
+    ExampleSIR, ExampleSIRV, PartitionFromTravel, Vaccine)
 from episimlab.utils import any_negative
 
 
 @pytest.mark.parametrize('model_type, sto_toggle', [
     (ExampleSIR, 0), 
     (ExampleSIRV, 0), 
-    (NineComptV1, 0),
     (PartitionFromTravel, 0),
     (PartitionFromTravel, -1),
     (PartitionFromTravel, 5),

@@ -5,16 +5,20 @@ import xarray as xr
 
 def suffixed_dims(da: xr.DataArray, suffix: str, 
                   exclude: list = None) -> dict:
+    """Generates a dictionary for suffixing DataArray or DataFrame dimensions.
+    Compatible with methods such as `DataFrame.rename` and `DataArray.rename`.
+    """
     if exclude is None:
         exclude = list()
     return {k: f"{k}{suffix}" for k in da.dims if k not in exclude}
 
 
 def unsuffixed_dims(da: xr.DataArray, suffix: str) -> dict:
+    """Like `suffixed_dims`, but reverses the renaming transformation."""
     return {v: k for k, v in suffixed_dims(da, suffix).items()}
 
 
-def get_var_dims(process, name) -> tuple:
+def get_var_dims(process, name: str) -> tuple:
     """Given process-wrapped class `process`, retrieve the `dims` metadata
     attribute for variable with `name`.
     """
@@ -30,12 +34,17 @@ def get_var_dims(process, name) -> tuple:
 
 
 def group_dict_by_var(d: dict) -> dict:
+    """Given a dictionary keyed by 2-length tuples, return a dictionary keyed
+    only by the second element of the tuple.
+    """
     return {k: d[(proc, k)] for (proc, k) in d}
 
 
-def trim_data_to_coords(data, coords):
-    """Be sure to check that order of dims in data is same as order of
-    dims in coords.
+def trim_data_to_coords(data: np.ndarray, coords: list) -> np.ndarray:
+    """Given a `data` array, trim the data to match the shape given by list of
+    2-length tuples `coords`, formatted like [('dim0', range(10)), 
+    ('dim0', range(10)), ...]. Be sure to check that order of dims in data is 
+    same as order of dims in coords.
     """
     assert isinstance(coords, list)
     assert isinstance(data, np.ndarray)

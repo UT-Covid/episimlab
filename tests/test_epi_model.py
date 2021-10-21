@@ -52,6 +52,12 @@ class TestEpiModel:
         with pytest.raises(ValueError):
             res = model.run(input_vars=dict(foobar=3))
 
-
+    def test_clone(self, model_type):
+        """description"""
+        model = model_type()
+        model_clone = model.clone()
+        assert isinstance(model_clone, model_type)
+        assert model_clone == model
+        
 
         

@@ -1,12 +1,13 @@
 import xarray as xr
 import xsimlab as xs
 from .utils import any_negative, suffixed_dims
+from collections import Sequence
 
 
 @xs.process
 class BaseFOI:
     """Base class for calculating force of infection (FOI)."""
-    TAGS = ('FOI',)
+    TAGS = ('FOI', 'essential', 'example')
     PHI_DIMS = (
         'age0', 'age1', 
         'risk0', 'risk1', 

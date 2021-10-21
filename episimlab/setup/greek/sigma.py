@@ -10,6 +10,7 @@ from ...utils.rng import get_rng
 class SetupDefaultSigma:
     """Returns a static, scalar default value for sigma.
     """
+    TAGS = ('example', )
     sigma = xs.global_ref('sigma', intent='out')
 
     def initialize(self):

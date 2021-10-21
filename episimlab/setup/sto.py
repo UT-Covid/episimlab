@@ -7,7 +7,7 @@ class SetupStochasticFromToggle:
     """Switches on stochasticity after simulation has run `sto_toggle` steps.
     """
     sto_toggle = xs.variable(static=True, global_name='sto_toggle', intent='in')
-    stochastic = xs.variable(global_name='stochastic', intent='out')
+    stochastic = xs.global_ref('stochastic', intent='out')
 
     def initialize(self):
         """Ensures that stochastic is set during initialization"""
