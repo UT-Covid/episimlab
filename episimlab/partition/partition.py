@@ -11,6 +11,7 @@ from ..foi import BaseFOI
 
 @xs.process
 class Partition:
+    TAGS = ('partition', )
     TRAVEL_PAT_DIMS = (
         # formerly age, source, destination
         'vertex0', 'vertex1', 'age0', 
@@ -96,22 +97,25 @@ class Partition:
 
 @xs.process
 class TravelPatFromCSV:
+    TAGS = ('partition', 'dependency::dask')
     RAISE_NULL = False
     travel_pat_fp = xs.variable(static=True, intent='in', description="path to "
                                 "a CSV file containing travel patterns")
     travel_pat = xs.global_ref('travel_pat', intent='out')
+    dask_chunks = xs.variable(static=True, intent='in', default=None,
+                              description="number of chunks in which to divide "
+                              "the `travel_pat` DataArray using Dask. None or 0 "
+                              "will skip Dask chunking.")
 
     def initialize(self):
-        """
-        """
-        self.run_step(None, None, is_init=True)
+        self.run_step(None, None)
 
     @xs.runtime(args=('step_start', 'step_end',))
-    def run_step(self, step_start, step_end, is_init=False):
-        """
-        """
+    def run_step(self, step_start, step_end):
         df = self.get_travel_df()
-        if is_init:
+
+        # Both step_start and step_end will be None for initialize
+        if step_start is None and step_end is None:
             df = df[df['date'] == df['date'].min()]
         else:
             df = df[self.get_date_mask(df['date'], step_start, step_end)]
@@ -121,20 +125,7 @@ class TravelPatFromCSV:
             raise ValueError(f'No travel data between {step_start} and {step_end}')
         logging.info(f'The date in Partition.get_travel_df is {df["date"].unique()}')
 
-        da = self.get_travel_da(df, chunks=1000)
-
-        # Handle null values
-        if da.isnull().any():
-            logging.error(f"{(100 * int(da.isnull().sum()) / da.size):.1f}% values "
-                          "in travel DataFrame are null")
-            if self.RAISE_NULL or da.isnull().all():
-                raise ValueError("found null values in travel DataFrame:\n" 
-                                 f"{da.where(da.isnull(), drop=True)}")
-            else:
-                da = da.fillna(0.)
-        
-        # Change coordinate dtypes from 'object' to unicode
-        self.travel_pat = fix_coord_dtypes(da)
+        self.travel_pat = self.get_travel_da(df)
         
     def get_date_mask(self, date: pd.Series, step_start, step_end) -> pd.Series:
         """Given timestamps `step_start` and `step_end`, returns a mask
@@ -173,11 +164,28 @@ class TravelPatFromCSV:
         ds = ds.rename({'destination': 'vertex1', 'source': 'vertex0', 'age': 'age0', })
         if chunks:
             ds = ds.chunk(chunks=chunks)
-        return ds['n']
+        elif self.dask_chunks:
+            ds = ds.chunk(chunks=self.dask_chunks)
+        da = ds['n']
+            
+        # Handle null values
+        if da.isnull().any():
+            logging.error(f"{(100 * int(da.isnull().sum()) / da.size):.1f}% values "
+                          "in travel DataFrame are null")
+            if self.RAISE_NULL or da.isnull().all():
+                raise ValueError("found null values in travel DataFrame:\n" 
+                                 f"{da.where(da.isnull(), drop=True)}")
+            else:
+                da = da.fillna(0.)
+        
+        # Change coordinate dtypes from 'object' to unicode
+        da = fix_coord_dtypes(da)
+        return da
 
 
 @xs.process
 class ContactsFromCSV:
+    TAGS = ('partition',)
     contacts_fp = xs.variable(intent='in')
     contacts = xs.global_ref('contacts', intent='out')
 
