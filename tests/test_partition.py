@@ -175,6 +175,7 @@ class TestPartitionUsingXarray:
 
         # new 3 process pipeline
         proc_tp = TravelPatFromCSV(travel_pat_fp=updated_results['travel_fp'])
+        proc_tp.initialize()
         proc_tp.run_step(step_start=kw['step_start'], step_end=kw['step_end'])
         proc_ct = ContactsFromCSV(contacts_fp=updated_results['contacts_fp'])
         proc_ct.initialize()
@@ -204,11 +205,11 @@ class TestPartitionUsingXarray:
             # new way
             sort_coords(proc_xr.phi),
             # archived result
-            sort_coords(phi), 
+            sort_coords(phi.transpose(*proc_xr.phi.dims)), 
         )
         xr.testing.assert_allclose(
             # new way
             sort_coords(proc_xr.phi),
             # new way in old process
-            sort_coords(proc_pd.contact_xr), 
+            sort_coords(proc_pd.contact_xr.transpose(*proc_xr.phi.dims)), 
         )

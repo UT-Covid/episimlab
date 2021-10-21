@@ -5,16 +5,12 @@ import xsimlab as xs
 import numpy as np
 import dask.dataframe as dd
 from datetime import datetime
-from ..utils import group_dict_by_var, get_int_per_day, fix_coord_dtypes
+from ..utils import group_dict_by_var, get_int_per_day, fix_coord_dtypes, get_var_dims
+from ..foi import BaseFOI
 
 
 @xs.process
 class Partition:
-    PHI_DIMS = (
-        'vertex0', 'vertex1', 
-        'age0', 'age1', 
-        'risk0', 'risk1'
-    )
     TRAVEL_PAT_DIMS = (
         # formerly age, source, destination
         'vertex0', 'vertex1', 'age0', 
@@ -23,9 +19,7 @@ class Partition:
         'age0', 'age1', 
     )
 
-    phi = xs.variable(
-        dims=PHI_DIMS, intent='out', global_name='phi', 
-        description="pairwise contact patterns for force of infection calculation")
+    phi = xs.global_ref('phi', intent='out')
     travel_pat = xs.variable(
         dims=TRAVEL_PAT_DIMS, intent='in', global_name='travel_pat', 
         description="mobility/travel patterns")
@@ -43,7 +37,9 @@ class Partition:
 
     @property
     def phi_dims(self):
-        return self.PHI_DIMS
+        """Overwrite this method if using different dims than `BaseFOI.PHI_DIMS`
+        """
+        return get_var_dims(BaseFOI, 'phi')
 
     @property
     def travel_pat_dims(self):
@@ -71,23 +67,11 @@ class Partition:
         """
         int_per_day = get_int_per_day(step_delta)
         self.c_ijk = self.get_c_ijk(self.travel_pat)
-        phi = self.c_ijk * self.contacts / int_per_day
-        # Change coordinate dtypes from 'object' to unicode
-        self.phi = fix_coord_dtypes(phi)
+        self.phi = self.c_ijk * self.contacts / int_per_day
     
-    def get_c_ijk(self, tp: xr.DataArray, raise_null=False) -> xr.DataArray:
+    def get_c_ijk(self, tp: xr.DataArray) -> xr.DataArray:
         """
         """
-        # Handle null values
-        if tp.isnull().any():
-            logging.error(f"{(100 * int(tp.isnull().sum()) / tp.size):.1f}% values "
-                          "in travel DataFrame are null")
-            if raise_null or tp.isnull().all():
-                raise ValueError("found null values in travel DataFrame:\n" 
-                                f"{tp.where(tp.isnull(), drop=True)}")
-            else:
-                tp = tp.fillna(0.)
-        
         tp = tp.rename({'vertex1': 'k'}) # AKA 'destination'
         # similar to {'vertex0': 'vertex1', 'age0': 'age1'}
         zero_to_one = {
@@ -117,13 +101,21 @@ class TravelPatFromCSV:
                                 "a CSV file containing travel patterns")
     travel_pat = xs.global_ref('travel_pat', intent='out')
 
+    def initialize(self):
+        """
+        """
+        self.run_step(None, None, is_init=True)
+
     @xs.runtime(args=('step_start', 'step_end',))
-    def run_step(self, step_start, step_end):
+    def run_step(self, step_start, step_end, is_init=False):
         """
         """
         df = self.get_travel_df()
-        df = df[self.get_date_mask(df['date'], step_start, step_end)]
-        da = self.get_travel_da(df, chunks=1000)
+        if is_init:
+            df = df[df['date'] == df['date'].min()]
+        else:
+            df = df[self.get_date_mask(df['date'], step_start, step_end)]
+        da = self.get_travel_da(df, chunks=None)
         
         # Validation
         assert not df.empty, f'No travel data between {step_start} and {step_end}'
@@ -139,7 +131,8 @@ class TravelPatFromCSV:
             else:
                 da = da.fillna(0.)
         
-        self.travel_pat = da
+        # Change coordinate dtypes from 'object' to unicode
+        self.travel_pat = fix_coord_dtypes(da)
         
     def get_date_mask(self, date: pd.Series, step_start, step_end) -> pd.Series:
         """Given timestamps `step_start` and `step_end`, returns a mask
@@ -199,5 +192,7 @@ class ContactsFromCSV:
         df = df[['age0', 'age1', 'daily_per_capita_contacts']]
         df = df.set_index(['age0', 'age1'])
         ds = xr.Dataset.from_dataframe(df)
-        return ds['daily_per_capita_contacts']
+        da = ds['daily_per_capita_contacts']
+        # Change coordinate dtypes from 'object' to unicode
+        return fix_coord_dtypes(da)
     
