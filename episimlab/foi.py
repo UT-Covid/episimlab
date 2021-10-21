@@ -7,11 +7,16 @@ from .utils import any_negative, suffixed_dims
 class BaseFOI:
     """Base class for calculating force of infection (FOI)."""
     TAGS = ('FOI',)
-    PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
+    PHI_DIMS = (
+        'age0', 'age1', 
+        'risk0', 'risk1', 
+        'vertex0', 'vertex1',
+    )
     I_COMPT_LABELS = ('I')
     S_COMPT_LABELS = ('S')
 
-    phi = xs.variable(dims=PHI_DIMS, global_name='phi', intent='in')
+    phi = xs.variable(dims=PHI_DIMS, global_name='phi', intent='in', 
+                      description="pairwise contact patterns")
     state = xs.global_ref('state', intent='in')
     beta = xs.variable(global_name='beta', intent='in')
     _coords = xs.group_dict('coords')
