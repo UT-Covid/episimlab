@@ -1,1 +1,1 @@
-from .part_xr import Partition, ContactsFromCSV, TravelPatFromCSV
+from .partition import Partition, ContactsFromCSV, TravelPatFromCSV
