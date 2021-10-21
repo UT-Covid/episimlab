@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import os
 import numpy as np
 from numpy.random import binomial, hypergeometric
 import xarray as xr
@@ -157,7 +158,7 @@ class RateS2V:
     eff_vaccine = xs.variable(global_name='eff_vaccine', intent='in')
 
     def run_step(self):
-        self.rate_S2V = binomial(self.doses_delivered, self.eff_vaccine)
+        self.rate_S2V = xr.apply_ufunc(binomial, self.doses_delivered, self.eff_vaccine)
 
 
 @xs.process
