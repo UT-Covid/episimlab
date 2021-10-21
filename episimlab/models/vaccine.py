@@ -12,7 +12,7 @@ import networkx as nx
 
 # from ..setup import epi
 from .epi_model import EpiModel
-from ..foi import BaseFOI, VaccineFOI
+from ..foi import BaseFOI
 from ..compt_model import ComptModel
 from ..utils import (
     get_var_dims, group_dict_by_var, discrete_time_approx as dta,
