@@ -4,7 +4,7 @@ import xsimlab as xs
 import numpy as np
 import logging
 from episimlab.models import (
-    ExampleSIR, ExampleSIRV, NineComptV1, PartitionFromTravel, PartitionV1, Vaccine)
+    ExampleSIR, ExampleSIRV, NineComptV1, PartitionFromTravel, Vaccine)
 from episimlab.utils import any_negative
 
 
@@ -15,7 +15,6 @@ from episimlab.utils import any_negative
     (PartitionFromTravel, 0),
     (PartitionFromTravel, -1),
     (PartitionFromTravel, 5),
-    # (PartitionV1, 0),
     (Vaccine, 0),
     (Vaccine, -1),
 ])
