@@ -161,25 +161,29 @@ class RateS2V:
 
 
 @xs.process
-class RateV2Ev(VaccineFOI):
+class RateV2Ev(BaseFOI):
     """FOI that provides a `rate_V2Ev`"""
     TAGS = ('model::ElevenComptV1', 'FOI')
+    I_COMPT_LABELS = ('Ia', 'Iy', 'Pa', 'Py')
+    S_COMPT_LABELS = ('V')
+
     # reference phi, beta from global environment
     phi = xs.global_ref('phi', intent='in')
-    beta = xs.global_ref('beta', intent='in')
-    beta_reduction = xs.variable(global_name='beta_reduction', intent='in')
+    beta = xs.global_ref('reduced_beta', intent='in')
     rate_V2Ev = xs.variable(intent='out', groups=['edge_weight'])
-
-    @property
-    def I(self):
-        return self.state.loc[dict(compt=['Ia', 'Iy', 'Pa', 'Py'])]
-
-    @property
-    def S(self):
-        return self.state.loc[dict(compt='V')]
 
     def run_step(self):
         self.rate_V2Ev = self.foi.sum('compt')
+
+
+@xs.process
+class BetaReduction:
+    beta = xs.global_ref('beta', intent='in')
+    reduced_beta = xs.variable(global_name='reduced_beta', intent='out')
+    beta_reduction = xs.variable(global_name='beta_reduction', intent='in')
+
+    def run_step(self):
+        self.reduced_beta = self.beta * self.beta_reduction
 
 
 @xs.process
@@ -451,6 +455,7 @@ class Vaccine(EpiModel):
         'partition': Partition,
 
         # calculate greeks used by edge weight processes
+        'beta_reduction': BetaReduction,
         'setup_pi': SetupPiDefault,
         'setup_nu': SetupNuDefault,
         'setup_mu': mu.SetupStaticMuIh2D,
@@ -493,7 +498,7 @@ class Vaccine(EpiModel):
             'setup_sto__sto_toggle': 0,
             'setup_seed__seed_entropy': 12345,
             'rate_S2E__beta': 0.35,
-            'rate_V2Ev__beta_reduction': 0.1,
+            'beta_reduction': 0.1,
             'rate_S2V__eff_vaccine': 0.8,
             'rate_Iy2Ih__eta': 0.169492,
             'rate_E2Py__tau': 0.57,
