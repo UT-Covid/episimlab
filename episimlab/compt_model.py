@@ -164,6 +164,12 @@ class ComptModel:
                 f"other DataArrays. To avoid this, please set '{key}' as a "
                 f"float or int if it is a scalar, and an xarray.DataArray if "
                 f"it is a tensor/vector.")
+        
+        # print(f"adjusted weight of edge from {u} to {v} is {weight}")
+
+        # Load Dask arrays into memory
+        if hasattr(weight, 'load'):
+            weight = weight.load()
             
         return weight
 
