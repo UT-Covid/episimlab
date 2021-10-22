@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>episimlab.partition package &mdash; episimlab 2.3.0 documentation</title>
+  <title>episimlab.partition package &mdash; episimlab 2.2.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> episimlab
           </a>
               <div class="version">
-                2.3.0
+                2.2.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -53,7 +53,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="episimlab.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="episimlab.html#episimlab-compt-model-module">episimlab.compt_model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="episimlab.html#module-episimlab.compt_model">episimlab.compt_model module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="episimlab.html#module-episimlab.foi">episimlab.foi module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="episimlab.html#module-episimlab">Module contents</a></li>
 </ul>
@@ -93,15 +93,13 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
 </section>
-<section id="episimlab-partition-contacts-module">
-<h2>episimlab.partition.contacts module<a class="headerlink" href="#episimlab-partition-contacts-module" title="Permalink to this headline"></a></h2>
-</section>
-<section id="module-episimlab.partition.partition">
-<span id="episimlab-partition-partition-module"></span><h2>episimlab.partition.partition module<a class="headerlink" href="#module-episimlab.partition.partition" title="Permalink to this headline"></a></h2>
+<section id="module-episimlab.partition.contacts">
+<span id="episimlab-partition-contacts-module"></span><h2>episimlab.partition.contacts module<a class="headerlink" href="#module-episimlab.partition.contacts" title="Permalink to this headline"></a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="episimlab.partition.partition.ContactsFromCSV">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">episimlab.partition.partition.</span></span><span class="sig-name descname"><span class="pre">ContactsFromCSV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contacts_fp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.partition.ContactsFromCSV" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="episimlab.partition.contacts.ContactsFromCSV">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">episimlab.partition.contacts.</span></span><span class="sig-name descname"><span class="pre">ContactsFromCSV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contacts_fp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.contacts.ContactsFromCSV" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Load baseline contact patterns from a CSV file to a <cite>contacts</cite> DataArray.</p>
 <dl>
 <dt>contacts_fp<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>No description given</p>
 <p>Variable properties:</p>
@@ -120,27 +118,37 @@
 </ul>
 </dd>
 </dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="episimlab.partition.partition.ContactsFromCSV.get_contacts_da">
-<span class="sig-name descname"><span class="pre">get_contacts_da</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.core.dataarray.DataArray</span></span></span><a class="headerlink" href="#episimlab.partition.partition.ContactsFromCSV.get_contacts_da" title="Permalink to this definition"></a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="episimlab.partition.contacts.ContactsFromCSV.TAGS">
+<span class="sig-name descname"><span class="pre">TAGS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('partition',)</span></em><a class="headerlink" href="#episimlab.partition.contacts.ContactsFromCSV.TAGS" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="episimlab.partition.partition.ContactsFromCSV.get_contacts_df">
-<span class="sig-name descname"><span class="pre">get_contacts_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.partition.ContactsFromCSV.get_contacts_df" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="episimlab.partition.contacts.ContactsFromCSV.get_contacts_da">
+<span class="sig-name descname"><span class="pre">get_contacts_da</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.core.dataarray.DataArray</span></span></span><a class="headerlink" href="#episimlab.partition.contacts.ContactsFromCSV.get_contacts_da" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="episimlab.partition.partition.ContactsFromCSV.initialize">
-<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.partition.ContactsFromCSV.initialize" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="episimlab.partition.contacts.ContactsFromCSV.get_contacts_df">
+<span class="sig-name descname"><span class="pre">get_contacts_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.contacts.ContactsFromCSV.get_contacts_df" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.partition.contacts.ContactsFromCSV.initialize">
+<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.contacts.ContactsFromCSV.initialize" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
+</section>
+<section id="module-episimlab.partition.partition">
+<span id="episimlab-partition-partition-module"></span><h2>episimlab.partition.partition module<a class="headerlink" href="#module-episimlab.partition.partition" title="Permalink to this headline"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="episimlab.partition.partition.Partition">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">episimlab.partition.partition.</span></span><span class="sig-name descname"><span class="pre">Partition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">travel_pat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contacts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.partition.Partition" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Given travel patterns <cite>travel_pat</cite> and baseline contact rates <cite>contacts</cite>,
+estimate the pairwise contact probabilities <cite>phi</cite> from contact partitioning.</p>
 <dl>
 <dt>phi<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>No description given</p>
 <p>Variable properties:</p>
@@ -180,6 +188,11 @@
 <dl class="py attribute">
 <dt class="sig sig-object py" id="episimlab.partition.partition.Partition.CONTACTS_DIMS">
 <span class="sig-name descname"><span class="pre">CONTACTS_DIMS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('age0',</span> <span class="pre">'age1')</span></em><a class="headerlink" href="#episimlab.partition.partition.Partition.CONTACTS_DIMS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="episimlab.partition.partition.Partition.TAGS">
+<span class="sig-name descname"><span class="pre">TAGS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('partition',)</span></em><a class="headerlink" href="#episimlab.partition.partition.Partition.TAGS" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -240,10 +253,14 @@
 
 </dd></dl>
 
+</section>
+<section id="module-episimlab.partition.travel_pat">
+<span id="episimlab-partition-travel-pat-module"></span><h2>episimlab.partition.travel_pat module<a class="headerlink" href="#module-episimlab.partition.travel_pat" title="Permalink to this headline"></a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="episimlab.partition.partition.TravelPatFromCSV">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">episimlab.partition.partition.</span></span><span class="sig-name descname"><span class="pre">TravelPatFromCSV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">travel_pat_fp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.partition.TravelPatFromCSV" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="episimlab.partition.travel_pat.TravelPatFromCSV">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">episimlab.partition.travel_pat.</span></span><span class="sig-name descname"><span class="pre">TravelPatFromCSV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">travel_pat_fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dask_chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.travel_pat.TravelPatFromCSV" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Load travel patterns from a CSV file to a <cite>travel_pat</cite> DataArray.</p>
 <dl>
 <dt>travel_pat_fp<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>Path to a csv file containing travel patterns</p>
 <p>Variable properties:</p>
@@ -262,48 +279,112 @@
 <li><p>global name : travel_pat</p></li>
 </ul>
 </dd>
+<dt>dask_chunks<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>Number of chunks in which to divide the <cite>travel_pat</cite> dataarray
+using dask. none or 0 will skip dask chunking.</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">variable</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>global name : dask_chunks</p></li>
+<li><p>dimensions : ()</p></li>
+<li><p>default value : None</p></li>
+<li><p>static : <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+</ul>
+</dd>
 </dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="episimlab.partition.partition.TravelPatFromCSV.RAISE_NULL">
-<span class="sig-name descname"><span class="pre">RAISE_NULL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#episimlab.partition.partition.TravelPatFromCSV.RAISE_NULL" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="episimlab.partition.travel_pat.TravelPatFromCSV.RAISE_NULL">
+<span class="sig-name descname"><span class="pre">RAISE_NULL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#episimlab.partition.travel_pat.TravelPatFromCSV.RAISE_NULL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="episimlab.partition.travel_pat.TravelPatFromCSV.TAGS">
+<span class="sig-name descname"><span class="pre">TAGS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('partition',</span> <span class="pre">'dependency::dask')</span></em><a class="headerlink" href="#episimlab.partition.travel_pat.TravelPatFromCSV.TAGS" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="episimlab.partition.partition.TravelPatFromCSV.get_date_mask">
-<span class="sig-name descname"><span class="pre">get_date_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">pandas.core.series.Series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_end</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.series.Series</span></span></span><a class="headerlink" href="#episimlab.partition.partition.TravelPatFromCSV.get_date_mask" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="episimlab.partition.travel_pat.TravelPatFromCSV.get_date_mask">
+<span class="sig-name descname"><span class="pre">get_date_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">pandas.core.series.Series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_end</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.series.Series</span></span></span><a class="headerlink" href="#episimlab.partition.travel_pat.TravelPatFromCSV.get_date_mask" title="Permalink to this definition"></a></dt>
 <dd><p>Given timestamps <cite>step_start</cite> and <cite>step_end</cite>, returns a mask
 for the travel dataframe. Special handling for NaT and cases where 
 <cite>step_start</cite> equals <cite>step_end</cite>.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="episimlab.partition.partition.TravelPatFromCSV.get_travel_da">
-<span class="sig-name descname"><span class="pre">get_travel_da</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.core.dataarray.DataArray</span></span></span><a class="headerlink" href="#episimlab.partition.partition.TravelPatFromCSV.get_travel_da" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="episimlab.partition.travel_pat.TravelPatFromCSV.get_travel_da">
+<span class="sig-name descname"><span class="pre">get_travel_da</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.core.dataarray.DataArray</span></span></span><a class="headerlink" href="#episimlab.partition.travel_pat.TravelPatFromCSV.get_travel_da" title="Permalink to this definition"></a></dt>
 <dd><p>Convert a DataFrame into a single DataArray, using Dask to chunk
 into <cite>chunk</cite> divisions if <cite>chunk</cite> is not None.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="episimlab.partition.partition.TravelPatFromCSV.get_travel_df">
-<span class="sig-name descname"><span class="pre">get_travel_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#episimlab.partition.partition.TravelPatFromCSV.get_travel_df" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="episimlab.partition.travel_pat.TravelPatFromCSV.get_travel_df">
+<span class="sig-name descname"><span class="pre">get_travel_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#episimlab.partition.travel_pat.TravelPatFromCSV.get_travel_df" title="Permalink to this definition"></a></dt>
 <dd><p>Load travel patterns from a CSV file and run preprocessing.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="episimlab.partition.partition.TravelPatFromCSV.initialize">
-<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.partition.TravelPatFromCSV.initialize" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="episimlab.partition.travel_pat.TravelPatFromCSV.initialize">
+<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.travel_pat.TravelPatFromCSV.initialize" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="episimlab.partition.partition.TravelPatFromCSV.run_step">
-<span class="sig-name descname"><span class="pre">run_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.partition.TravelPatFromCSV.run_step" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="episimlab.partition.travel_pat.TravelPatFromCSV.run_step">
+<span class="sig-name descname"><span class="pre">run_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_end</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.travel_pat.TravelPatFromCSV.run_step" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-</section>
-<section id="episimlab-partition-travel-pat-module">
-<h2>episimlab.partition.travel_pat module<a class="headerlink" href="#episimlab-partition-travel-pat-module" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="episimlab.partition.travel_pat.TravelPatRepeatDaily">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">episimlab.partition.travel_pat.</span></span><span class="sig-name descname"><span class="pre">TravelPatRepeatDaily</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">travel_pat_fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dask_chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.travel_pat.TravelPatRepeatDaily" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#episimlab.partition.travel_pat.TravelPatFromCSV" title="episimlab.partition.travel_pat.TravelPatFromCSV"><code class="xref py py-class docutils literal notranslate"><span class="pre">episimlab.partition.travel_pat.TravelPatFromCSV</span></code></a></p>
+<p>Example process that sets <cite>travel_pat</cite> based on a travel patterns
+CSV with data for only one date. This effectively sets <cite>travel_pat</cite> to be
+the same for the entire simulation.</p>
+<dl>
+<dt>travel_pat_fp<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>Path to a csv file containing travel patterns</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">variable</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>dimensions : ()</p></li>
+<li><p>static : <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+</ul>
+</dd>
+<dt>travel_pat<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>No description given</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">global</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">out</span></code></p></li>
+<li><p>global name : travel_pat</p></li>
+</ul>
+</dd>
+<dt>dask_chunks<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>Number of chunks in which to divide the <cite>travel_pat</cite> dataarray
+using dask. none or 0 will skip dask chunking.</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">variable</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>global name : dask_chunks</p></li>
+<li><p>dimensions : ()</p></li>
+<li><p>default value : None</p></li>
+<li><p>static : <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="episimlab.partition.travel_pat.TravelPatRepeatDaily.TAGS">
+<span class="sig-name descname"><span class="pre">TAGS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('example',</span> <span class="pre">'partition',</span> <span class="pre">'dependency::dask')</span></em><a class="headerlink" href="#episimlab.partition.travel_pat.TravelPatRepeatDaily.TAGS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.partition.travel_pat.TravelPatRepeatDaily.run_step">
+<span class="sig-name descname"><span class="pre">run_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_end</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.partition.travel_pat.TravelPatRepeatDaily.run_step" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="module-episimlab.partition">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-episimlab.partition" title="Permalink to this headline"></a></h2>

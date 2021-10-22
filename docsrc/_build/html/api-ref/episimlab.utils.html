@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>episimlab.utils package &mdash; episimlab 2.3.0 documentation</title>
+  <title>episimlab.utils package &mdash; episimlab 2.2.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> episimlab
           </a>
               <div class="version">
-                2.3.0
+                2.2.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -52,7 +52,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="episimlab.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="episimlab.html#episimlab-compt-model-module">episimlab.compt_model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="episimlab.html#module-episimlab.compt_model">episimlab.compt_model module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="episimlab.html#module-episimlab.foi">episimlab.foi module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="episimlab.html#module-episimlab">Module contents</a></li>
 </ul>
@@ -234,6 +234,12 @@ retrieve the variable metadata and use it to coerce the <cite>value</cite> into
 an <cite>xarray.DataArray</cite> with the correct dimensions and coordinates.
 Returns <cite>value</cite> if variable is scalar (zero length dims attribute),
 DataArray otherwise.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="episimlab.utils.variable.edge_weight_name">
+<span class="sig-prename descclassname"><span class="pre">episimlab.utils.variable.</span></span><span class="sig-name descname"><span class="pre">edge_weight_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#episimlab.utils.variable.edge_weight_name" title="Permalink to this definition"></a></dt>
+<dd><p>Attr name when looking for edge weight between nodes <cite>u</cite> and <cite>v</cite>.</p>
 </dd></dl>
 
 <dl class="py function">

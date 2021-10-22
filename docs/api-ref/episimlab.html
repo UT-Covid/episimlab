@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>episimlab package &mdash; episimlab 2.3.0 documentation</title>
+  <title>episimlab package &mdash; episimlab 2.2.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> episimlab
           </a>
               <div class="version">
-                2.3.0
+                2.2.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -53,7 +53,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#episimlab-compt-model-module">episimlab.compt_model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-episimlab.compt_model">episimlab.compt_model module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-episimlab.foi">episimlab.foi module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-episimlab">Module contents</a></li>
 </ul>
@@ -105,9 +105,9 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="episimlab.partition.html">episimlab.partition package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="episimlab.partition.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="episimlab.partition.html#episimlab-partition-contacts-module">episimlab.partition.contacts module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="episimlab.partition.html#module-episimlab.partition.contacts">episimlab.partition.contacts module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="episimlab.partition.html#module-episimlab.partition.partition">episimlab.partition.partition module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="episimlab.partition.html#episimlab-partition-travel-pat-module">episimlab.partition.travel_pat module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="episimlab.partition.html#module-episimlab.partition.travel_pat">episimlab.partition.travel_pat module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="episimlab.partition.html#module-episimlab.partition">Module contents</a></li>
 </ul>
 </li>
@@ -120,7 +120,7 @@
 <li class="toctree-l4"><a class="reference internal" href="episimlab.setup.greek.html#module-episimlab.setup.greek.mu">episimlab.setup.greek.mu module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="episimlab.setup.greek.html#episimlab-setup-greek-nu-module">episimlab.setup.greek.nu module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="episimlab.setup.greek.html#module-episimlab.setup.greek.omega">episimlab.setup.greek.omega module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="episimlab.setup.greek.html#episimlab-setup-greek-pi-module">episimlab.setup.greek.pi module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="episimlab.setup.greek.html#module-episimlab.setup.greek.pi">episimlab.setup.greek.pi module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="episimlab.setup.greek.html#module-episimlab.setup.greek.rho">episimlab.setup.greek.rho module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="episimlab.setup.greek.html#module-episimlab.setup.greek.sigma">episimlab.setup.greek.sigma module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="episimlab.setup.greek.html#module-episimlab.setup.greek.tau">episimlab.setup.greek.tau module</a></li>
@@ -154,8 +154,162 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
 </section>
-<section id="episimlab-compt-model-module">
-<h2>episimlab.compt_model module<a class="headerlink" href="#episimlab-compt-model-module" title="Permalink to this headline"></a></h2>
+<section id="module-episimlab.compt_model">
+<span id="episimlab-compt-model-module"></span><h2>episimlab.compt_model module<a class="headerlink" href="#module-episimlab.compt_model" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">episimlab.compt_model.</span></span><span class="sig-name descname"><span class="pre">ComptModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tm_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compt_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stochastic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.compt_model.ComptModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Applies the compartmental disease model defined in <cite>compt_graph</cite> to the
+current <cite>state</cite> of the system.</p>
+<dl>
+<dt>_tm_subset<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>Mapping of all variables that belong to group ‘edge_weight’</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">group_dict</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>default value : {}</p></li>
+</ul>
+</dd>
+<dt>state<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>The current state of the simulation. in the context of a
+compartmental model, this tensor contains the current
+populations of all compartments along every demographic axis
+(e.g. age, risk, geospatial vertex).</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">variable</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">inout</span></code></p></li>
+<li><p>global name : state</p></li>
+<li><p>dimensions : (‘vertex’, ‘compt’, ‘age’, ‘risk’)</p></li>
+</ul>
+</dd>
+<dt>tm<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>The transition matrix (<cite>tm</cite> for short) that is added to the
+state at time <cite>t</cite> to get the state for the state at the <cite>t +
+1</cite> timestep.</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">variable</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">out</span></code></p></li>
+<li><p>global name : edge_weight</p></li>
+<li><p>dimensions : (‘vertex’, ‘compt’, ‘age’, ‘risk’)</p></li>
+</ul>
+</dd>
+<dt>compt_graph<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>The compartment graph is a networkx graph where nodes are
+compartments and edges are allowed transitions between them in
+the compartmental model.</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">variable</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>global name : compt_graph</p></li>
+<li><p>dimensions : (‘compt_graph’,)</p></li>
+</ul>
+</dd>
+<dt>stochastic<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>Boolean flag that determines whether to sample edge weights
+stochastically (stochastic=true) or not (deterministic,
+stochastic=false)</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">variable</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>global name : stochastic</p></li>
+<li><p>dimensions : ()</p></li>
+</ul>
+</dd>
+<dt>seed_state<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>Integer seed for generating the random number generator at
+every time step.</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">variable</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>global name : seed_state</p></li>
+<li><p>dimensions : ()</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.STATE_DIMS">
+<span class="sig-name descname"><span class="pre">STATE_DIMS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('vertex',</span> <span class="pre">'compt',</span> <span class="pre">'age',</span> <span class="pre">'risk')</span></em><a class="headerlink" href="#episimlab.compt_model.ComptModel.STATE_DIMS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.TAGS">
+<span class="sig-name descname"><span class="pre">TAGS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('essential',)</span></em><a class="headerlink" href="#episimlab.compt_model.ComptModel.TAGS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.apply_edges">
+<span class="sig-name descname"><span class="pre">apply_edges</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#episimlab.compt_model.ComptModel.apply_edges" title="Permalink to this definition"></a></dt>
+<dd><p>Iterate over edges in <cite>compt_graph</cite> in ascending order of <cite>priority</cite>.
+Apply each edge to the TM.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.calc_k">
+<span class="sig-name descname"><span class="pre">calc_k</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">edges</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.core.dataarray.DataArray</span></span></span><a class="headerlink" href="#episimlab.compt_model.ComptModel.calc_k" title="Permalink to this definition"></a></dt>
+<dd><p>Find some scaling factor k such that origin node <cite>u</cite> will not be 
+depleted if all <cite>edges</cite> (u, v) are applied simultaneously. All <cite>edges</cite>
+must share the same origin node u.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.edge_to_tm">
+<span class="sig-name descname"><span class="pre">edge_to_tm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">edges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#episimlab.compt_model.ComptModel.edge_to_tm" title="Permalink to this definition"></a></dt>
+<dd><p>Applies to the transition matrix (TM) the weight of directed edges
+(u, v) from compartment <cite>u</cite> to compartment <cite>v</cite>. Scale edge weights by
+<cite>k</cite> to ensure that population of origin node <cite>u</cite> is always non-negative
+after edge weight has been applied.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.edge_weight">
+<span class="sig-name descname"><span class="pre">edge_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.compt_model.ComptModel.edge_weight" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.edges_by_priority">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">edges_by_priority</span></span><em class="property"><span class="pre">:</span> <span class="pre">tuple</span></em><a class="headerlink" href="#episimlab.compt_model.ComptModel.edges_by_priority" title="Permalink to this definition"></a></dt>
+<dd><p>Parses the <cite>compt_graph</cite> attribute into tuples of edges sorted
+by edges’ <cite>priority</cite> attribute. Basically, only used in the
+<cite>apply_edges</cite> method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.finalize_step">
+<span class="sig-name descname"><span class="pre">finalize_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.compt_model.ComptModel.finalize_step" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.get_edge_weight">
+<span class="sig-name descname"><span class="pre">get_edge_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.compt_model.ComptModel.get_edge_weight" title="Permalink to this definition"></a></dt>
+<dd><p>Try to find an edge weight for (u, v) in <cite>tm_subset</cite>, then
+in the edge attribute. Default to zero weight if none can be found.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.poisson">
+<span class="sig-name descname"><span class="pre">poisson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.compt_model.ComptModel.poisson" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.rng">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">rng</span></span><a class="headerlink" href="#episimlab.compt_model.ComptModel.rng" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.run_step">
+<span class="sig-name descname"><span class="pre">run_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.compt_model.ComptModel.run_step" title="Permalink to this definition"></a></dt>
+<dd><p>In particular, we need to ensure that <cite>tm_subset</cite> and <cite>tm</cite> refresh
+at every timestep.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.compt_model.ComptModel.stochastic_draw">
+<span class="sig-name descname"><span class="pre">stochastic_draw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.compt_model.ComptModel.stochastic_draw" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="module-episimlab.foi">
 <span id="episimlab-foi-module"></span><h2>episimlab.foi module<a class="headerlink" href="#module-episimlab.foi" title="Permalink to this headline"></a></h2>

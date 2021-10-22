@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>episimlab.setup.greek package &mdash; episimlab 2.3.0 documentation</title>
+  <title>episimlab.setup.greek package &mdash; episimlab 2.2.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> episimlab
           </a>
               <div class="version">
-                2.3.0
+                2.2.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -53,7 +53,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="episimlab.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="episimlab.html#episimlab-compt-model-module">episimlab.compt_model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="episimlab.html#module-episimlab.compt_model">episimlab.compt_model module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="episimlab.html#module-episimlab.foi">episimlab.foi module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="episimlab.html#module-episimlab">Module contents</a></li>
 </ul>
@@ -698,8 +698,134 @@ mean if deterministic.</p>
 </dd></dl>
 
 </section>
-<section id="episimlab-setup-greek-pi-module">
-<h2>episimlab.setup.greek.pi module<a class="headerlink" href="#episimlab-setup-greek-pi-module" title="Permalink to this headline"></a></h2>
+<section id="module-episimlab.setup.greek.pi">
+<span id="episimlab-setup-greek-pi-module"></span><h2>episimlab.setup.greek.pi module<a class="headerlink" href="#module-episimlab.setup.greek.pi" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="episimlab.setup.greek.pi.SetupDefaultPi">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">episimlab.setup.greek.pi.</span></span><span class="sig-name descname"><span class="pre">SetupDefaultPi</span></span><a class="headerlink" href="#episimlab.setup.greek.pi.SetupDefaultPi" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl>
+<dt>pi<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>No description given</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">global</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">out</span></code></p></li>
+<li><p>global name : pi</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="episimlab.setup.greek.pi.SetupDefaultPi.TAGS">
+<span class="sig-name descname"><span class="pre">TAGS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('deprecated',)</span></em><a class="headerlink" href="#episimlab.setup.greek.pi.SetupDefaultPi.TAGS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.setup.greek.pi.SetupDefaultPi.get_pi">
+<span class="sig-name descname"><span class="pre">get_pi</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.setup.greek.pi.SetupDefaultPi.get_pi" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.setup.greek.pi.SetupDefaultPi.initialize">
+<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.setup.greek.pi.SetupDefaultPi.initialize" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="episimlab.setup.greek.pi.SetupDynamicPi">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">episimlab.setup.greek.pi.</span></span><span class="sig-name descname"><span class="pre">SetupDynamicPi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symp_h_ratio_w_risk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.setup.greek.pi.SetupDynamicPi" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#episimlab.setup.greek.pi.SetupStaticPi" title="episimlab.setup.greek.pi.SetupStaticPi"><code class="xref py py-class docutils literal notranslate"><span class="pre">episimlab.setup.greek.pi.SetupStaticPi</span></code></a></p>
+<p>Like SetupStaticPi, but recalculate at every step</p>
+<dl>
+<dt>pi<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>No description given</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">global</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">out</span></code></p></li>
+<li><p>global name : pi</p></li>
+</ul>
+</dd>
+<dt>symp_h_ratio_w_risk<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>No description given</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">variable</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>dimensions : (‘risk_group’, ‘age_group’)</p></li>
+<li><p>static : <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+</ul>
+</dd>
+<dt>gamma<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>No description given</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">global</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>global name : gamma</p></li>
+</ul>
+</dd>
+<dt>eta<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>No description given</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">global</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>global name : eta</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.setup.greek.pi.SetupDynamicPi.run_step">
+<span class="sig-name descname"><span class="pre">run_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.setup.greek.pi.SetupDynamicPi.run_step" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="episimlab.setup.greek.pi.SetupStaticPi">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">episimlab.setup.greek.pi.</span></span><span class="sig-name descname"><span class="pre">SetupStaticPi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symp_h_ratio_w_risk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#episimlab.setup.greek.pi.SetupStaticPi" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#episimlab.setup.greek.pi.SetupDefaultPi" title="episimlab.setup.greek.pi.SetupDefaultPi"><code class="xref py py-class docutils literal notranslate"><span class="pre">episimlab.setup.greek.pi.SetupDefaultPi</span></code></a></p>
+<p>Calculate pi after sampling once from this triangular distibution,
+at the beginning of the simulation.</p>
+<dl>
+<dt>pi<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>No description given</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">global</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">out</span></code></p></li>
+<li><p>global name : pi</p></li>
+</ul>
+</dd>
+<dt>symp_h_ratio_w_risk<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>No description given</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">variable</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>dimensions : (‘risk_group’, ‘age_group’)</p></li>
+<li><p>static : <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+</ul>
+</dd>
+<dt>gamma<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>No description given</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">global</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>global name : gamma</p></li>
+</ul>
+</dd>
+<dt>eta<span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">attr.Attribute</span></code></span></dt><dd><p>No description given</p>
+<p>Variable properties:</p>
+<ul class="simple">
+<li><p>type : <code class="docutils literal notranslate"><span class="pre">global</span></code></p></li>
+<li><p>intent : <code class="docutils literal notranslate"><span class="pre">in</span></code></p></li>
+<li><p>global name : eta</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="episimlab.setup.greek.pi.SetupStaticPi.get_pi">
+<span class="sig-name descname"><span class="pre">get_pi</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.core.dataarray.DataArray</span></span></span><a class="headerlink" href="#episimlab.setup.greek.pi.SetupStaticPi.get_pi" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="module-episimlab.setup.greek.rho">
 <span id="episimlab-setup-greek-rho-module"></span><h2>episimlab.setup.greek.rho module<a class="headerlink" href="#module-episimlab.setup.greek.rho" title="Permalink to this headline"></a></h2>
