@@ -5,6 +5,7 @@
 
 Episimlab is a framework for developing epidemiological models in a modular fashion. It provides a set of extensible components that can be combined with user-written components, allowing for rapid development of reproducible disease-modeling pipelines.
 
+For more details, please consult the [Episimlab documentation](https://eho-tacc.github.io/episimlab/).
 
 ## Highlights
 
