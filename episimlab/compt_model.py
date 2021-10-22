@@ -3,7 +3,7 @@ import numpy as np
 import xarray as xr
 import xsimlab as xs
 import pandas as pd
-from .utils.variable import group_dict_by_var, any_negative, clip_to_zero
+from .utils.variable import group_dict_by_var, any_negative, clip_to_zero, edge_weight_name
 from .utils.rng import get_rng
 from numbers import Number
 
@@ -196,7 +196,3 @@ class ComptModel:
             return cp
         return arr
 
-
-def edge_weight_name(u, v) -> str:
-    """Attr name when looking for edge weight between nodes `u` and `v`."""
-    return f"rate_{u}2{v}"

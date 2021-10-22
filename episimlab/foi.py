@@ -80,7 +80,7 @@ class BruteForceFOI(BaseFOI):
     """Calculate force of infection (FOI) using naive for looping.
     Similar to BruteForceFOI process in Episimlab v1
     """
-    TAGS = ('model::SIR', 'FOI', 'brute_force')
+    TAGS = ('model::SIR', 'FOI', 'brute_force', 'deprecated')
     PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
 
     def run_step(self):

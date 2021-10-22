@@ -3,7 +3,6 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ...seir.base import BaseSEIR
 from ...utils import trim_data_to_coords
 
 

@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import logging
 
-from ..compt_model import ComptModel
+from ...compt_model import ComptModel
 from ..utils import group_dict_by_var, get_var_dims, trim_data_to_coords
 
 @xs.process

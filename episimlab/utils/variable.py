@@ -3,6 +3,11 @@ import xsimlab as xs
 import xarray as xr
 
 
+def edge_weight_name(u, v) -> str:
+    """Attr name when looking for edge weight between nodes `u` and `v`."""
+    return f"rate_{u}2{v}"
+
+
 def suffixed_dims(da: xr.DataArray, suffix: str, 
                   exclude: list = None) -> dict:
     """Generates a dictionary for suffixing DataArray or DataFrame dimensions.
