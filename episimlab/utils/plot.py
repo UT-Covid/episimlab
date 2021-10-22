@@ -7,7 +7,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from functools import wraps
-from ..compt_model import edge_weight_name
+from . import edge_weight_name
 from typing import Callable
 
 
