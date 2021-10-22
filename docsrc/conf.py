@@ -23,9 +23,9 @@ project = 'episimlab'
 copyright = '2021, Ethan Ho, Kelly Pierce'
 author = 'Ethan Ho, Kelly Pierce'
 
-version = '2.2.0'
+version = '2.2.1'
 # The full version, including alpha/beta/rc tags
-release = '2.2.0'
+release = '2.2.1'
 
 # -- General configuration ---------------------------------------------------
 
