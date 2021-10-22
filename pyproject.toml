@@ -3,7 +3,7 @@ name = "episimlab"
 version = "2.2.1"
 description = "Framework for modular development of epidemiological models"
 authors = ["Ethan Ho <eho@tacc.utexas.edu>"]
-license = "MIT"
+license = "BSD 3-Clause"
 
 [tool.poetry.dependencies]
 python = ">=3.7"
