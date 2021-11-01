@@ -3,7 +3,6 @@ import pandas as pd
 import xarray as xr
 import xsimlab as xs
 import numpy as np
-import dask.dataframe as dd
 from datetime import datetime
 from ..utils import group_dict_by_var, get_int_per_day, fix_coord_dtypes, get_var_dims
 from ..foi import BaseFOI
