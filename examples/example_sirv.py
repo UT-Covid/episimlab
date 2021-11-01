@@ -16,9 +16,9 @@ import pandas as pd
 # # Episimlab Tutorial
 # ----
 # 
-# <!--<badge>--><a href="https://colab.research.google.com/github/eho-tacc/episimlab/blob/main/examples/example_sirv.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a><!--</badge>-->
+# <!--<badge>--><a href="https://colab.research.google.com/github/UT-Covid/episimlab/blob/main/examples/example_sirv.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a><!--</badge>-->
 # 
-# This notebook will provide a tutorial in model building using Episimlab version 2. For more details, please refer to the [Episimlab GitHub repository](https://github.com/eho-tacc/episimlab) and the [xarray-simlab documentation](https://xarray-simlab.readthedocs.io).
+# This notebook will provide a tutorial in model building using Episimlab version 2. For more details, please refer to the [Episimlab GitHub repository](https://github.com/UT-Covid/episimlab) and the [xarray-simlab documentation](https://xarray-simlab.readthedocs.io).
 
 # ## Installation
 # 
@@ -29,7 +29,7 @@ import pandas as pd
 # 
 # ...or install the development version from the GitHub repo:
 # ```
-# !pip install git+https://github.com/eho-tacc/episimlab
+# !pip install git+https://github.com/UT-Covid/episimlab
 # ```
 
 # ## Run an Existing SIR Model
@@ -418,7 +418,7 @@ age_model.run(
 # - Default parameter values
 # - Custom methods such as plotting
 # 
-# In short, we will package all of our work thus far into a standardized format that makes it easy to reproduce. We could then distribute the model by putting the model in a [dedicated Python module](https://github.com/eho-tacc/episimlab/blob/main/episimlab/models/example_sirv.py#L215) in the Episimlab repository.
+# In short, we will package all of our work thus far into a standardized format that makes it easy to reproduce. We could then distribute the model by putting the model in a [dedicated Python module](https://github.com/UT-Covid/episimlab/blob/main/episimlab/models/example_sirv.py#L215) in the Episimlab repository.
 
 # In[27]:
 
