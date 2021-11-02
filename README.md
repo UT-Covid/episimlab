@@ -131,4 +131,4 @@ If you are interested in contibuting to Episimlab, please see the [contribution 
 
 ## Troubleshooting
 
-If you are having trouble using Episimlab, please first refer to the [documentation](https://UT-Covid.github.io/episimlab/) and [examples](./examples). If you're still having trouble, please [submit a GitHub issue](https://github.com/UT-Covid/episimlab/issues/new).
+If you are having trouble using Episimlab, please first refer to the [documentation](https://UT-Covid.github.io/episimlab/) and [examples](./examples). If you're still having trouble, please [submit a GitHub issue](https://github.com/UT-Covid/episimlab/issues/new/choose).
