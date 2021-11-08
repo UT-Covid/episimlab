@@ -348,7 +348,7 @@ class PartitionFromTravel(EpiModel):
 
     RUNNER_DEFAULTS = dict(
         clocks={
-            'step': pd.date_range(start='3/11/2020', end='3/12/2020', freq='24H')
+            'step': pd.date_range(start='3/11/2020', end='4/1/2020', freq='24H')
         },
         input_vars={
             'setup_sto__sto_toggle': 0,

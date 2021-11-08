@@ -9,8 +9,9 @@ from ..utils import fix_coord_dtypes
 class ContactsFromCSV:
     """Load baseline contact patterns from a CSV file to a `contacts` DataArray.
     """
-    TAGS = ('partition',)
-    contacts_fp = xs.variable(intent='in')
+    TAGS = ('partition', 'dependency::pandas')
+    contacts_fp = xs.variable(intent='in', description='Path to CSV file from '
+                              'which to load baseline contact patterns')
     contacts = xs.global_ref('contacts', intent='out')
 
     def initialize(self):

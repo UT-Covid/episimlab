@@ -40,7 +40,8 @@ class Partition:
 
     @property
     def phi_dims(self):
-        """Overwrite this method if using different dims than `BaseFOI.PHI_DIMS`
+        """Dimensions of the `phi` DataArray. Overwrite this method if using 
+        different dims than `BaseFOI.PHI_DIMS`.
         """
         return get_var_dims(BaseFOI, 'phi')
 
@@ -54,26 +55,29 @@ class Partition:
 
     @property
     def phi_coords(self):
+        """Coordinates of the `phi` DataArray."""
         return self.unsuffixed_coords(self.phi_dims)
 
     @property
     def travel_pat_coords(self):
+        """Coordinates of the `travel_pat` DataArray."""
         return self.unsuffixed_coords(self.phi_dims)
 
     @property
     def contacts_coords(self):
+        """Coordinates of the `contacts` DataArray."""
         return self.unsuffixed_coords(self.contacts_dims)
     
     @xs.runtime(args=('step_delta',))
     def run_step(self, step_delta):
-        """
-        """
         int_per_day = get_int_per_day(step_delta)
         self.c_ijk = self.get_c_ijk(self.travel_pat)
         self.phi = self.c_ijk * self.contacts / int_per_day
     
     def get_c_ijk(self, tp: xr.DataArray) -> xr.DataArray:
-        """
+        """From travel pattern data in `tp`, estimate pairwise contact
+        probabilities between each vertex, keyed as dimensions `vertex0`
+        and `vertex1` in the output DataArray.
         """
         tp = tp.rename({'vertex1': 'k'}) # AKA 'destination'
         # similar to {'vertex0': 'vertex1', 'age0': 'age1'}
@@ -88,7 +92,7 @@ class Partition:
         n_k = n_jk.sum('vertex1')
         c_ijk = (n_ik / n_i) * (n_jk / n_k)
 
-        # Final transforms, sums, munging
+        # Final munging
         expected_dims = [dim for dim in self.phi_dims if dim in c_ijk.dims]
         c_ijk = (c_ijk 
                  .fillna(0.)
