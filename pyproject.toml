@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "episimlab"
-version = "2.2.1"
+version = "2.2.2"
 description = "Framework for modular development of compartmental epidemic models"
 authors = ["Ethan Ho <eho@tacc.utexas.edu>"]
 license = "BSD-3-Clause"
