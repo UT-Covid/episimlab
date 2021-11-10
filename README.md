@@ -1,20 +1,24 @@
 # Episimlab
-[![Tox](https://github.com/eho-tacc/episimlab/actions/workflows/tox.yml/badge.svg)](https://github.com/eho-tacc/episimlab/actions/workflows/tox.yml)
-[![PyPI](https://github.com/eho-tacc/episimlab/actions/workflows/publish.yml/badge.svg)](https://github.com/eho-tacc/episimlab/actions/workflows/publish.yml)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eho-tacc/episimlab/blob/main/examples/example_sirv.ipynb)
 
-Episimlab is a framework for developing epidemiological models in a modular fashion. It provides a set of extensible components that can be combined with user-written components, allowing for rapid development of reproducible disease-modeling pipelines.
+[![Tox](https://github.com/UT-Covid/episimlab/actions/workflows/tox.yml/badge.svg)](https://github.com/UT-Covid/episimlab/actions/workflows/tox.yml)
+[![PyPI](https://github.com/UT-Covid/episimlab/actions/workflows/publish.yml/badge.svg)](https://github.com/UT-Covid/episimlab/actions/workflows/publish.yml)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/UT-Covid/episimlab/blob/main/examples/example_sirv.ipynb)
 
-For more details, please consult the [Episimlab documentation](https://eho-tacc.github.io/episimlab/).
+Episimlab is a Python package for rapid development and execution of contagion models. It provides a set of lightweight, reusable, and extensible Python [processes](https://xarray-simlab.readthedocs.io/en/latest/framework.html#processes) which can be combined into [models](https://xarray-simlab.readthedocs.io/en/latest/framework.html#models) with arbitrary complexity. While Episimlab was originally written with epidemiological use cases in mind, its applications extend to other fields such as computer security. This package specifically supports development of models that:
 
-## Highlights
+- Are Markovian
+- Are stochastic or deterministic
+- Are compartmental, with arbitrary network structure
+- Run in discrete (as opposed to continuous) time
+- Incorporate diverse data sources, such as census and cell phone mobility data
+- Use parameters that are highly heterogeneous along multiple user-defined axes, such as age, risk group, and zip code
+- Include dynamic interventions, such as starting vaccination when number of infections in an age group exceeds some limit
+- Are performant, thanks to [Dask](https://docs.dask.org) integration and accelerated matrix math in [xarray](https://xarray.pydata.org) and [numpy](https://numpy.org/)
+- Can be easily visualized in Jupyter or [Google Colab notebooks](https://colab.research.google.com/github/UT-Covid/episimlab/blob/main/examples/example_sirv.ipynb)
 
-* **Fully integrated with the [`xarray-simlab`](https://xarray-simlab.readthedocs.io/) package -** Episimlab provides a library of [`xsimlab.process` ]() classes ("processes"), as well as a handful of commonly-used [`xsimlab.model`]()s ("models").
-* **Extensible -** Users can quickly and easily develop their own process classes, either from scratch or based on an `episimlab` process, and include them in their models.
-* **Any variable can be high-dimensional -** Want constant `beta` for all time points? Use the `ConstantBeta` process. Want `beta` with age and risk group structure? Use `AgeRiskBeta`. Want to add your own custom structure and read it from a CSV file? Quickly write your own process, and it will integrate with processes provided by `episimlab`. Better yet, push your new process in a [Pull Request](CONTRIBUTING.md) so that others can use it!
-* **Good performance under the hood -** Frequently used processes - such as force of infection (FOI) calculation, SEIR disease progression, and travel between spatially separated nodes - use xarray, which takes advantage of accelerated matrix math in numpy and Dask. 
+While Episimlab provides defaults for these behaviors, users can easily customize their models thanks to integration with the xarray-simlab package. For more details, please consult the documentation for [Episimlab](https://UT-Covid.github.io/episimlab/) and [xarray-simlab](https://xarray-simlab.readthedocs.io/).
 
-## Example: A Basic Compartmental (SIR) Model
+## Example: A Basic Compartmental SIR Model
 
 See the [full example here](./examples/example_sir.py).
 
@@ -34,8 +38,8 @@ class CustomRecoveryRate:
         description="rate of change from compartments I to R")
 
     # Variables ingested by this process (intent='in'). 
-    # Setting a `global_name` here allows this process to ingest from an upstream 
-    # CalculateGamma process that would define gamma like:
+    # Setting a `global_name` here allows this process to ingest from an 
+    # upstream CalculateGamma process that would define gamma like:
     # gamma = xsimlab.global_ref('gamma', intent='out')
     gamma = xsimlab.variable(global_name='gamma', intent='in')
 
@@ -56,9 +60,7 @@ class CustomRecoveryRate:
 model = ExampleSIR()
 # Edit the model so it uses our custom process
 model.update_processes({'recovery_rate': CustomRecoveryRate})
-# Run the model using Dask and xarray-simlab (xsimlab)
-results = model.run()
-# Plot the state over time
+results = model.run(input_vars={'gamma': 0.6})
 model.plot()
 
 # The final state is an N-D array represented in Python as an xarray.DataArray
@@ -85,7 +87,7 @@ print(final_state)
 
 <img src="./examples/example_sir_output.png" width="700" height="700">
 
-#### Compartment graph generated by `CustomSetupComptGraph` in the [full example](https://github.com/eho-tacc/episimlab/blob/main/examples/example_sir.py#L62-L73)
+#### Compartment graph generated by `CustomSetupComptGraph` in the [full example](./examples/example_sir.py)
 
 <img src="./examples/example_sir_compt_graph.svg" width="500" height="500">
 
@@ -97,13 +99,21 @@ print(final_state)
 pip install episimlab
 ```
 
-### Latest Edge
+### Latest Release
+
+To install the most recent (and potentially less stable) development release, install directly from the `main` branch of the GitHub repository:
 
 ```bash
-pip install git+https://github.com/eho-tacc/episimlab
+pip install git+https://github.com/UT-Covid/episimlab
 ```
 
 ## Testing
+
+### GitHub Actions
+
+Pushing commits to a Pull Request against the `main` branch will automatically trigger pytests in GitHub Actions. Tests run in the poetry environment defined by the [`pyproject.toml`](./pyproject.toml) file.
+
+### Local Testing
 
 Preferred testing environment runs poetry virtual env within tox.
 1. Install [tox](https://tox.readthedocs.io/) and [poetry](https://python-poetry.org/)
@@ -111,6 +121,14 @@ Preferred testing environment runs poetry virtual env within tox.
 ```bash
 # Default args
 tox
-# Pass args to pytest. In this case, we use 4-thread parallelism to run only the model tests
+# Pass args to pytest. In this case, we run only the model tests
 tox -- tests/test_models.py
 ```
+
+## Contributing
+
+If you are interested in contibuting to Episimlab, please see the [contribution guide](CONTRIBUTING.md).
+
+## Troubleshooting
+
+If you are having trouble using Episimlab, please first refer to the [documentation](https://UT-Covid.github.io/episimlab/) and [examples](./examples). If you're still having trouble, please [submit a GitHub issue](https://github.com/UT-Covid/episimlab/issues/new/choose).
