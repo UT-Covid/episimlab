@@ -23,9 +23,9 @@ bibliography: paper.bib
 # Summary
 
 Computational models play a critical role in our scientific understanding of, and preparedness for, infectious diseases.
-Such in silico disease models simulate real-world transmission dynamics, and are thereby well-suited for such tasks as early detection of novel pandemics, improving situational awareness during periods of high prevalence, and estimating efficacy of intervention strategies.
-These models have proved valuable when responding to emergent epidemics such as the H1N1 flu pandemic, the Ebola epidemic, the Zika virus pandemic, and most recently, the COVID-19 pandemic (ref).
-For example, compartmental disease models had BIG EFFECT IN EARLY STAGES OF COVID (refs).
+These in silico disease models simulate real-world transmission dynamics, and are thereby well-suited for such tasks as early detection of novel pandemics, improving situational awareness during periods of high prevalence, and estimating efficacy of intervention strategies.
+Modeling approaches have proved valuable when responding to emergent epidemics such as the H1N1 flu pandemic, the Ebola epidemic, the Zika virus pandemic, and the recent COVID-19 pandemic (ref).
+For example, during the COVID-19 pandemic, compartmental disease models were instrumental for estimating future case counts and hospitalizations (refs).
 As more data on case incidence, hospitalizations, and viral genomics became available, disease modelers were able to incorporate new data streams to improve the performance of these compartmental models.
 These complex models are often expensive to develop, and few implementations of compartmental models shared a common software framework or application flow.
 ALSO MAKES IT DIFFICULT TO REPRODUCE, DISTRIBUTE, AND COMPARE DIFFERENT MODELS.
