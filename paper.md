@@ -48,21 +48,21 @@ Finally, Episimlab provides a standard for packaging, versioning, and sharing mo
 # Statement of Need
 
 `Episimlab` is a Python package that provides a common framework for rapid development of complex compartmental disease models. 
-`Episimlab` provides sufficient boilerplate such that the user can quickly instantiate a basic compartmental model.
+It provides sufficient boilerplate such that the user can quickly instantiate a basic compartmental model.
 Basic models such as the SIR model are not unique to `Episimlab`; they have a long history of use in disease modeling since their origin in the early 20th century [@Ross1916; @Ross1917; @Ross1917pt3; @Kermack1927].
 More recently, various implementations of compartmental models have been made publicly available and easily usable as open-source software packages [@Miller2019; @epydemic; @Jacob2021; @Gleamviz2011].
 These packages are valuable because they simplify execution of many simple compartmental models, but their usage is limited to the discrete handful of model structures that are published with the package.
-In addition, such projects rarely support complex models with more than 5 or 6 compartments, presumably because complex models are difficult to develop and reproduce.
+In addition, such projects rarely support complex models with more than 5 or 6 compartments, in part because complex models are difficult to develop and reproduce.
 
 While inspired by these previous works, `Episimlab` aims to support development of models with arbitrary complexity.
-It gives the user flexibility to define key components of their compartmental model, such as the dimensionality of the Markov state matrix, the number of compartments, and custom stochastic behavior.
+It gives the user flexibility to define key components of their compartmental model, such as the dimensionality of the Markov state matrix, the number of compartments, structure and rate of transitions between compartments, and custom stochastic behavior.
 This is accomplished by enforcing a modular paradigm of model development.
 The package provides a library of lightweight Python classes, known as `process`es in the API, which comprise a model when combined with other `process`es.
 The core `process`, named `ComptModel` in the API, is the only `process` shared by all `Episimlab` models. 
-`ComptModel` implements a Gillespie algorithm that supports Markovian models in discrete time [@gillespie], and it supports a generic model of compartmental disease. 
+`ComptModel` implements a Gillespie algorithm that supports Markovian models in discrete time [@gillespie], using a generic model of compartmental disease. 
 Therefore, `Episimlab` does not support models that run in continuous time, are defined using differential equations, or are agent-based.
 
-Of note, the comparable software such as `epydemic` [@epydemic] and GLEaMviz [@Gleamviz2011] also support a generic model of compartmental disease. 
+Of note, comparable software such as `epydemic` [@epydemic] and GLEaMviz [@Gleamviz2011] also support generic models of compartmental disease. 
 They do not, however, support arbitrary dimensionality in input variables or in the Markov state matrix, thereby limiting their usage to simulations running in fixed-dimensional space.
 
 `Episimlab` was designed with epidemiological use cases in mind via collaboration with data scientists and epidemiologists in the UT Austin COVID-19 Modeling Consortium. 
@@ -72,14 +72,7 @@ The package is useful for students because it provides a minimal, approachable b
 It introduces and reinforces best practices in object-oriented software development, such as modularity and reproducibility. 
 For disease modeling experts, `Episimlab` provides a platform that supports a wide variety of modeling use cases. 
 Simple models can be easily adapted into more complex ones, encouraging a model development approach that is rapid, iterative, and organic.
-Under the hood, `Episimlab` leverages concurrency in `xarray-simlab`, dataset chunking in `Dask`, and accelerated matrix math in `xarray`, so models are performant even when using large datasets.
-
-## Unused Text
-
-Unlike past compartmental modeling software, models in `Episimlab` are modular.
-`Episimlab` models are essentially unique sets of discrete components.
-These components, formally known as `process`es in the API, can be modified, exchanged, reused, and shared between models.
-Commonly used `process`es such as calculating the force of infection (FOI), ship with Episimlab, and can be modified using class inheritance in Python.
+Under the hood, `Episimlab` leverages concurrency in `xarray-simlab`, dataset chunking in `Dask`, and accelerated matrix math in `xarray`, so models are performant even when using large input datasets.
 
 ## Dependencies
 
