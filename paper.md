@@ -76,32 +76,32 @@ Simple models can be easily adapted into more complex ones, encouraging a model 
 Under the hood, Episimlab leverages concurrency in `xarray-simlab`, dataset chunking in `Dask`, and accelerated matrix math in `xarray`, so models are performant even when using large input datasets.
 The standardized structure of models and processes simplifies code sharing, therby promoting collaborative development within and between disease modeling teams.
 
-## Dependencies
+# Dependencies
 
 xarray xarray-simlab dask networkx matplotlib
 
-## Related Packages
+# Related Packages
 
-### epydemic
+## epydemic
 
 `epydemic` is a Python package that provides a common framework for building models of epidemic processes [@epydemic]. It supports simulations that are discrete-time synchronous or continuous-time stochastic (Gillespie). Like Episimlab, it supports a generic model for compartmental disease, allowing for flexibitlity in the compartmental model structure. In addition, it ships with several basic compartmental models such as SIR, SIS, and SEIR.
 
-### EoN (Epidemics on Networks)
+## EoN (Epidemics on Networks)
 
 Epidemics on Networks (EoN) is a Python package that simulates disease dynamics for SIR and SIS models [@Miller2019]. The package includes numerical solutions for 20 different differential equation models, and supports complex contagions using the Gillespie algorithm [@gillespie].
 
-### Eir
+## Eir
 
 `Eir` is a Python package that simulates epidemics using compartmental models. It includes 4 distinct models with different mobility dynamics [@Jacob2021]. In additon, it provides utilities for inspecting transmission chains, analyzing state histories, and visualizing simulation results.
 
-### GLEaMviz
+## GLEaMviz
 
 _WIP_
 
-## Acknowledgements
+# Acknowledgements
 
-We would like to thank the UT Austin COVID-19 Modeling Consortium for collaborative support. In particular, we acknowledge Dr. Lauren Ancel Meyers and her team for their guidance throughout development of Episimlab.
+We would like to thank the UT Austin COVID-19 Modeling Consortium for their collaborative support. In particular, we acknowledge Dr. Lauren Ancel Meyers and her team for their guidance throughout the development process.
 
-Development of Episimlab was supported by CDC Contract 75D-301-19-C-05930 and NIH Grant 3R01AI151176-01S1.
+This work is supported by CDC Contract 75D-301-19-C-05930 and NIH Grant 3R01AI151176-01S1.
 
 # References
