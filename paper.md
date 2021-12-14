@@ -70,6 +70,8 @@ They do not, however, support arbitrary dimensionality in input variables or in 
 
 Episimlab was originally designed with epidemiological use cases in mind via collaboration with data scientists and epidemiologists in the UT Austin COVID-19 Modeling Consortium. 
 Specifically, prototypes of Episimlab were used in studies projecting hospital burden due to the COVID-19 epidemic in Austin, Texas [@Pierce2020report; @Pierce2020ieee]. 
+Two of the pre-packaged models - `partition_v1` and `vaccine` - were developed by epidemiologists in the Consortium and migrated to Episimlab [@Yang2020; @Lachmann2021].
+
 Although the package was originally intended for use by epidemiologists, it is useful for anyone developing compartmental models of disease spread. 
 For students, it provides a minimal boilerplate for developing basic models in pure Python. 
 It introduces and reinforces best practices in object-oriented software development such as modularity and reproducibility. 
