@@ -45,7 +45,7 @@ class BaseFOI:
         S = self.S.rename(zero_suffix)
         I = self.I.rename(one_suffix)
         N = self.state.sum('compt').rename(one_suffix)
-        omega = self.omega.rename(suffixed_dims(self.omega[dict(compt=0)], '1'))
+        omega = self.om.rename(suffixed_dims(self.om, '1')).drop('compt')
         foi = ((self.beta * self.phi * omega * S * I / N)
                # sum over coords that are not compt
                .sum(one_suffix.values())
@@ -66,6 +66,11 @@ class BaseFOI:
         else:
             return index
     
+    @property
+    def om(self):
+        index = self.normalize_index(self.I_COMPT_LABELS)
+        return self.omega.loc[dict(compt=index)]
+
     @property
     def I(self):
         index = self.normalize_index(self.I_COMPT_LABELS)

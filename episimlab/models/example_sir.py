@@ -190,8 +190,12 @@ class SetupOmega:
         return {dim: self.coords[dim.rstrip('01')] for dim in self.omega_dims}
     
     def initialize(self):
-        da = xr.DataArray(data=0., dims=self.omega_dims, coords=self.omega_coords)
-
+        da = xr.DataArray(data=1., dims=self.omega_dims, coords=self.omega_coords)
+        # da.loc[dict(compt='Ia')] = 0.666666667
+        # da.loc[dict(compt='Iy')] = 1.
+        # da.loc[dict(compt='Pa')] = [0.91117513, 0.91117513, 0.92460653, 0.95798887, 0.98451149]
+        # da.loc[dict(compt='Py')] = [1.36676269, 1.36676269, 1.3869098 , 1.43698331, 1.47676724]
+        self.omega = da
 
 
 class ExampleSIR(EpiModel):
