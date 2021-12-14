@@ -45,7 +45,7 @@ class BaseFOI:
         S = self.S.rename(zero_suffix)
         I = self.I.rename(one_suffix)
         N = self.state.sum('compt').rename(one_suffix)
-        omega = self.om.rename(suffixed_dims(self.om, '1')).drop('compt')
+        omega = self.om.rename(suffixed_dims(self.omega[dict(compt=0)], '1'))
         foi = ((self.beta * self.phi * omega * S * I / N)
                # sum over coords that are not compt
                .sum(one_suffix.values())

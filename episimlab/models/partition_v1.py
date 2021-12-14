@@ -28,6 +28,36 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 @xs.process
+class SetupOmega:
+    """Set value of omega"""
+    omega = xs.global_ref('omega', intent='out')
+    _coords = xs.group_dict('coords')
+        
+    @property
+    def coords(self):
+        return group_dict_by_var(self._coords)
+    
+    @property
+    def omega_dims(self):
+        return get_var_dims(RateS2E, 'omega')
+    
+    @property
+    def omega_coords(self):
+        return {dim: self.coords[dim.rstrip('01')] for dim in self.omega_dims}
+    
+    def initialize(self):
+        da = xr.DataArray(data=0., dims=self.omega_dims, coords=self.omega_coords)
+
+        # One could set specific values per compartment here
+        da.loc[dict(compt='Ia')] = 0.666666667
+        da.loc[dict(compt='Iy')] = 1.
+        da.loc[dict(compt='Pa')] = [0.91117513, 0.91117513, 0.92460653, 0.95798887, 0.98451149]
+        da.loc[dict(compt='Py')] = [1.36676269, 1.36676269, 1.3869098 , 1.43698331, 1.47676724]
+
+        self.omega = da
+
+
+@xs.process
 class SetupNuDefault:
     """Provide a default value for nu"""
     DIMS = ['age']
@@ -200,15 +230,9 @@ class RateIa2R:
 class RateS2E(BaseFOI):
     """FOI that provides a `rate_S2E`"""
     PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
+    I_COMPT_LABELS = ('Ia', 'Iy', 'Pa', 'Py')
+    S_COMPT_LABELS = ('S')
     rate_S2E = xs.variable(intent='out', groups=['edge_weight'])
-
-    @property
-    def I(self):
-        return self.state.loc[dict(compt=['Ia', 'Iy', 'Pa', 'Py'])]
-
-    @property
-    def S(self):
-        return self.state.loc[dict(compt='S')]
 
     def run_step(self):
         self.rate_S2E = self.foi.sum('compt')
@@ -320,6 +344,7 @@ class PartitionFromTravel(EpiModel):
         'partition': Partition,
 
         # Calculate greeks used by edge weight processes
+        'setup_omega': SetupOmega,
         'setup_pi': SetupPiDefault,
         'setup_nu': SetupNuDefault,
         'setup_mu': mu.SetupStaticMuIh2D,
