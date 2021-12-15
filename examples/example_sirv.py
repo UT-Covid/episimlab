@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import xsimlab as xs
@@ -37,7 +37,7 @@ import pandas as pd
 # 
 # The package includes several pre-built models as examples/starting points. Here, we show how to load and run the `ExampleSIR` model:
 
-# In[2]:
+# In[ ]:
 
 
 model = ExampleSIR()
@@ -46,7 +46,7 @@ model
 
 # These pre-packaged models come with a set of default parameter values. New models should include a full set of default parameters so that users can quickly and easily use the same model (say, in a publication):
 
-# In[3]:
+# In[ ]:
 
 
 model.RUNNER_DEFAULTS['input_vars']
@@ -54,7 +54,7 @@ model.RUNNER_DEFAULTS['input_vars']
 
 # Of course, we can overwrite the defaults, such as the `beta` value here, and run the model:
 
-# In[4]:
+# In[ ]:
 
 
 input_vars = {
@@ -67,7 +67,7 @@ model.run(input_vars=input_vars)
 # 
 # We can plot the state of the simulation over time:
 
-# In[5]:
+# In[ ]:
 
 
 model.plot()
@@ -89,7 +89,7 @@ model.plot()
 # - Methods named `initialize`, `run_step`, `finalize_step`, and `finalize` are run automatically at different points in the simulation.
 # - Variables defined near the beginning of the process can be imported to exported to other processes in the model. In this case, we're exporting the variable `compt_model`.
 
-# In[6]:
+# In[ ]:
 
 
 @xs.process
@@ -139,14 +139,14 @@ class CustomSetupComptGraph:
 
 # Before adding our new process to the model, let's test it. Processes are just Python classes (they're actually fancy Python classes called [attrs classes](https://www.attrs.org/en/stable/)), so we can use them as we would any other class in Python:
 
-# In[7]:
+# In[ ]:
 
 
 process = CustomSetupComptGraph()
 print(process)
 
 
-# In[8]:
+# In[ ]:
 
 
 process.initialize()
@@ -155,13 +155,13 @@ process.visualize()
 
 # Now that we've tested our new process, let's add it to our model:
 
-# In[9]:
+# In[ ]:
 
 
 model.setup_compt_graph
 
 
-# In[10]:
+# In[ ]:
 
 
 sirv_model = model.update_processes({
@@ -172,7 +172,7 @@ sirv_model.setup_compt_graph
 
 # Let's try running our model with the new compartment graph:
 
-# In[11]:
+# In[ ]:
 
 
 sirv_model.run()
@@ -184,7 +184,7 @@ sirv_model.run()
 # 
 # To fix the warning, we need only write a new process that calculates and exports edge weights for the S -> V and V -> I transitions that we defined. Let's start by calculating the edge weight of S -> V, which by convention is named `rate_S2V`. 
 
-# In[12]:
+# In[ ]:
 
 
 @xs.process
@@ -222,21 +222,21 @@ class RateS2V:
 
 # We can quickly test our process as a standalone Python class to make sure everything is working as expected:
 
-# In[13]:
+# In[ ]:
 
 
 process = RateS2V(vacc_per_day=5.0)
 print(process.vacc_per_day)
 
 
-# In[14]:
+# In[ ]:
 
 
 process.run_step(step=3)
 print(process.rate_S2V)
 
 
-# In[15]:
+# In[ ]:
 
 
 process.run_step(step=7)
@@ -247,7 +247,7 @@ print(process.rate_S2V)
 # 
 # Similarly, let's write a process that defines a `rate_V2I`. This rate will be calculated similarly to force of infection (FOI), so we will **inherit** the existing process `BaseFOI` and modify it in the **child** class `RateV2I`. The `BaseFOI` process has methods like `foi` that we can reuse in the child process.
 
-# In[16]:
+# In[ ]:
 
 
 @xs.process
@@ -268,6 +268,10 @@ class RateV2I(BaseFOI):
     # We also define an input variable that scales FOI
     vacc_efficacy = xs.variable(global_name='vacc_efficacy', intent='in')
     
+    # Use the same values for omega and phi as the S2I transition
+    # We use the same values by importing these variables using their
+    # global_name
+    omega = xs.global_ref('omega', intent='in')
     phi = xs.global_ref('phi', intent='in')
     
     def run_step(self):
@@ -279,7 +283,7 @@ class RateV2I(BaseFOI):
 
 # Finally, add both processes to the model. 
 
-# In[17]:
+# In[ ]:
 
 
 sirv_model = sirv_model.update_processes({
@@ -291,7 +295,7 @@ sirv_model = sirv_model.update_processes({
 
 # We visualize the processes in the model as a graph:
 
-# In[18]:
+# In[ ]:
 
 
 sirv_model.visualize()
@@ -299,7 +303,7 @@ sirv_model.visualize()
 
 # We can now run our model, inspect the compartment graph, and plot the results:
 
-# In[19]:
+# In[ ]:
 
 
 sirv_model.run(
@@ -310,7 +314,7 @@ sirv_model.run(
     })
 
 
-# In[20]:
+# In[ ]:
 
 
 sirv_model.plot()
@@ -321,7 +325,7 @@ sirv_model.plot()
 # 
 # Episimlab allows users to set arbitrary dimensions for parameters. We could add age heterogeneity for the `vacc_per_day` variable by modifying our existing processes:
 
-# In[21]:
+# In[ ]:
 
 
 @xs.process
@@ -344,7 +348,7 @@ class AgeScaledRateS2V:
             self.rate_S2V = xr.DataArray(data=self.vacc_per_day, dims=['age']) # new
 
 
-# In[22]:
+# In[ ]:
 
 
 age_model = sirv_model.update_processes({
@@ -352,7 +356,7 @@ age_model = sirv_model.update_processes({
 })
 
 
-# In[23]:
+# In[ ]:
 
 
 age_model
@@ -360,7 +364,7 @@ age_model
 
 # We run the model as usual. Note that we can specify a dictionary of output variables if we want additional data in the output array. In addition to the `state` variable from `compt_model` process, we also want to retrieve the `rate_V2I` variable from the `rate_V2I` process for one of our analyses.
 
-# In[24]:
+# In[ ]:
 
 
 age_model.run(
@@ -384,7 +388,7 @@ age_model.run(
 # - Population of `V` compartment over time
 # - Incidence of escape infections, effectively the `rate_V2I`
 
-# In[25]:
+# In[ ]:
 
 
 (age_model
@@ -398,7 +402,7 @@ age_model.run(
  .plot.line(x='step', aspect=2, size=9))
 
 
-# In[26]:
+# In[ ]:
 
 
 (age_model
@@ -420,13 +424,13 @@ age_model.run(
 # 
 # In short, we will package all of our work thus far into a standardized format that makes it easy to reproduce. We could then distribute the model by putting the model in a [dedicated Python module](https://github.com/UT-Covid/episimlab/blob/main/episimlab/models/example_sirv.py#L215) in the Episimlab repository.
 
-# In[27]:
+# In[ ]:
 
 
 from episimlab.models import example_sir
 
 
-# In[28]:
+# In[ ]:
 
 
 class ExampleSIRV(EpiModel):
@@ -450,6 +454,7 @@ class ExampleSIRV(EpiModel):
         'setup_coords': example_sir.SetupCoords,
         'setup_state': example_sir.SetupState,
         'setup_phi': example_sir.SetupPhi,
+        'setup_omega': example_sir.SetupOmega,
 
         # Edge weight processes from ExampleSIR
         'rate_S2I': example_sir.FOI,
@@ -510,7 +515,7 @@ class ExampleSIRV(EpiModel):
 
 # Now, running our SIRV model is as easy as:
 
-# In[29]:
+# In[ ]:
 
 
 packaged_model = ExampleSIRV()

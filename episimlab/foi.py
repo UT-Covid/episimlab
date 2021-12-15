@@ -1,6 +1,6 @@
 import xarray as xr
 import xsimlab as xs
-from .utils import any_negative, suffixed_dims
+from .utils import any_negative, suffixed_dims, group_dict_by_var
 from collections import Sequence
 
 
@@ -20,7 +20,12 @@ class BaseFOI:
                       description="pairwise contact patterns")
     state = xs.global_ref('state', intent='in')
     beta = xs.variable(global_name='beta', intent='in')
+    omega = xs.variable(global_name='omega', dims=('compt', 'age'), intent='in')
     _coords = xs.group_dict('coords')
+
+    @property
+    def coords(self):
+        return group_dict_by_var(self._coords)
 
     @property
     def phi_dims(self):
@@ -44,17 +49,18 @@ class BaseFOI:
         S = self.S.rename(zero_suffix)
         I = self.I.rename(one_suffix)
         N = self.state.sum('compt').rename(one_suffix)
-        foi = ((self.beta * self.phi * S * I / N)
+        omega = self.om.rename(suffixed_dims(self.omega[dict(compt=0)], '1'))
+        foi = ((self.beta * self.phi * omega * S * I / N)
                # sum over coords that are not compt
                .sum(one_suffix.values())
                # like .rename({'age0': 'age', 'risk0': 'risk'})
                .rename({v: k for k, v in zero_suffix.items()}))
-        
+
         # DEBUG
         assert not any_negative(foi, raise_err=True)
         
         return foi
-    
+
     def normalize_index(self, index):
         """Generate an index that that is compatible with `DataArray.loc`."""
         if isinstance(index, str):
@@ -64,6 +70,11 @@ class BaseFOI:
         else:
             return index
     
+    @property
+    def om(self):
+        index = self.normalize_index(self.I_COMPT_LABELS)
+        return self.omega.loc[dict(compt=index)]
+
     @property
     def I(self):
         index = self.normalize_index(self.I_COMPT_LABELS)
@@ -92,9 +103,10 @@ class BruteForceFOI(BaseFOI):
         foi = xr.DataArray(data=0., dims=self.foi_dims, coords=self.foi_coords)
         for a0, r0, v0, a1, r1, v1 in product(*[self.age_coords, self.risk_coords, self.vertex_coords, ] * 2):
             i0, i1 = dict(vertex=v0, age=a0, risk=r0), dict(vertex=v1, age=a1, risk=r1)
+            omega = self.omega.loc[dict(age=a1)]
             phi = self.phi.loc[dict(age0=a0, age1=a1, risk0=r0, risk1=r1, vertex0=v0, vertex1=v1)].values
             S = self.state.loc[dict(compt='S')].loc[i0].values
             I = self.state.loc[dict(compt='I')].loc[i1].values
             N = self.state.loc[i1].sum('compt').values
-            foi.loc[i0] += phi * self.beta * S * I / N
+            foi.loc[i0] += phi * self.beta * omega * S * I / N
         return foi
