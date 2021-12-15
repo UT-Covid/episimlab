@@ -1,6 +1,6 @@
 import xarray as xr
 import xsimlab as xs
-from .utils import any_negative, suffixed_dims
+from .utils import any_negative, suffixed_dims, group_dict_by_var
 from collections import Sequence
 
 
@@ -22,6 +22,10 @@ class BaseFOI:
     beta = xs.variable(global_name='beta', intent='in')
     omega = xs.variable(global_name='omega', dims=('compt', 'age'), intent='in')
     _coords = xs.group_dict('coords')
+
+    @property
+    def coords(self):
+        return group_dict_by_var(self._coords)
 
     @property
     def phi_dims(self):
@@ -51,12 +55,12 @@ class BaseFOI:
                .sum(one_suffix.values())
                # like .rename({'age0': 'age', 'risk0': 'risk'})
                .rename({v: k for k, v in zero_suffix.items()}))
-        
+
         # DEBUG
         assert not any_negative(foi, raise_err=True)
         
         return foi
-    
+
     def normalize_index(self, index):
         """Generate an index that that is compatible with `DataArray.loc`."""
         if isinstance(index, str):

@@ -165,15 +165,9 @@ class RateS2E(BaseFOI):
     """FOI that provides a `rate_S2E`"""
     TAGS = ('model::ElevenComptV1', 'FOI')
     PHI_DIMS = ('age0', 'age1', 'risk0', 'risk1', 'vertex0', 'vertex1',)
+    I_COMPT_LABELS = ('Ia', 'Iy', 'Pa', 'Py')
+    S_COMPT_LABELS = ('S')
     rate_S2E = xs.variable(intent='out', groups=['edge_weight'])
-
-    @property
-    def I(self):
-        return self.state.loc[dict(compt=['Ia', 'Iy', 'Pa', 'Py'])]
-
-    @property
-    def S(self):
-        return self.state.loc[dict(compt='S')]
 
     def run_step(self):
         self.rate_S2E = self.foi.sum('compt')
@@ -200,6 +194,7 @@ class RateV2Ev(BaseFOI):
     # reference phi, beta from global environment
     phi = xs.global_ref('phi', intent='in')
     beta = xs.global_ref('reduced_beta', intent='in')
+    omega = xs.global_ref('omega', intent='in')
     rate_V2Ev = xs.variable(intent='out', groups=['edge_weight'])
 
     def run_step(self):

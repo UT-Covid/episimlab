@@ -137,8 +137,11 @@ class RateV2I(BaseFOI):
     # We also define an input variable that scales FOI
     vacc_efficacy = xs.variable(global_name='vacc_efficacy', intent='in')
     
+    # Use the same values for omega and phi as the S2I transition
+    # We use the same values by importing these variables using their
+    # global_name
+    omega = xs.global_ref('omega', intent='in')
     phi = xs.global_ref('phi', intent='in')
-    omega = 1.
     
     def run_step(self):
         """Calculate the `rate_V2I` at every step of the simulation. Here,
