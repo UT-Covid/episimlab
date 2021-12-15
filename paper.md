@@ -57,7 +57,7 @@ In addition, such projects rarely support complex models containing more than 5 
 
 Inspired by previous works, Episimlab aims to support development of models with arbitrary complexity.
 It gives the user flexibility to define key components of their compartmental model, such as the dimensionality of the Markov state space [@Grimmett2020], the number of compartments, structure and rate of transitions between compartments, and custom stochastic behavior.
-Therefore, Episimlab supports not only the handful of compartmental models that are included in the package, but also an indefinite number of compartmental model structures which can be tailored for specific modeling use cases.
+Therefore, Episimlab supports not only the handful of compartmental models that are included in the package, but also an indefinite number of model structures which can be tailored for specific modeling use cases.
 This is accomplished by enforcing a modular paradigm of model development.
 The package provides a library of lightweight Python classes, known as processes in the API, which comprise a model when combined with other processes.
 The core process `ComptModel` is the only process shared by all Episimlab models. 
@@ -106,7 +106,7 @@ The simulation engine incorporates high-resolution demographic and mobility data
 
 # Acknowledgements
 
-We would like to thank the UT Austin COVID-19 Modeling Consortium for their collaborative support. In particular, we acknowledge Dr. Lauren Ancel Meyers and her team for their guidance throughout the development process.
+We would like to thank the UT Austin COVID-19 Modeling Consortium for their collaborative support. In particular, we acknowledge Dr. Lauren Ancel Meyers and her team for their guidance throughout the development process. We also thank Alyssa Cantu for editing the manuscript.
 
 This work is supported by CDC Contract 75D-301-19-C-05930 and NIH Grant 3R01AI151176-01S1.
 
