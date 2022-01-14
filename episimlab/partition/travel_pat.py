@@ -22,7 +22,8 @@ class TravelPatFromCSV:
     def initialize(self):
         self.run_step(None, None)
 
-    @xs.runtime(args=('step_start', 'step_end',))
+    #@xs.runtime(args=('step_start', 'step_end',))
+    @xs.runtime(args=('step_end', 'step_start'))
     def run_step(self, step_start, step_end):
         df = self.get_travel_df()
 
@@ -56,11 +57,16 @@ class TravelPatFromCSV:
         else:
             assert step_start <= step_end
             mask = (date >= step_start) & (date < step_end)
+            # DEBUG: start and end seem to be flipped
+            #assert step_end <= step_start
+            #mask = (date >= step_end) & (date > step_start)
         return mask
     
     def get_travel_df(self) -> pd.DataFrame:
         """Load travel patterns from a CSV file and run preprocessing."""
-        df = pd.read_csv(self.travel_pat_fp)
+        df = pd.read_csv(self.travel_pat_fp, dtype={'source': str, 'destination': str})
+        assert 'source' in df.columns
+        assert 'destination' in df.columns
         df['date'] = pd.to_datetime(df['date'])
         if 'age_src' in df.columns:
             df = df.rename(columns=dict(age_src='age'))

@@ -73,18 +73,39 @@ def any_negative(val, raise_err=False) -> bool:
     Accepts ndarray and DataArray types.
     """
     err = ''
+    tolerance = -10.0
     if isinstance(val, xr.DataArray):
-        any_neg = np.any(val < 0)
+        any_neg = np.any(val < tolerance)
         if any_neg:
-            err = f"Found negative value(s) in DataArray: {val.where(val < 0, drop=True)}"
+            print(val.nanmin())
+            err = f"Found value(s) less than {tolerance} in DataArray: {val.where(val < tolerance, drop=True)}"
     elif isinstance(val, np.ndarray):
-        any_neg = np.any(val < 0)
+        any_neg = np.any(val < tolerance)
         if any_neg:
-            err = f"Found negative value(s) in ndarray: {np.where(val < 0)}"
+            print(val.nanmin())
+            err = f"Found value(s) less than {tolerance} in ndarray: {np.where(val < tolerance)}"
+    elif isinstance(val, xr.Dataset):
+        # evaluating the condition returns an xarray -> "any_neg = val.min() < tolerance"
+        # is assigned a value and is evaluated as True, even if the only value in that xarray is False
+        # a couple of type conversions extract the bool from the xarray for evaluation
+        try:
+            eval_xr = val.min() < tolerance
+            any_neg = eval_xr.to_array().to_numpy().item()
+        except ValueError:
+            # empty arrays raise value errors... can't be negative if empty...
+            any_neg = False
+        if any_neg:
+            print(val.where(val < tolerance))
+            print(f'The minimum value in the xarray dataset is {val.min()}')
+            try:
+                print(val.where(val < tolerance).estimate)
+            except ValueError:
+                pass
+            err = f"Value of type {type(val)} is less than {tolerance}: {val}"
     else:
-        any_neg = val < 0
+        any_neg = val < tolerance
         if any_neg:
-            err = f"Value of type {type(val)} is less than 0: {val}"
+            err = f"Value of type {type(val)} is less than {tolerance}: {val}"
     if any_neg and raise_err is True:
         raise ValueError(err)
     else:
