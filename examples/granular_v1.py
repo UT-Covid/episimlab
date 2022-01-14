@@ -13,6 +13,7 @@ from episimlab.foi import BaseFOI
 from episimlab.utils import get_var_dims, group_dict_by_var, visualize_compt_graph, coerce_to_da, fix_coord_dtypes, IntPerDay
 from episimlab.setup.sto import SetupStochasticFromToggle
 from episimlab.setup.seed import SeedGenerator
+from episimlab.setup.state import SetupStateWithRiskFromCSV
 import networkx as nx
 
 
@@ -34,6 +35,13 @@ class SetupStateFromCSV:
         ).drop('Unnamed: 0', axis=1).rename(columns={'GEOID': 'vertex', 'age_bin': 'age'})
 
     def get_census_xa(self, df: pd.DataFrame) -> xr.DataArray:
+
+        df.set_index(['vertex', 'age', 'risk'], inplace=True)
+        # filter to zcta that we want to model in the simulation (vertex coords)
+        df = df.loc[self.coords['vertex']]
+        da = xr.DataArray.from_series(df['estimate'])
+        da.coords['age'] = da.coords['age'].astype(str)
+
         compt_fill = []
         df['compt'] = 'S'
         compt_fill.append(df)
@@ -47,7 +55,7 @@ class SetupStateFromCSV:
         full_census = full_census.set_index([i for i in self.dims])
         census_xr = full_census.to_xarray()
         census_xr = census_xr.fillna(0.0)
-        census_xa = census_xr['estimate'].assign_coords(self.coords)
+        census_xa = census_xr['estimate']
 
         return census_xa
 
@@ -72,7 +80,7 @@ class GranularFromTravel(EpiModel):
         'setup_compt_graph': SetupComptGraph,
         'int_per_day': IntPerDay,
         'setup_coords': SetupCoords,
-        'setup_state': SetupStateFromCSV,
+        'setup_state': SetupStateWithRiskFromCSV,
 
         # Contact partitioning
         'setup_travel': TravelPatFromCSV,
@@ -150,4 +158,4 @@ def main():
 if __name__ == '__main__':
 
     output = main()
-    output.to_zarr(store='test_granular_agm.zarr')
+    output.to_zarr(store='test_granular_agm_3.zarr')
