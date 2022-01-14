@@ -73,7 +73,7 @@ def any_negative(val, raise_err=False) -> bool:
     Accepts ndarray and DataArray types.
     """
     err = ''
-    tolerance = -10.0
+    tolerance = -1e-8
     if isinstance(val, xr.DataArray):
         any_neg = np.any(val < tolerance)
         if any_neg:
