@@ -2,6 +2,7 @@ import logging
 import pandas as pd
 import xsimlab as xs
 import xarray as xr
+import numpy as np
 
 from ..compt_model import ComptModel
 from .coords import SetupToyCoords
@@ -99,6 +100,68 @@ class SetupStateFromCensusCSV(SetupToyState):
         assert not df.isna().any().any(), ('found null values in df', df.isna().any())
         df.rename(columns={'GEOID': 'vertex', 'age_bin': 'age'}, inplace=True)
         df.set_index(['vertex', 'age'], inplace=True)
+        # filter to zcta that we want to model in the simulation (vertex coords)
+        df = df.loc[self.coords['vertex']]
+        da = xr.DataArray.from_series(df['group_pop'])
+        da.coords['age'] = da.coords['age'].astype(str)
+        return da
+
+
+@xs.process
+class SetupStateWithRiskFromCSV(SetupToyState):
+    """Initializes state from CSV file with vertex, age and risk populations.
+    """
+    census_fp = xs.variable(intent='in')
+
+    def initialize(self):
+        da = xr.DataArray(
+            data=0.,
+            dims=self.state_dims,
+            coords=self.state_coords
+        )
+        dac = (self
+            .read_census_csv()
+            .reindex(dict(
+            vertex=self.coords['vertex'],
+            age=self.coords['age'],
+            risk=self.coords['risk']))
+        )
+        # sanity checks
+        assert not dac.isnull().any()
+        assert all(zcta in dac.coords['vertex'] for zcta in da.coords['vertex'].values)
+
+        # breakpoint()
+        da.loc[dict(compt='S')] = dac
+        self.state = da
+        self.set_ia_random()
+
+        # warning if detects no infected
+        if self.state.loc[dict(compt='Ia')].sum() < 1.:
+            logging.warning(f"Population of Ia compt is less than 1. Did " +
+                            "you forget to set infected compt?")
+
+    def set_ia_random(self):
+        """Initialize epidemic with a single infected person.
+        """
+        vertex_start = np.random.choice(
+            a=np.unique(self.state.coords['vertex'].values), size=1
+        )
+        age_start = np.random.choice(
+            a=np.unique(self.state.coords['age'].values), size=1
+        )
+        risk_start = np.random.choice(
+            a=np.unique(self.state.coords['risk'].values), size=1
+        )
+        logging.info(f'Initializing epidemic in vertex {vertex_start}, age group {age_start}, risk group {risk_start}')
+        self.state.loc[dict(compt='Ia', risk=risk_start, vertex=vertex_start, age=age_start)] = 1.0
+
+    def read_census_csv(self) -> xr.DataArray:
+        df = pd.read_csv(
+            self.census_fp, dtype={'GEOID': str}
+        ).drop('Unnamed: 0', axis=1).rename(columns={'GEOID': 'vertex', 'age_bin': 'age'})
+        assert not df.isna().any().any(), ('found null values in df', df.isna().any())
+        df.rename(columns={'GEOID': 'vertex', 'age_bin': 'age', 'estimate': 'group_pop'}, inplace=True)
+        df.set_index(['vertex', 'age', 'risk'], inplace=True)
         # filter to zcta that we want to model in the simulation (vertex coords)
         df = df.loc[self.coords['vertex']]
         da = xr.DataArray.from_series(df['group_pop'])
