@@ -17,57 +17,6 @@ from episimlab.setup.state import SetupStateWithRiskFromCSV
 import networkx as nx
 
 
-@xs.process
-class SetupStateFromCSV:
-    """Initialize state matrix"""
-    TAGS = ('granular', 'dependency::pandas')
-    _coords = xs.group_dict('coords')
-    state = xs.global_ref('state', intent='out')
-    census_fp = xs.variable(intent='in', description='Path to CSV file from which to load initial susceptible population')
-
-    def initialize(self):
-        self.state = self.get_census_xa(df=self.get_census_df())
-        self.state.loc[dict(compt='Pa', vertex='78712', age='20-49', risk='low')] = 1
-
-    def get_census_df(self):
-        return pd.read_csv(
-            self.census_fp, dtype={'GEOID': str}
-        ).drop('Unnamed: 0', axis=1).rename(columns={'GEOID': 'vertex', 'age_bin': 'age'})
-
-    def get_census_xa(self, df: pd.DataFrame) -> xr.DataArray:
-
-        df.set_index(['vertex', 'age', 'risk'], inplace=True)
-        # filter to zcta that we want to model in the simulation (vertex coords)
-        df = df.loc[self.coords['vertex']]
-        da = xr.DataArray.from_series(df['estimate'])
-        da.coords['age'] = da.coords['age'].astype(str)
-
-        compt_fill = []
-        df['compt'] = 'S'
-        compt_fill.append(df)
-        for c in ['E', 'Pa', 'Py', 'Ia', 'Iy', 'Ih', 'R', 'D']:  # todo: pull from self.DIMS
-            ccopy = deepcopy(df)
-            ccopy['compt'] = c
-            ccopy['estimate'] = 0.0  # remove the population
-            compt_fill.append(ccopy)
-        full_census = pd.concat(compt_fill)
-
-        full_census = full_census.set_index([i for i in self.dims])
-        census_xr = full_census.to_xarray()
-        census_xr = census_xr.fillna(0.0)
-        census_xa = census_xr['estimate']
-
-        return census_xa
-
-    @property
-    def dims(self):
-        return get_var_dims(ComptModel, 'state')
-
-    @property
-    def coords(self):
-        return group_dict_by_var(self._coords)
-
-
 class GranularFromTravel(EpiModel):
     """Nine-compartment SEIR model with partitioning from Episimlab V1"""
     TAGS = ('SEIR', 'compartments::9', 'contact-partitioning')
