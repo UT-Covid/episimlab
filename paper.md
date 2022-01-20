@@ -13,9 +13,23 @@ authors:
   - name: Kelly Pierce
     orcid: 0000-0002-6513-8305
     affiliation: 1
+  - name: Zhanwei Du 
+    orcid: null
+    affiliation: 2
+  - name: Remy Pasco
+    orcid: 0000-0002-9321-6876
+    affiliation: 2
+  - name: Xutong Wang
+    orcid: null
+    affiliation: 2
+  - name: Lauren Ancel Meyers
+    orcid: 0000-0002-5828-8874
+    affiliation: 2
 affiliations:
   - name: Texas Advanced Computing Center (TACC) - University of Texas at Austin
     index: 1
+  - name: The University of Texas at Austin
+    index: 2
 date: 16 November 2021
 bibliography: paper.bib
 ---
