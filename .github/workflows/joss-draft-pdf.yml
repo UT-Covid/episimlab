@@ -1,0 +1,29 @@
+name: JOSS Paper
+on:
+  push:
+    paths:
+      - "paper.md"
+    branches:
+      - main
+  pull_request:
+    paths:
+      - "paper.md"
+    branches:
+      - main
+
+jobs:
+  paper:
+    runs-on: ubuntu-latest
+    name: JOSS Paper Draft
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build draft PDF
+        uses: openjournals/openjournals-draft-action@master
+        with:
+          journal: joss
+          # This should be the path to the paper within your repo.
+          paper-path: paper.md
+      - uses: EndBug/add-and-commit@v7
+        with:
+            default_author: github_actions
