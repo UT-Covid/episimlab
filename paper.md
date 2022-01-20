@@ -22,6 +22,9 @@ authors:
   - name: Xutong Wang
     orcid: null
     affiliation: 2
+  - name: Spencer Fox
+    orcid: 0000-0003-1969-3778
+    affiliation: 2
   - name: Lauren Ancel Meyers
     orcid: 0000-0002-5828-8874
     affiliation: 2
