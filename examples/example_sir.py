@@ -81,7 +81,10 @@ model.config_fp = './examples/example_sir.yaml'
 results = model.run(input_vars={
     # We can optionally overwrite specific input variables at runtime
     'beta': 0.085
-})
+}, output_vars={
+    'compt_model__tm': 'step'
+}
+)
 
 # Plot the state over time
 model.plot()
@@ -102,3 +105,7 @@ print(final_state)
 #   * risk     (risk) object 'low' 'high'
 #   * step     (step) datetime64[ns] 2020-03-01 2020-03-02 ... 2020-03-15
 #   * vertex   (vertex) object 'Austin' 'Houston' 'San Marcos' 'Dallas'
+
+# Print transition matrix (tm)
+tm = results['compt_model__tm']
+print(tm)
