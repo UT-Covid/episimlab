@@ -126,4 +126,3 @@ class TravelPatRepeatDaily(TravelPatFromCSV):
                 f"step start {step_start}.")
 
         self.travel_pat = self.get_travel_da(df)
-    

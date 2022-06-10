@@ -30,4 +30,24 @@ class ContactsFromCSV:
         da = ds['daily_per_capita_contacts']
         # Change coordinate dtypes from 'object' to unicode
         return fix_coord_dtypes(da)
-    
+
+
+@xs.process
+class ContactsFromNetCDF:
+    """Load baseline contact patterns from a CSV file to a `contacts` DataArray.
+    """
+    TAGS = ('partition', 'dependency::pandas')
+    contacts_fp = xs.variable(intent='in', description='Path to NetCDF file from '
+                                                       'which to load baseline contact patterns')
+    contacts = xs.global_ref('contacts', intent='out')
+
+    def initialize(self):
+        self.contacts = self.get_contacts_da()
+
+    def get_contacts_da(self):
+        contacts_da = xr.open_dataset(self.contacts_fp, engine='netcdf4')
+
+        # todo: smarter type handling
+        #assert type(contacts_da) == xr.core.dataarray.DataArray
+
+        return fix_coord_dtypes(contacts_da)

@@ -1,20 +1,20 @@
 import logging
 import pandas as pd
+import numpy as np
 import xarray as xr
 import xsimlab as xs
 from ..utils import group_dict_by_var, get_int_per_day, fix_coord_dtypes, get_var_dims
 from .travel_pat import TravelPatFromCSV
-from episimlab.setup.state import SetupStateWithRiskFromCSV
 
 @xs.process
 class BehaviorChange(TravelPatFromCSV):
 
-    census_fp = xs.global_ref('census_fp', intent='in')
     state = xs.global_ref('state', intent='in')
     hosp_catchment_fp = xs.variable(
         static=True, intent='in', description="path to a CSV file containing hospital catchments"
     )
 
+    @xs.runtime(args=('step_end', 'step_start'))
     def run_step(self, step_start, step_end):
         travel_df = self.get_travel_df()
 
@@ -29,82 +29,53 @@ class BehaviorChange(TravelPatFromCSV):
             raise ValueError(f'No travel data between {step_start} and {step_end}')
         logging.info(f'The date in Partition.get_travel_df is {travel_df["date"].unique()}')
 
-        hosp_catchment = self.get_hospital_catchment()
-        symp_catchment = self.get_symp_catchment()
         kappa = self.get_granular_kappa()
 
-        updated_df = self.change_travel_inf(travel_df, hosp_catchment, symp_catchment, kappa)
+        updated_df = self.change_travel_inf(travel_df, kappa)
 
         self.travel_pat = self.get_travel_da(updated_df)
-
-    def get_hospital_catchment(self):
-        """ load a CSV of hospital catchments
-        """
-        hosp_catch = pd.read_csv(self.hosp_catchment_fp)
-
-        return hosp_catch
-
-    def get_symp_catchment(self):
-
-        # return a dataframe where vertex_src == vertex_dest
-        unique_vertex = self.travel_pat.coords['vertex0'].values
-        symp_catch = pd.DataFrame(
-            {'vertex_src': unique_vertex,
-             'vertex_dest': unique_vertex}
-        )
-
-        return symp_catch
 
     def get_granular_kappa(self):
 
         return 1
 
-    def state_fraction(self, state_df):
+    def state_fraction(self, state_df, initial_state):
 
-        state_ = pd.merge(state_df, self.census, on=['vertex', 'age'], suffixes=('_state', '_census'))
-        state_['prop_state'] = state_['N_state'] / state_['N_census']
+        state_ = pd.merge(state_df, initial_state, on=['vertex', 'age'], suffixes=('_state', '_census'))
+        state_['prop_state'] = state_['n_state'] / state_['n_census']
 
         return state_
 
-    def update_catchment(self, original, new, travel_df):
-
-        update = pd.merge(original, new, right_on='vertex', left_on='vertex_src')
-        update_ = pd.merge(update, travel_df, right_on='vertex_src', left_on='vertex_src',
-                           suffixes=('_state', '_travel'))
-
-        return update_
-
-    def change_travel_inf(self, travel_df, hosp_catchment, symp_catchment, kappa):
+    def change_travel_inf(self, travel_df, kappa):
         """Set of rules to
         - keep infected, symptomatic compartments home
         - send hospitalized compartment to ZCTAs corresponding to hospital catchments
         - remove the deceased from the contact patterns
         """
 
-        Ih = self.state.loc[dict(compt='Ih')].to_dataframe()
-        Iy = self.state.loc[dict(compt='Iy')].to_dataframe()
-        D = self.state.loc[dict(compt='D')].to_dataframe()
+        # grab the initial state by summing across all compartments and risk groups
+        # this works because there are no births or immigrations, and death (removal) is tracked
+        initial_state = self.state.to_dataframe(name='n')
+        initial_state = initial_state.groupby(['vertex', 'age'])['n'].sum().reset_index()
 
-        hosp_fraction = self.state_fraction(Ih)
-        symp_fraction = self.state_fraction(Iy)
-        dead_fraction = self.state_fraction(D)
+        Ih = self.state.loc[dict(compt='Ih')].to_dataframe(name='n')
+        Iy = self.state.loc[dict(compt='Iy')].to_dataframe(name='n')
+        D = self.state.loc[dict(compt='D')].to_dataframe(name='n')
+
+        hosp_fraction = self.state_fraction(Ih, initial_state).rename(columns={'prop_state': 'prop_state_hosp'})
+        symp_fraction = self.state_fraction(Iy, initial_state).rename(columns={'prop_state': 'prop_state_symp'})
+        dead_fraction = self.state_fraction(D, initial_state).rename(columns={'prop_state': 'prop_state_dead'})
 
         ## COMBINE STATES
-        hosp_symp = pd.merge(
-            hosp_fraction, symp_fraction, on=['vertex', 'age'], how='outer', suffixes=['_hosp', '_symp']
-        )
-        all_fractions = pd.merge(hosp_symp, dead_fraction, on=['vertex', 'age'], how='outer', suffixes=['', '_dead'])
-        all_fractions['prop_travel'] = all_fractions['prop_state_hosp'] + all_fractions['prop_state_symp'] + all_fractions['prop_state_dead']
-
-        ## INTERNAL SANITY CHECK
-        total_fraction = (all_fractions['prop_travel'] + all_fractions['prop_state_hosp'] + all_fractions['prop_state_symp'] + all_fractions['prop_state_dead'])
-        assert max(total_fraction) == 1.
+        hosp_symp = pd.merge(hosp_fraction, symp_fraction, on=['vertex', 'age'], how='outer')
+        all_fractions = pd.merge(hosp_symp, dead_fraction, on=['vertex', 'age'], how='outer')
+        all_fractions['prop_no_travel'] = all_fractions['prop_state_hosp'] + all_fractions['prop_state_symp'] + all_fractions['prop_state_dead']
 
         ## UNINFECTED
         # fraction with NO change in travel (implicitly removes symptomatic, hospitalized, and deceased)
-        update_travel = pd.merge(travel_df, all_fractions, left_on=['vertex_src', 'age'], right_on=['vertex', 'age'])
-        update_travel['n_updated'] = update_travel['n'] * all_fractions['prop_travel']
-        update_travel = update_travel[['vertex_src', 'vertex_dest', 'age', 'n_updated']].rename(
+        update_travel = pd.merge(travel_df, all_fractions, left_on=['source', 'age'], right_on=['vertex', 'age'])
+        update_travel['n_updated'] = update_travel['n'] * (1 - update_travel['prop_no_travel'])
+        update_travel_ = update_travel[['source', 'destination', 'age', 'n_updated']].rename(
             columns={'n_updated': 'n'}
         )
 
@@ -113,22 +84,23 @@ class BehaviorChange(TravelPatFromCSV):
         """At this point in development, we want to analyze hospitalization post-hoc
         So we have defined hospital catchments, but we don't have hospitals in the contact matrix and we don't
         have a baseline census of people in hospitals. """
-        #hosp_fraction_ = self.update_catchment(original=hosp_fraction, new=hosp_catchment, travel_df=travel_df)
-        #hosp_fraction_['n_travel_hosp'] = hosp_fraction_['n_travel'] * hosp_fraction_['prop_state']
-        #to_hosp = hosp_fraction_[['vertex_src', 'vertex_hosp', 'age', 'n_travel_hosp']].rename(
-        #    columns={'vertex_hosp': 'vertex_dest', 'n_travel_hosp': 'n'}
-        #)
 
         ## SYMPTOMATIC INFECTIONS
         # fraction with change in travel
-        symp_fraction_ = self.update_catchment(original=symp_fraction, new=symp_catchment, travel_df=travel_df)
-        symp_fraction_['n_stay_home'] = symp_fraction_['n_travel'] * symp_fraction_['prop_state']
-        stay_home = symp_fraction_[['vertex_src', 'vertex_hosp', 'age', 'n_stay_home']].rename(
-            columns={'vertex_hosp': 'vertex_dest', 'n_stay_home': 'n'}
-        )
+        update_travel['n_stay_home'] = update_travel['n'] * update_travel['prop_state_symp']
+        update_symp = update_travel[['source', 'age', 'n_stay_home']]
+        update_symp['destination'] = update_symp['source']
+        update_symp = update_symp.rename(columns={'n_stay_home': 'n'})
 
         ## FINALIZE
-        final_travel = pd.concat([update_travel, stay_home])
-        final_travel = final_travel.groupby(['vertex_src', 'vertex_dest', 'age'])
+        final_travel = pd.concat([update_travel_, update_symp])
+        final_travel = final_travel.groupby(['source', 'destination', 'age'])['n'].sum().reset_index()
+
+        ## INTERNAL SANITY CHECK
+        final_travel_vertex_total = final_travel.groupby(['source', 'age'])['n'].sum().reset_index()
+        compare = pd.merge(initial_state, final_travel_vertex_total, left_on=['vertex'], right_on=['source'])
+        diff = compare['n_x'] - compare['n_y']
+        np.testing.assert_almost_equal(max(diff), 0)
+        np.testing.assert_almost_equal(min(diff), 0)
 
         return final_travel
