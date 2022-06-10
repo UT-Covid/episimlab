@@ -52,7 +52,7 @@ class SetupOmega:
         da.loc[dict(compt='Ia')] = 0.666666667
         da.loc[dict(compt='Iy')] = 1.
         da.loc[dict(compt='Pa')] = [0.91117513, 0.91117513, 0.92460653, 0.95798887, 0.98451149]
-        da.loc[dict(compt='Py')] = [1.36676269, 1.36676269, 1.3869098 , 1.43698331, 1.47676724]
+        da.loc[dict(compt='Py')] = [1.36676269, 1.36676269, 1.3869098, 1.43698331, 1.47676724]
 
         self.omega = da
 
@@ -196,8 +196,12 @@ class RateE2P:
 
     def run_step(self):
         self.rate_E2P = dta(self.sigma, self.int_per_day) * self.state.loc[dict(compt='E')]
-        # DEBUG
-        assert not any_negative(self.rate_E2P, raise_err=True)
+
+        try:
+            assert not any_negative(self.rate_E2P, raise_err=True)
+        except AssertionError:
+            print(self.rate_E2P.idxmin())
+            raise
    
 
 @xs.process
